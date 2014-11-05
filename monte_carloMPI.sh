@@ -15,4 +15,4 @@ cat $PBS_NODEFILE
 #cd ~/your_stuff
 
 # Use mpirun to run with 12 cores
-mpirun ./your-mpi-program
+mpirun mpi4py-examples/01-hello-world
