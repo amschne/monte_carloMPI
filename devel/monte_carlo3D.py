@@ -10,6 +10,9 @@ import os
 import ConfigParser
 import argparse
 
+import numpy as np
+from scipy.io import netcdf
+
 class MonteCarlo(object):
     def __init__(self, **model_kwargs):
         """ valid model_kwargs:
@@ -20,7 +23,8 @@ class MonteCarlo(object):
             hsensor = [SENSOR HIEGHT ABOVE SNOW [m]]
             flg_crt = plot in optical depth space (=0) or Cartesian space (=1)?
             flg_3D = plot in 2-D (=0), 3-D (=1). or no plot (=999)?
-            data_dir = [DIRECTORY OF OPTICS FILES]
+            optics_dir = [DIRECTORY OF OPTICS FILES]
+            fi_imp = [IMPURITY OPTICS FILE]
         """       
         model_args = self.get_model_args()
         
@@ -32,7 +36,8 @@ class MonteCarlo(object):
                            'hsensor' : model_args.hsensor,
                            'flg_crt' : model_args.flg_crt,
                            'flg_3D' : model_args.flg_3D,
-                           'data_dir' : model_args.data_dir}
+                           'optics_dir' : model_args.data_dir
+                           'fi_imp' : model_args.fi_imp}
         
         # overwrite model_args_dict[kwarg] if specified at instantiation
         for kwarg, val in model_kwargs.items():
@@ -45,13 +50,93 @@ class MonteCarlo(object):
         self.hsensor = model_args_dict['hsensor']
         self.flg_crt = model_args_dict['flg_crt']
         self.flg_3D = model_args_dict['flg_3D']
-        self.data_dir = model_args_dict['data_dir']
+        self.optics_dir = model_args_dict['optics_dir']
+        self.fi_imp = model_args_dict['fi_imp']
     
-    def monte_carlo3D(n_photon, wvl, rds_snw):
+    def get_optical_properties(self, wvls, rds_snw):
+        """ Retrieve snow and impurity optical properties from NetCDF files,
+            based on user-specified wavelengths (wvls), snow grain size
+            (rds_snw), and impurity optics file (self.fi_imp)
+            
+            Returns ssa_ice, ext_cff_mss_ice, g, ssa_imp, ext_cff_mss_imp
+        """
+        # snow optics:
+        fi_name = 'ice_wrn_%04d.nc' % rds_snw
+        fi = os.path.join(self.optics_dir, fi_name)
+        snow_optics = netcdf.netcdf_file(fi, 'r')
+        
+        wvl_in = snow_optics.variables['wvl']
+        ssa_in = snow_optics.variables['ss_alb']
+        ext_in = snow_optics.variables['ext_cff_mss']
+        asm_in = snow_optics.varibales['asm_prm']
+        
+        if type(wvls)==int or type(wvls)==float:
+            idx_wvl = np.argmin(np.absolute(wvl*1e-6 - wvl_in.data))
+            ssa_ice = ssa_in[idx_wvl]
+            ext_cff_mss_ice = ext_in[idx_wvl]
+            g = asm_in[idx_wvl]
+        
+        elif type(wvls)==numpy.ndarray:
+            ssa_ice = np.empty(wvls.shape)
+            ext_cff_mss_ice = np.empty(wvls.shape)
+            g = np.empty(wvls.shape)     
+            for i, wvl in enumerate(wvls):
+                idx_wvl = np.argmin(np.absolute(wvl*1e-6 - wvl_in.data))
+                ssa_ice[i] = ssa_in[idx_wvl]
+                ext_cff_mass_ice[i] = ext_in[idx_wvl]
+                g[i] = asm_in[idx_wvl]
+        
+        snow_optics.close()
+
+        # impurity optics:
+        fi_imp = os.path.join(self.optics_dir, self.fi_imp)
+        impurity_optics = netcdf.netcdf_file(fi_imp, 'r')
+        
+        wvl_in_imp = impurity_optics.variables['wvl']
+        ssa_in_imp = impurity_optics.variables['ss_alb']
+        ext_in_imp = impurity_optics.variables['ext_cff_mss']
+        
+        if type(wvls)==int or type(wvls)==float:
+            idx_wvl = np.argmin(np.absolute(wvl*1e-6 - wvl_in_imp.data))
+            ssa_imp = ssa_in_imp[idx_wvl]
+            ext_cff_mss_imp = ext_in_imp[idx_wvl]
+        elif type(wvls)==numpy.ndarray:
+            ssa_imp = np.empty(wvls.shape)
+            ext_cff_mss_imp = np.empty(wvls.shape)
+            for i, wvl in enumerate(wvls):
+                idx_wvl = np.argmin(np.absolute(wvl*1e-6 - wvl_in_imp.data))
+                ssa_imp[i] = ssa_in_imp[idx_wvl]
+                ext_cff_mss_imp[i] = ext_in_imp[idx_wvl]
+   
+        impurity_optics.close()
+    
+        return(ssa_ice, ext_cff_mss_ice, g, ssa_imp, ext_cff_mss_imp)
+    
+    def run(self, n_photon, wvl0, half_width, rds_snw):
+        """ Run the Monte Carlo model given a normal distribution of
+            wavelengths [um].  This better simulates what NERD does with
+            non-monochromatic LEDs.
+            
+            ALL VALUES IN MICRONS
+        """
+        # Convert half_width to standard deviation
+        scale = (2 * half_width) / 2.355
+        
+        # Generate random array of photon wavelengths, rounded to nearest nm
+        wvls = np.around(np.random.normal(loc=wvl0, scale=scale,
+                                          size=(n_photon)), decimals=3)
+        (ssa_ice,
+         ext_cff_mss_ice,
+         g, 
+         ssa_imp,
+         ext_cff_mss_imp) = self.get_optical_properties(self, wvls, rds_snw)                                        
+    
+    def monte_carlo3D(self, n_photon, wvl, rds_snw):
         """ Translated from matlab to python by Adam Schneider
         
             Returns albedo and fraction of incident photons reaching sensor
-        """    
+        """
+            
     
     def get_model_args(self):    
         """ Specify model kwargs at run time or get values from config.ini
@@ -76,7 +161,8 @@ class MonteCarlo(object):
 
         # data
         section_name = 'data'
-        optics_dir = config.get(section_name, 'dir')
+        optics_dir = config.get(section_name, 'optics_dir')
+        fi_imp = config.get(section_name, 'fi_imp')
 
         # run time args
         parser = argparse.ArgumentParser(description='[DESCRIPTION]')
@@ -98,12 +184,26 @@ class MonteCarlo(object):
         parser.add_argument('--flg_3D', type=int, default=flg_3D,
                             help='plot in 2-D (=0), 3-D (=1). '
                                  'or no plot (=999)?')
-        parser.add_argument('--optics_dir', type=str, default=data_dir, 
+        parser.add_argument('--optics_dir', type=str, default=optics_dir, 
                             help='directory of optics files')
+        parser.add_argument('--fi_imp', type=str, default=fi_imp)
         
         args = parser.parse_args()
         
         return args
+
+def test():
+    """ Test case for comparison with Wang et al (1995) Table 1, and van de
+        Hulst (1980).  Albedo should be ~0.09739.  Total transmittance
+        (diffuse+direct) should be ~0.66096.
+    """
+    n_photon = 50000
+    tau_tot = 2.0
+    ssa_ice = 0.9
+    g = 0.75
+    imp_cnc = 0
+    
+    test_run = MonteCarlo(tau_tot=tau_tot)
 
 def run():
     """ USER INPUT
@@ -136,18 +236,23 @@ def run():
 
     # directory of optics files
     #optics_dir = '/data/flanner/mie/snicar'
-    optics_dir = '/home/amaschne/mie/snicar'
+    optics_dir = '/home/amaschne/Projects/monte_carloMPI/data/snicar'
     
     # specification for nadir looking sensor
     rsensor = 0.05 # sensor radius [m]
     hsensor = 0.1 # sensor height above snow [m]
+    
+    # impurity optics file
+    fi_imp = 'mie_sot_ChC90_dns_1317.nc'
     
     """ END USER INPUT
     """
     monte_carlo_model = MonteCarlo(tau_tot=tau_tot, imp_cnc=imp_cnc,
                                    flg_crt=flg_crt, flg_3D=flg_3D,
                                    rho_snw=rho_snw, optics_dir=optics_dir,
-                                   rsensor=rsensor, hsensor=hsensor)
+                                   rsensor=rsensor, hsensor=hsensor,
+                                   fi_imp=fi_imp)
+                                   
     monte_carlo_model.monte_carlo3D(n_photon, wvl, rds_snw)
 
 def main():
