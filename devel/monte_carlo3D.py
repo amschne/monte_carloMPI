@@ -36,7 +36,7 @@ class MonteCarlo(object):
                            'hsensor' : model_args.hsensor,
                            'flg_crt' : model_args.flg_crt,
                            'flg_3D' : model_args.flg_3D,
-                           'optics_dir' : model_args.data_dir
+                           'optics_dir' : model_args.optics_dir,
                            'fi_imp' : model_args.fi_imp}
         
         # overwrite model_args_dict[kwarg] if specified at instantiation
@@ -68,7 +68,7 @@ class MonteCarlo(object):
         wvl_in = snow_optics.variables['wvl']
         ssa_in = snow_optics.variables['ss_alb']
         ext_in = snow_optics.variables['ext_cff_mss']
-        asm_in = snow_optics.varibales['asm_prm']
+        asm_in = snow_optics.variables['asm_prm']
         
         if type(wvls)==int or type(wvls)==float:
             idx_wvl = np.argmin(np.absolute(wvl*1e-6 - wvl_in.data))
@@ -76,14 +76,14 @@ class MonteCarlo(object):
             ext_cff_mss_ice = ext_in[idx_wvl]
             g = asm_in[idx_wvl]
         
-        elif type(wvls)==numpy.ndarray:
+        elif type(wvls)==np.ndarray:
             ssa_ice = np.empty(wvls.shape)
             ext_cff_mss_ice = np.empty(wvls.shape)
             g = np.empty(wvls.shape)     
             for i, wvl in enumerate(wvls):
                 idx_wvl = np.argmin(np.absolute(wvl*1e-6 - wvl_in.data))
                 ssa_ice[i] = ssa_in[idx_wvl]
-                ext_cff_mass_ice[i] = ext_in[idx_wvl]
+                ext_cff_mss_ice[i] = ext_in[idx_wvl]
                 g[i] = asm_in[idx_wvl]
         
         snow_optics.close()
@@ -100,7 +100,7 @@ class MonteCarlo(object):
             idx_wvl = np.argmin(np.absolute(wvl*1e-6 - wvl_in_imp.data))
             ssa_imp = ssa_in_imp[idx_wvl]
             ext_cff_mss_imp = ext_in_imp[idx_wvl]
-        elif type(wvls)==numpy.ndarray:
+        elif type(wvls)==np.ndarray:
             ssa_imp = np.empty(wvls.shape)
             ext_cff_mss_imp = np.empty(wvls.shape)
             for i, wvl in enumerate(wvls):
@@ -129,7 +129,7 @@ class MonteCarlo(object):
          ext_cff_mss_ice,
          g, 
          ssa_imp,
-         ext_cff_mss_imp) = self.get_optical_properties(self, wvls, rds_snw)                                        
+         ext_cff_mss_imp) = self.get_optical_properties(wvls, rds_snw)                                        
     
     def monte_carlo3D(self, n_photon, wvl, rds_snw):
         """ Translated from matlab to python by Adam Schneider
@@ -212,9 +212,12 @@ def run():
     n_photon = 100
     
     # wavelength [um]
-    #wvl = 1.3
+    wvl = 1.3
     #wvl = 1.55
-    wvl = 0.5
+    #wvl = 0.5
+    
+    # half width [um]
+    half_width = 0.085
     
     # snow effective grain size [um]
     rds_snw = 100.
@@ -236,7 +239,8 @@ def run():
 
     # directory of optics files
     #optics_dir = '/data/flanner/mie/snicar'
-    optics_dir = '/home/amaschne/Projects/monte_carloMPI/data/snicar'
+    #optics_dir = '/home/amaschne/Projects/monte_carloMPI/data/snicar'
+    optics_dir = '/Users/amschne/Documents/research/monte_carloMPI/data/snicar'
     
     # specification for nadir looking sensor
     rsensor = 0.05 # sensor radius [m]
@@ -253,7 +257,7 @@ def run():
                                    rsensor=rsensor, hsensor=hsensor,
                                    fi_imp=fi_imp)
                                    
-    monte_carlo_model.monte_carlo3D(n_photon, wvl, rds_snw)
+    monte_carlo_model.run(n_photon, wvl, half_width, rds_snw)
 
 def main():
     run()
