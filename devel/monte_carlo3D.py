@@ -184,8 +184,24 @@ class MonteCarlo(object):
     
     def plot_phase_function(self):
         """ plot phase function versus cos(theta)
+        
+            For computational purposes, will only plot the first 100 curves.
+            The first 100 curves are random, so this will give a good sample 
+            for larger N
         """
-        plt.contourf(self.costheta_p, self.g, self.p)
+        p = np.asarray(self.p)
+        mean_g = np.around(np.mean(self.g), 4)
+        std_g = np.around(np.std(self.g), 4)
+        for i, val in enumerate(self.g):
+            if i < 1000:
+                plt.semilogy(self.costheta_p, p[i])
+        plt.xlabel(r'$cos(\theta)$')
+        plt.ylabel('Relative probability')
+        plt.grid()
+        plt.title('Henyey-Greenstein Phase Function for\n'
+                  'mean(g) = %s and std(g) = %s' % (mean_g, std_g))
+        
+        plt.show()
     
     def monte_carlo3D(self, n_photon, wvl, rds_snw):
         """ Translated from matlab to python by Adam Schneider
@@ -296,7 +312,7 @@ def run():
     """ USER INPUT
     """
     # set number of photons
-    n_photon = 100
+    n_photon = 1000
     
     # wavelength [um]
     wvl = 1.3
