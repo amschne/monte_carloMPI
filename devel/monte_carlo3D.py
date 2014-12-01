@@ -12,6 +12,7 @@ import argparse
 
 import numpy as np
 from scipy.io import netcdf
+from matplotlib import pyplot as plt
 
 class MonteCarlo(object):
     def __init__(self, **model_kwargs):
@@ -112,7 +113,19 @@ class MonteCarlo(object):
     
         return(ssa_ice, ext_cff_mss_ice, g, ssa_imp, ext_cff_mss_imp)
     
-    def run(self, n_photon, wvl0, half_width, rds_snw):
+    def Henyey_Greenstein(self):
+        """ Henyey-Greenstein scattering phase function
+        """
+        costheta_p = self.costheta_p
+        g = np.matrix(self.g).T
+        g_2 = np.multiply(g,g) # compute g^2
+        HG_num = 1 - g_2
+        HG_den = np.power(1 + g_2 - 2*g*costheta_p, 3./2.)
+        p_HG = HG_num / HG_den
+        
+        return p_HG
+    
+    def run(self, n_photon, wvl0, half_width, rds_snw, test=False):
         """ Run the Monte Carlo model given a normal distribution of
             wavelengths [um].  This better simulates what NERD does with
             non-monochromatic LEDs.
@@ -129,7 +142,50 @@ class MonteCarlo(object):
          ext_cff_mss_ice,
          g, 
          ssa_imp,
-         ext_cff_mss_imp) = self.get_optical_properties(wvls, rds_snw)                                        
+         ext_cff_mss_imp) = self.get_optical_properties(wvls, rds_snw)
+         
+        if test:
+            try:
+                ssa_ice = self.ssa_ice
+            except AttributeError:
+                pass
+            try:
+                ext_cff_mss_ice = self.ext_cff_mss_ice
+            except AttributeError:
+                pass
+            try:
+                g = self.g
+            except AttributeError:
+                pass
+            try:
+                ssa_imp = self.ssa_imp
+            except AttributeError:
+                pass
+            try:
+                ext_cff_mss_imp = self.ext_cff_mss_imp
+            except AttributeError:
+                pass
+                
+        imp_cnc = self.imp_cnc
+        # combined mass extinction cross-section of ice+impurity system (m2/kg)
+        ext_cff_mss = ext_cff_mss_ice*(1-imp_cnc) + ext_cff_mss_imp*imp_cnc
+        
+        # calculate probability that extinction event is caused by impurity
+        P_ext_imp = (imp_cnc*ext_cff_mss_imp) / (imp_cnc*ext_cff_mss_imp + 
+                                                 (1-imp_cnc)*ext_cff_mss_ice)
+
+        # cos(theta) array over which to compute function
+        costheta_p = np.arange(-1.000, 1.001, 0.001)
+        self.costheta_p = costheta_p
+        
+        self.g = g
+        p = self.Henyey_Greenstein()
+        self.p = p
+    
+    def plot_phase_function(self):
+        """ plot phase function versus cos(theta)
+        """
+        plt.contourf(self.costheta_p, self.g, self.p)
     
     def monte_carlo3D(self, n_photon, wvl, rds_snw):
         """ Translated from matlab to python by Adam Schneider
@@ -192,18 +248,49 @@ class MonteCarlo(object):
         
         return args
 
-def test():
+def test(n_photon = 50000, wvl=1.3, half_width=0.085, rds_snw=100):
     """ Test case for comparison with Wang et al (1995) Table 1, and van de
         Hulst (1980).  Albedo should be ~0.09739.  Total transmittance
         (diffuse+direct) should be ~0.66096.
     """
-    n_photon = 50000
+    #n_photon = 50000
     tau_tot = 2.0
     ssa_ice = 0.9
     g = 0.75
     imp_cnc = 0
     
-    test_run = MonteCarlo(tau_tot=tau_tot)
+    test_case = MonteCarlo(tau_tot=tau_tot, imp_cnc=imp_cnc)
+    test_case.ssa_ice = ssa_ice
+    test_case.g = g
+    
+    test_case.run(n_photon, wvl, half_width, rds_snw, test=True)
+
+def test_and_debug(n_photon=100, wvl=1.3, half_width=0.085, rds_snw=100):
+    """ manually specify optical properties for test cases and debugging:
+    """
+    # mass extinction cross-section of ice grains (m2/kg at 500nm)
+    ext_cff_mss_ice = 6.6 # typical for re=250um
+    
+    # single-scatter albedo of ice grains (at 500nm)
+    ssa_ice = 0.999989859099 # typical for re=250um
+    
+    # scattering asymmetry parameter for ice grains
+    g = 0.89 # typical for re=250
+    
+    # mass extinction cross-section of black carbon (m2/kg at 500nm)
+    ext_cff_mss_imp = 12000
+    
+    # single-scatter albedo of black carbon (500nm)
+    ssa_imp = 0.30
+    
+    test_case = MonteCarlo()
+    test_case.ext_cff_mss_ice = ext_cff_mss_ice
+    test_case.ssa_ice = ssa_ice
+    test_case.g = g
+    test_case.ext_cff_mss_imp = ext_cff_mss_imp
+    test_case.ssa_imp = ssa_imp
+    
+    test_case.run(n_photon, wvl, half_width, rds_snw, test=True)   
 
 def run():
     """ USER INPUT
@@ -258,6 +345,7 @@ def run():
                                    fi_imp=fi_imp)
                                    
     monte_carlo_model.run(n_photon, wvl, half_width, rds_snw)
+    monte_carlo_model.plot_phase_function()
 
 def main():
     run()
