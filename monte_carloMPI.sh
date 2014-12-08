@@ -21,4 +21,4 @@ cat $PBS_NODEFILE
 cd ~/monte_carloMPI
 
 # Use mpirun to run with 12 cores
-mpirun mpi4py-examples/08-matrix-matrix-product.py
+mpirun monte_carloMPI/__init__.py
