@@ -14,6 +14,8 @@ import numpy as np
 from scipy.io import netcdf
 from matplotlib import pyplot as plt
 
+from parallelize import Parallel
+
 class MonteCarlo(object):
     def __init__(self, **model_kwargs):
         """ valid model_kwargs:
@@ -71,13 +73,14 @@ class MonteCarlo(object):
         ext_in = snow_optics.variables['ext_cff_mss']
         asm_in = snow_optics.variables['asm_prm']
         
-        if type(wvls)==int or type(wvls)==float:
+        if np.size(wvls)==1:
+            wvl = wvls
             idx_wvl = np.argmin(np.absolute(wvl*1e-6 - wvl_in.data))
             ssa_ice = ssa_in[idx_wvl]
             ext_cff_mss_ice = ext_in[idx_wvl]
             g = asm_in[idx_wvl]
         
-        elif type(wvls)==np.ndarray:
+        elif np.size(wvls)>1:
             ssa_ice = np.empty(wvls.shape)
             ext_cff_mss_ice = np.empty(wvls.shape)
             g = np.empty(wvls.shape)     
@@ -97,11 +100,11 @@ class MonteCarlo(object):
         ssa_in_imp = impurity_optics.variables['ss_alb']
         ext_in_imp = impurity_optics.variables['ext_cff_mss']
         
-        if type(wvls)==int or type(wvls)==float:
+        if np.size(wvls)==1:
             idx_wvl = np.argmin(np.absolute(wvl*1e-6 - wvl_in_imp.data))
             ssa_imp = ssa_in_imp[idx_wvl]
             ext_cff_mss_imp = ext_in_imp[idx_wvl]
-        elif type(wvls)==np.ndarray:
+        elif np.size(wvls)>1:
             ssa_imp = np.empty(wvls.shape)
             ext_cff_mss_imp = np.empty(wvls.shape)
             for i, wvl in enumerate(wvls):
@@ -117,7 +120,7 @@ class MonteCarlo(object):
         """ Henyey-Greenstein scattering phase function
         """
         costheta_p = self.costheta_p
-        g = np.matrix(self.g).T
+        g = np.matrix(self.g).T # turn g into column vector
         g_2 = np.multiply(g,g) # compute g^2
         HG_num = 1 - g_2
         HG_den = np.power(1 + g_2 - 2*g*costheta_p, 3./2.)
@@ -125,6 +128,35 @@ class MonteCarlo(object):
         
         return p_HG
     
+    def populate_pdf(self):
+        """ populate PDF of cos(scattering phase angle) with random numbers
+        
+        WARNING:  TOO MUCH MEMORY:  NEED TO BEGIN IMPLEMENTING PARRELLEL LOOPS!
+        """
+        r1 = np.random.rand(1000000) # distribution from 0 -> 1
+        p_rand = np.empty((self.g.size, r1.size))
+        
+        # where g = 0
+        g_zeros = np.where(self.g==0)
+        if g_zeros[0].size > 0: # there are zeros!
+            p_rand[g_zeros] = 1 - 2*r1
+        
+        # where g != 0
+        g_nonzeros = self.g.nonzero()
+        if g_nonzeros[0].size > 0: # there are nonzeros!
+            g = np.matrix(self.g[g_nonzeros]).T # turn g into column vector
+            g_2 = np.multiply(g,g) # compute g^2
+        
+            p_rand_A = 1./(2*g)
+            p_rand_B = 1 + g_2
+            p_rand_C_num = 1 - g_2
+            p_rand_C_den = 1 - g + 2*g*r1
+            p_rand_C = np.power(p_rand_C_num/p_rand_C_den, 2)
+            
+            p_rand[g_nonzeros] = p_rand_A * (p_rand_B - p_rand_C)
+                              
+        return p_rand
+        
     def run(self, n_photon, wvl0, half_width, rds_snw, test=False):
         """ Run the Monte Carlo model given a normal distribution of
             wavelengths [um].  This better simulates what NERD does with
@@ -138,12 +170,14 @@ class MonteCarlo(object):
         # Generate random array of photon wavelengths, rounded to nearest nm
         wvls = np.around(np.random.normal(loc=wvl0, scale=scale,
                                           size=(n_photon)), decimals=3)
+        par_wvls = Parallel(wvls)
+        
         (ssa_ice,
          ext_cff_mss_ice,
          g, 
          ssa_imp,
-         ext_cff_mss_imp) = self.get_optical_properties(wvls, rds_snw)
-         
+         ext_cff_mss_imp) = self.get_optical_properties(par_wvls.working_set,
+                                                        rds_snw)
         if test:
             try:
                 ssa_ice = self.ssa_ice
@@ -176,11 +210,12 @@ class MonteCarlo(object):
 
         # cos(theta) array over which to compute function
         costheta_p = np.arange(-1.000, 1.001, 0.001)
-        self.costheta_p = costheta_p
-        
+        self.costheta_p = costheta_p    
         self.g = g
         p = self.Henyey_Greenstein()
         self.p = p
+        
+        #p_rand = self.populate_pdf()
     
     def plot_phase_function(self):
         """ plot phase function versus cos(theta)
@@ -190,16 +225,26 @@ class MonteCarlo(object):
             for larger N
         """
         p = np.asarray(self.p)
-        mean_g = np.around(np.mean(self.g), 4)
-        std_g = np.around(np.std(self.g), 4)
-        for i, val in enumerate(self.g):
-            if i < 1000:
-                plt.semilogy(self.costheta_p, p[i])
-        plt.xlabel(r'$cos(\theta)$')
-        plt.ylabel('Relative probability')
+        
+        if np.size(self.g)>1:
+            mean_g = np.around(np.mean(self.g), 4)
+            std_g = np.around(np.std(self.g), 4)
+            for i, val in enumerate(self.g):
+                if i < 1000:
+                    plt.semilogy(self.costheta_p, p[i])
+                    
+                    plt.title('Henyey-Greenstein Phase Function for\n'
+                              'mean(g) = %s and std(g) = %s' % (mean_g, std_g),
+                              fontsize=18)
+        elif np.size(self.g)==1:
+            plt.semilogy(self.costheta_p, p[0])
+            
+            plt.title('Henyey-Greenstein Phase Function for g = %s' % self.g,
+                      fontsize=18)
+        plt.xlabel(r'$\cos(\theta)$', fontsize=18)
+        plt.ylabel('Relative probability', fontsize=18)
+        plt.xlim((-1, 1))
         plt.grid()
-        plt.title('Henyey-Greenstein Phase Function for\n'
-                  'mean(g) = %s and std(g) = %s' % (mean_g, std_g))
         
         plt.show()
     
@@ -264,7 +309,7 @@ class MonteCarlo(object):
         
         return args
 
-def test(n_photon = 50000, wvl=1.3, half_width=0.085, rds_snw=100):
+def test(n_photon=50000, wvl=1.3, half_width=0.085, rds_snw=100):
     """ Test case for comparison with Wang et al (1995) Table 1, and van de
         Hulst (1980).  Albedo should be ~0.09739.  Total transmittance
         (diffuse+direct) should be ~0.66096.
@@ -280,6 +325,7 @@ def test(n_photon = 50000, wvl=1.3, half_width=0.085, rds_snw=100):
     test_case.g = g
     
     test_case.run(n_photon, wvl, half_width, rds_snw, test=True)
+    test_case.plot_phase_function()
 
 def test_and_debug(n_photon=100, wvl=1.3, half_width=0.085, rds_snw=100):
     """ manually specify optical properties for test cases and debugging:
@@ -291,7 +337,7 @@ def test_and_debug(n_photon=100, wvl=1.3, half_width=0.085, rds_snw=100):
     ssa_ice = 0.999989859099 # typical for re=250um
     
     # scattering asymmetry parameter for ice grains
-    g = 0.89 # typical for re=250
+    g = -0.89 # typical for re=250
     
     # mass extinction cross-section of black carbon (m2/kg at 500nm)
     ext_cff_mss_imp = 12000
@@ -306,13 +352,14 @@ def test_and_debug(n_photon=100, wvl=1.3, half_width=0.085, rds_snw=100):
     test_case.ext_cff_mss_imp = ext_cff_mss_imp
     test_case.ssa_imp = ssa_imp
     
-    test_case.run(n_photon, wvl, half_width, rds_snw, test=True)   
+    test_case.run(n_photon, wvl, half_width, rds_snw, test=True)
+    test_case.plot_phase_function()
 
 def run():
     """ USER INPUT
     """
     # set number of photons
-    n_photon = 1000
+    n_photon = 100000
     
     # wavelength [um]
     wvl = 1.3
@@ -361,7 +408,7 @@ def run():
                                    fi_imp=fi_imp)
                                    
     monte_carlo_model.run(n_photon, wvl, half_width, rds_snw)
-    monte_carlo_model.plot_phase_function()
+    #monte_carlo_model.plot_phase_function()
 
 def main():
     run()
