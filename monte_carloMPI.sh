@@ -21,4 +21,4 @@ cat $PBS_NODEFILE
 cd ~/monte_carloMPI
 
 # Use mpirun to run with 12 cores
-mpirun monte_carloMPI/__init__.py
+mpirun monte_carloMPI/__main__.py
