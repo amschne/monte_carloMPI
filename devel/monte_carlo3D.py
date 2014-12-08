@@ -259,8 +259,9 @@ class MonteCarlo(object):
         """ Specify model kwargs at run time or get values from config.ini
         """  
         config = ConfigParser.SafeConfigParser()
-        data_dir = os.path.join(os.getcwd(), 'data')
-        config_file = os.path.join(data_dir, 'config.ini')
+        #data_dir = os.path.join(os.getcwd(), 'data')
+        #config_file = os.path.join(data_dir, 'config.ini')
+        config_file = 'config.ini'
         config.read(config_file)
         
         # model parameters
