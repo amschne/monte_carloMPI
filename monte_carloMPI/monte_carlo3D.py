@@ -360,7 +360,7 @@ def run():
     """ USER INPUT
     """
     # set number of photons
-    n_photon = 100000
+    n_photon = 1000
     
     # wavelength [um]
     wvl = 1.3
@@ -409,7 +409,7 @@ def run():
                                    fi_imp=fi_imp)
                                    
     monte_carlo_model.run(n_photon, wvl, half_width, rds_snw)
-    #monte_carlo_model.plot_phase_function()
+    monte_carlo_model.plot_phase_function()
 
 def main():
     run()
