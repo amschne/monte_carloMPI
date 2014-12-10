@@ -11,6 +11,7 @@ import ConfigParser
 import argparse
 
 import numpy as np
+from scipy import interpolate
 from scipy.io import netcdf
 from matplotlib import pyplot as plt
 
@@ -74,22 +75,57 @@ class MonteCarlo(object):
         asm_in = snow_optics.variables['asm_prm']
         
         if np.size(wvls)==1:
-            wvl = wvls
-            idx_wvl = np.argmin(np.absolute(wvl*1e-6 - wvl_in.data))
-            ssa_ice = ssa_in[idx_wvl]
-            ext_cff_mss_ice = ext_in[idx_wvl]
-            g = asm_in[idx_wvl]
+            wvl = wvls*1e-6
+            
+            # get indicies with smallest abs(wvl - wvl_in)
+            idx_wvl = np.argsort(np.absolute(wvl - wvl_in.data))
+            nearest_wvls = wvl_in[idx_wvl[:2]]
+            
+            # ssa_ice
+            nearest_ssa_ice = ssa_in[idx_wvl[:2]]
+            ssa_ice_interp = interpolate.interp1d(nearest_wvls,
+                                                  nearest_ssa_ice)
+            ssa_ice = ssa_ice_interp.__call__(wvl)
+            
+            # ext_cff_mss_ice
+            nearest_ext_cff_mss_ice = ext_in[idx_wvl[:2]]
+            ext_cff_mss_ice_interp = interpolate.interp1d(nearest_wvls,
+                                                        nearest_ext_cff_mss_ice)
+            ext_cff_mss_ice = ext_cff_mss_ice_interp.__call__(wvl)
+            
+            # g
+            nearest_g = asm_in[idx_wvl[:2]]
+            g_interp = interpolate.interp1d(nearest_wvls, nearest_g)
+            g = g_interp.__call__(wvl)
         
         elif np.size(wvls)>1:
             ssa_ice = np.empty(wvls.shape)
             ext_cff_mss_ice = np.empty(wvls.shape)
             g = np.empty(wvls.shape)     
             for i, wvl in enumerate(wvls):
-                idx_wvl = np.argmin(np.absolute(wvl*1e-6 - wvl_in.data))
-                ssa_ice[i] = ssa_in[idx_wvl]
-                ext_cff_mss_ice[i] = ext_in[idx_wvl]
-                g[i] = asm_in[idx_wvl]
-        
+                wvl = wvl*1e-6
+                
+                # get indicies with smallest abs(wvl - wvl_in)
+                idx_wvl = np.argsort(np.absolute(wvl - wvl_in.data))
+                nearest_wvls = wvl_in[idx_wvl[:2]]
+            
+                # ssa_ice
+                nearest_ssa_ice = ssa_in[idx_wvl[:2]]
+                ssa_ice_interp = interpolate.interp1d(nearest_wvls,
+                nearest_ssa_ice)
+                ssa_ice[i] = ssa_ice_interp.__call__(wvl)
+            
+                # ext_cff_mss_ice
+                nearest_ext_cff_mss_ice = ext_in[idx_wvl[:2]]
+                ext_cff_mss_ice_interp = interpolate.interp1d(nearest_wvls,
+                nearest_ext_cff_mss_ice)
+                ext_cff_mss_ice[i] = ext_cff_mss_ice_interp.__call__(wvl)
+            
+                # g
+                nearest_g = asm_in[idx_wvl[:2]]
+                g_interp = interpolate.interp1d(nearest_wvls, nearest_g)
+                g[i] = g_interp.__call__(wvl)
+            
         snow_optics.close()
 
         # impurity optics:
@@ -101,19 +137,48 @@ class MonteCarlo(object):
         ext_in_imp = impurity_optics.variables['ext_cff_mss']
         
         if np.size(wvls)==1:
-            idx_wvl = np.argmin(np.absolute(wvl*1e-6 - wvl_in_imp.data))
-            ssa_imp = ssa_in_imp[idx_wvl]
-            ext_cff_mss_imp = ext_in_imp[idx_wvl]
+            wvl = wvls*1e-6
+            
+            # get indicies with smallest abs(wvl - wvl_in_imp)
+            idx_wvl = np.argsort(np.absolute(wvl - wvl_in_imp.data))
+            nearest_wvls = wvl_in_imp[idx_wvl[:2]]
+            
+            # ssa_imp
+            nearest_ssa_imp = ssa_in_imp[idx_wvl[:2]]
+            ssa_imp_interp = interpolate.interp1d(nearest_wvls,
+                                                  nearest_ssa_imp)
+            ssa_imp = ssa_imp_interp.__call__(wvl)
+            
+            # ext_cff_mss_imp
+            nearest_ext_cff_mss_imp = ext_in_imp[idx_wvl[:2]]
+            ext_cff_mss_imp_interp = interpolate.interp1d(nearest_wvls,
+                                                        nearest_ext_cff_mss_imp)
+            ext_cff_mss_imp = ext_cff_mss_imp_interp.__call__(wvl)
+            
         elif np.size(wvls)>1:
             ssa_imp = np.empty(wvls.shape)
             ext_cff_mss_imp = np.empty(wvls.shape)
             for i, wvl in enumerate(wvls):
-                idx_wvl = np.argmin(np.absolute(wvl*1e-6 - wvl_in_imp.data))
-                ssa_imp[i] = ssa_in_imp[idx_wvl]
-                ext_cff_mss_imp[i] = ext_in_imp[idx_wvl]
-   
+                wvl = wvl*1e-6
+            
+                # get indicies with smallest abs(wvl - wvl_in_imp)
+                idx_wvl = np.argsort(np.absolute(wvl - wvl_in_imp.data))
+                nearest_wvls = wvl_in_imp[idx_wvl[:2]]
+            
+                # ssa_imp
+                nearest_ssa_imp = ssa_in_imp[idx_wvl[:2]]
+                ssa_imp_interp = interpolate.interp1d(nearest_wvls,
+                                                      nearest_ssa_imp)
+                ssa_imp[i] = ssa_imp_interp.__call__(wvl)
+            
+                # ext_cff_mss_imp
+                nearest_ext_cff_mss_imp = ext_in_imp[idx_wvl[:2]]
+                ext_cff_mss_imp_interp = interpolate.interp1d(nearest_wvls,
+                                                        nearest_ext_cff_mss_imp)
+                ext_cff_mss_imp[i] = ext_cff_mss_imp_interp.__call__(wvl)
+        
         impurity_optics.close()
-    
+        
         return(ssa_ice, ext_cff_mss_ice, g, ssa_imp, ext_cff_mss_imp)
     
     def Henyey_Greenstein(self):
@@ -128,35 +193,115 @@ class MonteCarlo(object):
         
         return p_HG
     
-    def populate_pdf(self):
-        """ populate PDF of cos(scattering phase angle) with random numbers
+    def populate_pdfs(self, RANDOM_NUMBERS=1000000):
+        """ 1. Populate PDF of cos(scattering phase angle) with random numbers
+            2. Populate PDF of optical path traversed between scattering events
+            3. Populate PDF of scattering azimuth angle with random numbers
+            4. Populate PDF of single-scatter albedo with random numbers
+            5. Populate PDF to determine extinction from ice or impurity
         
-        WARNING:  TOO MUCH MEMORY:  NEED TO BEGIN IMPLEMENTING PARRELLEL LOOPS!
+            Returns p_rand, tau_rand, phi_rand, ssa_rand, ext_spc_rand
         """
-        r1 = np.random.rand(1000000) # distribution from 0 -> 1
-        p_rand = np.empty((self.g.size, r1.size))
-        
-        # where g = 0
-        g_zeros = np.where(self.g==0)
-        if g_zeros[0].size > 0: # there are zeros!
-            p_rand[g_zeros] = 1 - 2*r1
-        
-        # where g != 0
-        g_nonzeros = self.g.nonzero()
-        if g_nonzeros[0].size > 0: # there are nonzeros!
-            g = np.matrix(self.g[g_nonzeros]).T # turn g into column vector
-            g_2 = np.multiply(g,g) # compute g^2
-        
-            p_rand_A = 1./(2*g)
-            p_rand_B = 1 + g_2
-            p_rand_C_num = 1 - g_2
-            p_rand_C_den = 1 - g + 2*g*r1
-            p_rand_C = np.power(p_rand_C_num/p_rand_C_den, 2)
+        # 1. Populate PDF of cos(scattering phase angle) with random numbers
+        r1 = np.random.rand(RANDOM_NUMBERS) # distribution from 0 -> 1
+        if np.size(self.g)==1:
+            if self.g==0:
+                p_rand = 1 - 2*r1
+            else:
+                g = self.g
+                p_rand = (1./(2.*g)) * (1 + g**2 - 
+                                        ((1 - g**2)/(1 - g + 2*g*r1))**2)
             
-            p_rand[g_nonzeros] = p_rand_A * (p_rand_B - p_rand_C)
-                              
-        return p_rand
+            # SANITY CHECK:  mean of the random distribution (should equal g)
+            #p_mean = np.mean(p_rand)
+    
+        elif np.size(self.g)>1:
+            p_rand = np.empty((self.g.size, r1.size))
+            for i, val in enumerate(self.g):
+                if val==0:
+                    p_rand[i,:] = 1 - 2*r1
+                else:
+                   p_rand[i,:] = (1./(2.*val)) * (1 + val**2 - 
+                                         ((1 - val**2)/(1 - val + 2*val*r1))**2)           
+                
+                # SANITY CHECK:  mean of the random distribution
+                #                (should equal g)
+                #p_mean = np.mean(p_rand[i,:])
         
+        # 2. Populate PDF of optical path traversed between scattering events
+        # Q1:  After an optical path of tau, how many photons have NOT suffered
+        #      an extinction event?
+        tau_rand = -np.log(np.random.rand(RANDOM_NUMBERS))
+        
+        # median of tau_rand should be -log(0.5)=0.6931
+        #tau_median = np.median(tau_rand)
+                  
+        # 3. Populate PDF of scattering azimuth angle with random numbers
+        phi_rand = np.random.rand(RANDOM_NUMBERS) # 0 -> 1
+        
+        # 4. Populate PDF of single-scatter albedo with random numbers
+        ssa_rand = np.random.rand(RANDOM_NUMBERS) # 0 -> 1
+        
+        # 5. Populate PDF to determine extinction from ice or impurity
+        ext_spc_rand = np.random.rand(RANDOM_NUMBERS) # 0 -> 1
+                                   
+        return(p_rand, tau_rand, phi_rand, ssa_rand, ext_spc_rand)
+    
+    def monte_carlo3D(self, wvl):
+        """ Translated from matlab to python by Adam Schneider
+        
+            Returns albedo and fraction of incident photons reaching sensor
+        """        
+        # initialization:
+        y_tau = np.array([0])
+        x_tau = np.array([0])
+        z_tau = np.array([0])
+        
+        # initial direction cosines
+        mux_0 = 0
+        muy_0 = 0
+        muz_0 = -1
+        
+        y_crt = np.array([0])
+        x_crt = np.array([0])
+        z_crt = np.array([0])
+        
+        path_length = 0
+        
+        if False: # debugging / demonstration of 2 scattering events:
+            # 1. photon enters from above, moving straight down:
+            i = 1
+            dtau_current = 0.2
+            theta_sca = 0
+            phi_sca = 50
+            sintheta = np.sin(theta_sca * (np.pi / 180.))
+            costheta = np.cos(theta_sca * (np.pi / 180.))
+            sinphi = np.sin(phi_sca * (np.pi / 180.))
+            cosphi = np.cos(phi_sca * (np.pi / 180.))
+            
+            if muz_0==1:
+                mux_n = sintheta * cosphi
+                muy_n = sintheta * sinphi
+                muz_n = costheta
+            elif muz_0==-1:
+                mux_n = sintheta * cosphi
+                muy_n = -sintheta * sinphi
+                muz_n = -costheta
+            else:
+                mux_n = ((sintheta*(mux_0*muz_0*cosphi - 
+                                    muy_0*sinphi)) / (np.sqrt(1 - muz_0**2)) + 
+                         mux_0*costheta)
+                muy_n = ((sintheta*(muy_0*muz_0*cosphi + 
+                                    mux_0*sinphi)) / (np.sqrt(1 - muz_0**2)) + 
+                         muy_0*costheta)
+                muz_n = -np.sqrt(1 - muz_0**2)*sintheta*cosphi + muz_0*costheta
+                
+            # update coordinates:
+            
+            
+                         
+            
+    
     def run(self, n_photon, wvl0, half_width, rds_snw, test=False):
         """ Run the Monte Carlo model given a normal distribution of
             wavelengths [um].  This better simulates what NERD does with
@@ -215,7 +360,24 @@ class MonteCarlo(object):
         p = self.Henyey_Greenstein()
         self.p = p
         
-        #p_rand = self.populate_pdf()
+        (self.p_rand,
+         self.tau_rand,
+         self.phi_rand,
+         self.ssa_rand,
+         self.ext_spc_rand) = self.populate_pdfs()
+         
+        # counters for saving coordinates of absorption events and exit_top 
+        # events
+        self.i1 = 1
+        self.i2 = 1
+        self.i_sensor = 0
+        
+        for i, wvl in enumerate(par_wvls.working_set):
+            self.monte_carlo3D(wvl)
+            
+        
+        
+         
     
     def plot_phase_function(self):
         """ plot phase function versus cos(theta)
@@ -237,23 +399,17 @@ class MonteCarlo(object):
                               'mean(g) = %s and std(g) = %s' % (mean_g, std_g),
                               fontsize=18)
         elif np.size(self.g)==1:
+            g_rounded = np.around(self.g, 4)
             plt.semilogy(self.costheta_p, p[0])
             
-            plt.title('Henyey-Greenstein Phase Function for g = %s' % self.g,
-                      fontsize=18)
+            plt.title('Henyey-Greenstein Phase Function for\n'
+                      'g = %s' % g_rounded[0], fontsize=18)
         plt.xlabel(r'$\cos(\theta)$', fontsize=18)
         plt.ylabel('Relative probability', fontsize=18)
         plt.xlim((-1, 1))
         plt.grid()
         
         plt.show()
-    
-    def monte_carlo3D(self, n_photon, wvl, rds_snw):
-        """ Translated from matlab to python by Adam Schneider
-        
-            Returns albedo and fraction of incident photons reaching sensor
-        """
-            
     
     def get_model_args(self):    
         """ Specify model kwargs at run time or get values from config.ini
@@ -383,7 +539,7 @@ def run():
     flg_crt = 1
     
     # plot in 2-D (=0), 3-D (=1). or no plot (=999)?
-    flg_3D = 0
+    flg_3D = 999
 
     # snow density (kg/m3, only needed if flg_crt=1)
     rho_snw = 200.
