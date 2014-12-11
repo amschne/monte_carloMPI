@@ -313,9 +313,6 @@ class MonteCarlo(object):
                                           size=(n_photon)), decimals=3)
         par_wvls = Parallel(wvls)
         
-        import ipdb
-        ipdb.set_trace()
-        
         (ssa_ice,
          ext_cff_mss_ice,
          g, 
