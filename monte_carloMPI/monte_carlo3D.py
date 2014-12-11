@@ -297,11 +297,7 @@ class MonteCarlo(object):
                 muz_n = -np.sqrt(1 - muz_0**2)*sintheta*cosphi + muz_0*costheta
                 
             # update coordinates:
-            
-            
-                         
-            
-    
+              
     def run(self, n_photon, wvl0, half_width, rds_snw, test=False):
         """ Run the Monte Carlo model given a normal distribution of
             wavelengths [um].  This better simulates what NERD does with
@@ -310,12 +306,15 @@ class MonteCarlo(object):
             ALL VALUES IN MICRONS
         """
         # Convert half_width to standard deviation
-        scale = (2 * half_width) / 2.355
+        scale = half_width / 2.355
         
         # Generate random array of photon wavelengths, rounded to nearest nm
         wvls = np.around(np.random.normal(loc=wvl0, scale=scale,
                                           size=(n_photon)), decimals=3)
         par_wvls = Parallel(wvls)
+        
+        import ipdb
+        ipdb.set_trace()
         
         (ssa_ice,
          ext_cff_mss_ice,
