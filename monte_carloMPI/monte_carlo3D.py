@@ -113,6 +113,8 @@ class MonteCarlo(object):
                 nearest_ssa_ice = ssa_in[idx_wvl[:2]]
                 ssa_ice_interp = interpolate.interp1d(nearest_wvls,
                 nearest_ssa_ice)
+                import ipdb
+                ipdb.set_trace()
                 ssa_ice[i] = ssa_ice_interp(wvl)
             
                 # ext_cff_mss_ice
