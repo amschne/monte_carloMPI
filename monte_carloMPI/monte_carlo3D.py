@@ -85,18 +85,18 @@ class MonteCarlo(object):
             nearest_ssa_ice = ssa_in[idx_wvl[:2]]
             ssa_ice_interp = interpolate.interp1d(nearest_wvls,
                                                   nearest_ssa_ice)
-            ssa_ice = ssa_ice_interp.__call__(wvl)
+            ssa_ice = ssa_ice_interp(wvl)
             
             # ext_cff_mss_ice
             nearest_ext_cff_mss_ice = ext_in[idx_wvl[:2]]
             ext_cff_mss_ice_interp = interpolate.interp1d(nearest_wvls,
                                                         nearest_ext_cff_mss_ice)
-            ext_cff_mss_ice = ext_cff_mss_ice_interp.__call__(wvl)
+            ext_cff_mss_ice = ext_cff_mss_ice_interp(wvl)
             
             # g
             nearest_g = asm_in[idx_wvl[:2]]
             g_interp = interpolate.interp1d(nearest_wvls, nearest_g)
-            g = g_interp.__call__(wvl)
+            g = g_interp(wvl)
         
         elif np.size(wvls)>1:
             ssa_ice = np.empty(wvls.shape)
@@ -113,18 +113,18 @@ class MonteCarlo(object):
                 nearest_ssa_ice = ssa_in[idx_wvl[:2]]
                 ssa_ice_interp = interpolate.interp1d(nearest_wvls,
                 nearest_ssa_ice)
-                ssa_ice[i] = ssa_ice_interp.__call__(wvl)
+                ssa_ice[i] = ssa_ice_interp(wvl)
             
                 # ext_cff_mss_ice
                 nearest_ext_cff_mss_ice = ext_in[idx_wvl[:2]]
                 ext_cff_mss_ice_interp = interpolate.interp1d(nearest_wvls,
                 nearest_ext_cff_mss_ice)
-                ext_cff_mss_ice[i] = ext_cff_mss_ice_interp.__call__(wvl)
+                ext_cff_mss_ice[i] = ext_cff_mss_ice_interp(wvl)
             
                 # g
                 nearest_g = asm_in[idx_wvl[:2]]
                 g_interp = interpolate.interp1d(nearest_wvls, nearest_g)
-                g[i] = g_interp.__call__(wvl)
+                g[i] = g_interp(wvl)
             
         snow_optics.close()
 
@@ -147,13 +147,13 @@ class MonteCarlo(object):
             nearest_ssa_imp = ssa_in_imp[idx_wvl[:2]]
             ssa_imp_interp = interpolate.interp1d(nearest_wvls,
                                                   nearest_ssa_imp)
-            ssa_imp = ssa_imp_interp.__call__(wvl)
+            ssa_imp = ssa_imp_interp(wvl)
             
             # ext_cff_mss_imp
             nearest_ext_cff_mss_imp = ext_in_imp[idx_wvl[:2]]
             ext_cff_mss_imp_interp = interpolate.interp1d(nearest_wvls,
                                                         nearest_ext_cff_mss_imp)
-            ext_cff_mss_imp = ext_cff_mss_imp_interp.__call__(wvl)
+            ext_cff_mss_imp = ext_cff_mss_imp_interp(wvl)
             
         elif np.size(wvls)>1:
             ssa_imp = np.empty(wvls.shape)
@@ -169,13 +169,13 @@ class MonteCarlo(object):
                 nearest_ssa_imp = ssa_in_imp[idx_wvl[:2]]
                 ssa_imp_interp = interpolate.interp1d(nearest_wvls,
                                                       nearest_ssa_imp)
-                ssa_imp[i] = ssa_imp_interp.__call__(wvl)
+                ssa_imp[i] = ssa_imp_interp(wvl)
             
                 # ext_cff_mss_imp
                 nearest_ext_cff_mss_imp = ext_in_imp[idx_wvl[:2]]
                 ext_cff_mss_imp_interp = interpolate.interp1d(nearest_wvls,
                                                         nearest_ext_cff_mss_imp)
-                ext_cff_mss_imp[i] = ext_cff_mss_imp_interp.__call__(wvl)
+                ext_cff_mss_imp[i] = ext_cff_mss_imp_interp(wvl)
         
         impurity_optics.close()
         
@@ -570,7 +570,7 @@ def run():
                                    fi_imp=fi_imp)
                                    
     monte_carlo_model.run(n_photon, wvl, half_width, rds_snw)
-    #monte_carlo_model.plot_phase_function()
+    monte_carlo_model.plot_phase_function()
 
 def main():
     run()

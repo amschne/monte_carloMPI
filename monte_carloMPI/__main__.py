@@ -6,7 +6,7 @@ import monte_carlo3D
 def single_grain_size(n_photon, wvl, half_width, rds_snw):
     monte_carlo_run = monte_carlo3D.MonteCarlo()
     monte_carlo_run.run(n_photon, wvl, half_width, rds_snw)
-    monte_carlo_run.plot_phase_function()
+    #monte_carlo_run.plot_phase_function()
     
 def multiple_grain_sizes(n_photon, wvl, half_width, rds_snw):
     monte_carlo_run = monte_carlo3D.MonteCarlo()
