@@ -297,6 +297,8 @@ class MonteCarlo(object):
                 muz_n = -np.sqrt(1 - muz_0**2)*sintheta*cosphi + muz_0*costheta
                 
             # update coordinates:
+            
+        return wvl
               
     def run(self, n_photon, wvl0, half_width, rds_snw, test=False):
         """ Run the Monte Carlo model given a normal distribution of
@@ -367,13 +369,16 @@ class MonteCarlo(object):
         self.i1 = 1
         self.i2 = 1
         self.i_sensor = 0
-        
+       
+        answer = list() 
         for i, wvl in enumerate(par_wvls.working_set):
-            self.monte_carlo3D(wvl)
+            answer.append(self.monte_carlo3D(wvl))
             
-        
-        
-         
+        all_answers = par_wvls.answer_and_reduce(answer,
+                                                 MonteCarlo.flatten_list)
+        if all_answers is not None:
+            # this is the root processor
+            print(all_answers, len(all_answers))
     
     def plot_phase_function(self):
         """ plot phase function versus cos(theta)
@@ -461,6 +466,10 @@ class MonteCarlo(object):
         args = parser.parse_args()
         
         return args
+
+    @classmethod
+    def flatten_list(klass, l):            
+        return [item for sublist in l for item in sublist]
 
 def test(n_photon=50000, wvl=1.3, half_width=0.085, rds_snw=100):
     """ Test case for comparison with Wang et al (1995) Table 1, and van de
@@ -561,7 +570,7 @@ def run():
                                    fi_imp=fi_imp)
                                    
     monte_carlo_model.run(n_photon, wvl, half_width, rds_snw)
-    monte_carlo_model.plot_phase_function()
+    #monte_carlo_model.plot_phase_function()
 
 def main():
     run()
