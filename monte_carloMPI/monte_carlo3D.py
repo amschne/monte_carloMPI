@@ -252,7 +252,7 @@ class MonteCarlo(object):
         
         return p_HG
     
-    def populate_pdfs(self, RANDOM_NUMBERS=1000000):
+    def populate_pdfs(self, RANDOM_NUMBERS=1000):
         """ 1. Populate PDF of cos(scattering phase angle) with random numbers
             2. Populate PDF of optical path traversed between scattering events
             3. Populate PDF of scattering azimuth angle with random numbers
@@ -263,46 +263,38 @@ class MonteCarlo(object):
         """
         # 1. Populate PDF of cos(scattering phase angle) with random numbers
         r1 = np.random.rand(RANDOM_NUMBERS) # distribution from 0 -> 1
-        if np.size(self.g)==1:
-            if self.g==0:
-                p_rand = 1 - 2*r1
+        p_rand = np.empty((self.g.size, r1.size))
+        tau_rand = np.empty((self.g.size, r1.size))
+        phi_rand = np.empty((self.g.size, r1.size))
+        ssa_rand = np.empty((self.g.size, r1.size))
+        ext_spc_rand = np.empty((self.g.size, r1.size))
+        for i, val in enumerate(self.g):
+            if val==0:
+                p_rand[i,:] = 1 - 2*r1
             else:
-                g = self.g
-                p_rand = (1./(2.*g)) * (1 + g**2 - 
-                                        ((1 - g**2)/(1 - g + 2*g*r1))**2)
-            
-            # SANITY CHECK:  mean of the random distribution (should equal g)
-            #p_mean = np.mean(p_rand)
-    
-        elif np.size(self.g)>1:
-            p_rand = np.empty((self.g.size, r1.size))
-            for i, val in enumerate(self.g):
-                if val==0:
-                    p_rand[i,:] = 1 - 2*r1
-                else:
-                   p_rand[i,:] = (1./(2.*val)) * (1 + val**2 - 
+                p_rand[i,:] = (1./(2.*val)) * (1 + val**2 - 
                                          ((1 - val**2)/(1 - val + 2*val*r1))**2)           
-                
-                # SANITY CHECK:  mean of the random distribution
-                #                (should equal g)
-                #p_mean = np.mean(p_rand[i,:])
+             
+            # SANITY CHECK:  mean of the random distribution (should equal g)
+            #p_mean = np.mean(p_rand[i,:])
+            
+            # 2. Populate PDF of optical path traversed between scattering 
+            #    events
+            # Q1:  After an optical path of tau, how many photons have NOT 
+            #      suffered an extinction event?
+            tau_rand[i,:] = -np.log(np.random.rand(RANDOM_NUMBERS))
         
-        # 2. Populate PDF of optical path traversed between scattering events
-        # Q1:  After an optical path of tau, how many photons have NOT suffered
-        #      an extinction event?
-        tau_rand = -np.log(np.random.rand(RANDOM_NUMBERS))
-        
-        # median of tau_rand should be -log(0.5)=0.6931
-        #tau_median = np.median(tau_rand)
+            # median of tau_rand should be -log(0.5)=0.6931
+            #tau_median = np.median(tau_rand)
                   
-        # 3. Populate PDF of scattering azimuth angle with random numbers
-        phi_rand = np.random.rand(RANDOM_NUMBERS) # 0 -> 1
+            # 3. Populate PDF of scattering azimuth angle with random numbers
+            phi_rand[i,:] = np.random.rand(RANDOM_NUMBERS) # 0 -> 1
         
-        # 4. Populate PDF of single-scatter albedo with random numbers
-        ssa_rand = np.random.rand(RANDOM_NUMBERS) # 0 -> 1
+            # 4. Populate PDF of single-scatter albedo with random numbers
+            ssa_rand[i,:] = np.random.rand(RANDOM_NUMBERS) # 0 -> 1
         
-        # 5. Populate PDF to determine extinction from ice or impurity
-        ext_spc_rand = np.random.rand(RANDOM_NUMBERS) # 0 -> 1
+            # 5. Populate PDF to determine extinction from ice or impurity
+            ext_spc_rand[i,:] = np.random.rand(RANDOM_NUMBERS) # 0 -> 1
                                    
         return(p_rand, tau_rand, phi_rand, ssa_rand, ext_spc_rand)
     
@@ -382,23 +374,23 @@ class MonteCarlo(object):
                                                         rds_snw)
         if test:
             try:
-                ssa_ice = self.ssa_ice
+                ssa_ice = np.array([self.ssa_ice])
             except AttributeError:
                 pass
             try:
-                ext_cff_mss_ice = self.ext_cff_mss_ice
+                ext_cff_mss_ice = np.array([self.ext_cff_mss_ice])
             except AttributeError:
                 pass
             try:
-                g = self.g
+                g = np.array([self.g])
             except AttributeError:
                 pass
             try:
-                ssa_imp = self.ssa_imp
+                ssa_imp = np.array([self.ssa_imp])
             except AttributeError:
                 pass
             try:
-                ext_cff_mss_imp = self.ext_cff_mss_imp
+                ext_cff_mss_imp = np.array([self.ext_cff_mss_imp])
             except AttributeError:
                 pass
                 
