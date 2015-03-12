@@ -82,21 +82,38 @@ class MonteCarlo(object):
             nearest_wvls = wvl_in[idx_wvl[:2]]
             
             # ssa_ice
-            nearest_ssa_ice = ssa_in[idx_wvl[:2]]
-            ssa_ice_interp = interpolate.interp1d(nearest_wvls,
-                                                  nearest_ssa_ice)
-            ssa_ice = ssa_ice_interp(wvl)
+            nearest_ssa_ice = ssa_in[idx_wvl[:2]]                
+            
+            try:
+                ssa_ice_interp = interpolate.interp1d(nearest_wvls,
+                                                      nearest_ssa_ice)
+                ssa_ice = ssa_ice_interp(wvl)
+            except ValueError:
+                ssa_ice_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                      nearest_ssa_ice[::-1])
+                ssa_ice = ssa_ice_interp(wvl)
             
             # ext_cff_mss_ice
             nearest_ext_cff_mss_ice = ext_in[idx_wvl[:2]]
-            ext_cff_mss_ice_interp = interpolate.interp1d(nearest_wvls,
+            
+            try:
+                ext_cff_mss_ice_interp = interpolate.interp1d(nearest_wvls,
                                                         nearest_ext_cff_mss_ice)
-            ext_cff_mss_ice = ext_cff_mss_ice_interp(wvl)
+                ext_cff_mss_ice = ext_cff_mss_ice_interp(wvl)
+            except ValueError:
+                ext_cff_mss_ice_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                  nearest_ext_cff_mss_ice[::-1])
             
             # g
             nearest_g = asm_in[idx_wvl[:2]]
-            g_interp = interpolate.interp1d(nearest_wvls, nearest_g)
-            g = g_interp(wvl)
+            
+            try:
+                g_interp = interpolate.interp1d(nearest_wvls, nearest_g)
+                g = g_interp(wvl)
+            except ValueError:
+                g_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                nearest_g[::-1])
+                g = g_interp(wvl)
         
         elif np.size(wvls)>1:
             ssa_ice = np.empty(wvls.shape)
@@ -111,22 +128,39 @@ class MonteCarlo(object):
             
                 # ssa_ice
                 nearest_ssa_ice = ssa_in[idx_wvl[:2]]
-                ssa_ice_interp = interpolate.interp1d(nearest_wvls,
-                nearest_ssa_ice)
-                import ipdb
-                ipdb.set_trace()
-                ssa_ice[i] = ssa_ice_interp(wvl)
+                
+                try:
+                    ssa_ice_interp = interpolate.interp1d(nearest_wvls,
+                                                          nearest_ssa_ice)
+                    ssa_ice[i] = ssa_ice_interp(wvl)
+                except ValueError:
+                    ssa_ice_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                          nearest_ssa_ice[::-1])
+                    ssa_ice[i] = ssa_ice_interp(wvl)
+                    
             
                 # ext_cff_mss_ice
                 nearest_ext_cff_mss_ice = ext_in[idx_wvl[:2]]
-                ext_cff_mss_ice_interp = interpolate.interp1d(nearest_wvls,
-                nearest_ext_cff_mss_ice)
-                ext_cff_mss_ice[i] = ext_cff_mss_ice_interp(wvl)
+                
+                try:
+                    ext_cff_mss_ice_interp = interpolate.interp1d(nearest_wvls,
+                                                        nearest_ext_cff_mss_ice)
+                    ext_cff_mss_ice[i] = ext_cff_mss_ice_interp(wvl)
+                except ValueError:
+                    ext_cff_mss_ice_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                  nearest_ext_cff_mss_ice[::-1])
+                    ext_cff_mss_ice[i] = ext_cff_mss_ice_interp(wvl)
             
                 # g
                 nearest_g = asm_in[idx_wvl[:2]]
-                g_interp = interpolate.interp1d(nearest_wvls, nearest_g)
-                g[i] = g_interp(wvl)
+                
+                try:
+                    g_interp = interpolate.interp1d(nearest_wvls, nearest_g)
+                    g[i] = g_interp(wvl)
+                except ValueError:
+                    g_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                    nearest_g[::-1])
+                    g[i] = g_interp(wvl)
             
         snow_optics.close()
 
@@ -147,15 +181,26 @@ class MonteCarlo(object):
             
             # ssa_imp
             nearest_ssa_imp = ssa_in_imp[idx_wvl[:2]]
-            ssa_imp_interp = interpolate.interp1d(nearest_wvls,
-                                                  nearest_ssa_imp)
-            ssa_imp = ssa_imp_interp(wvl)
+            
+            try:
+                ssa_imp_interp = interpolate.interp1d(nearest_wvls,
+                                                      nearest_ssa_imp)
+                ssa_imp = ssa_imp_interp(wvl)
+            except ValueError:
+                ssa_imp_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                      nearest_ssa_imp[::-1])
+                ssa_imp = ssa_imp_interp(wvl)
             
             # ext_cff_mss_imp
             nearest_ext_cff_mss_imp = ext_in_imp[idx_wvl[:2]]
-            ext_cff_mss_imp_interp = interpolate.interp1d(nearest_wvls,
+            try:
+                ext_cff_mss_imp_interp = interpolate.interp1d(nearest_wvls,
                                                         nearest_ext_cff_mss_imp)
-            ext_cff_mss_imp = ext_cff_mss_imp_interp(wvl)
+                ext_cff_mss_imp = ext_cff_mss_imp_interp(wvl)
+            except ValueError:
+                ext_cff_mss_imp_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                  nearest_ext_cff_mss_imp[::-1])
+                ext_cff_mss_imp = ext_cff_mss_imp_interp(wvl)
             
         elif np.size(wvls)>1:
             ssa_imp = np.empty(wvls.shape)
@@ -169,16 +214,28 @@ class MonteCarlo(object):
             
                 # ssa_imp
                 nearest_ssa_imp = ssa_in_imp[idx_wvl[:2]]
-                ssa_imp_interp = interpolate.interp1d(nearest_wvls,
-                                                      nearest_ssa_imp)
-                ssa_imp[i] = ssa_imp_interp(wvl)
+                
+                try:
+                    ssa_imp_interp = interpolate.interp1d(nearest_wvls,
+                                                          nearest_ssa_imp)
+                    ssa_imp[i] = ssa_imp_interp(wvl)
+                except ValueError:
+                    ssa_imp_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                          nearest_ssa_imp[::-1])
+                    ssa_imp[i] = ssa_imp_interp(wvl)
             
                 # ext_cff_mss_imp
                 nearest_ext_cff_mss_imp = ext_in_imp[idx_wvl[:2]]
-                ext_cff_mss_imp_interp = interpolate.interp1d(nearest_wvls,
+                
+                try:
+                    ext_cff_mss_imp_interp = interpolate.interp1d(nearest_wvls,
                                                         nearest_ext_cff_mss_imp)
-                ext_cff_mss_imp[i] = ext_cff_mss_imp_interp(wvl)
-        
+                    ext_cff_mss_imp[i] = ext_cff_mss_imp_interp(wvl)
+                except ValueError:
+                    ext_cff_mss_imp_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                  nearest_ext_cff_mss_imp[::-1])
+                    ext_cff_mss_imp[i] = ext_cff_mss_imp_interp(wvl)
+                    
         impurity_optics.close()
         
         return(ssa_ice, ext_cff_mss_ice, g, ssa_imp, ext_cff_mss_imp)
