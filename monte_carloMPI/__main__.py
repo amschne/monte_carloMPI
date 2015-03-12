@@ -18,7 +18,7 @@ def run():
     """ USER INPUT
     """
     # set number of photons
-    n_photon = 100
+    n_photon = 1
     
     # wavelength [um]
     wvl = 1.3

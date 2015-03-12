@@ -103,6 +103,7 @@ class MonteCarlo(object):
             except ValueError:
                 ext_cff_mss_ice_interp = interpolate.interp1d(nearest_wvls[::-1],
                                                   nearest_ext_cff_mss_ice[::-1])
+                ext_cff_mss_ice = ext_cff_mss_ice_interp(wvl)                
             
             # g
             nearest_g = asm_in[idx_wvl[:2]]
@@ -138,7 +139,6 @@ class MonteCarlo(object):
                                                           nearest_ssa_ice[::-1])
                     ssa_ice[i] = ssa_ice_interp(wvl)
                     
-            
                 # ext_cff_mss_ice
                 nearest_ext_cff_mss_ice = ext_in[idx_wvl[:2]]
                 
