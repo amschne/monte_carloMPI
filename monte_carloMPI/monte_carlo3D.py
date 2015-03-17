@@ -6,6 +6,7 @@
 """
 
 import os
+import sys
 
 import ConfigParser
 import argparse
@@ -14,6 +15,7 @@ import numpy as np
 from scipy import interpolate
 from scipy.io import netcdf
 from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 from parallelize import Parallel
 
@@ -83,38 +85,50 @@ class MonteCarlo(object):
             
             # ssa_ice
             nearest_ssa_ice = ssa_in[idx_wvl[:2]]                
-            
             try:
-                ssa_ice_interp = interpolate.interp1d(nearest_wvls,
-                                                      nearest_ssa_ice)
-                ssa_ice = ssa_ice_interp(wvl)
+                if nearest_wvls[0] < nearest_wvls[1]:
+                    ssa_ice_interp = interpolate.interp1d(nearest_wvls,
+                                                          nearest_ssa_ice)
+                    ssa_ice = ssa_ice_interp(wvl)
+                else:
+                    ssa_ice_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                          nearest_ssa_ice[::-1])
+                    ssa_ice = ssa_ice_interp(wvl)
             except ValueError:
-                ssa_ice_interp = interpolate.interp1d(nearest_wvls[::-1],
-                                                      nearest_ssa_ice[::-1])
-                ssa_ice = ssa_ice_interp(wvl)
+                ssa_ice = nearest_ssa_ice[0]
+                sys.stderr.write('error: exception raised while interpolating '
+                                 'ssa_ice, using nearest value instead\n')
             
             # ext_cff_mss_ice
             nearest_ext_cff_mss_ice = ext_in[idx_wvl[:2]]
-            
             try:
-                ext_cff_mss_ice_interp = interpolate.interp1d(nearest_wvls,
-                                                        nearest_ext_cff_mss_ice)
-                ext_cff_mss_ice = ext_cff_mss_ice_interp(wvl)
+                if nearest_wvls[0] < nearest_wvls[1]:
+                    ext_cff_mss_ice_interp = interpolate.interp1d(nearest_wvls,
+                                                            nearest_ext_cff_mss_ice)
+                    ext_cff_mss_ice = ext_cff_mss_ice_interp(wvl)
+                else:
+                    ext_cff_mss_ice_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                      nearest_ext_cff_mss_ice[::-1])
+                    ext_cff_mss_ice = ext_cff_mss_ice_interp(wvl)
             except ValueError:
-                ext_cff_mss_ice_interp = interpolate.interp1d(nearest_wvls[::-1],
-                                                  nearest_ext_cff_mss_ice[::-1])
-                ext_cff_mss_ice = ext_cff_mss_ice_interp(wvl)                
+                ext_cff_mss_ice = nearest_ext_cff_mss_ice[0]
+                sys.stderr.write('error: exception raised while interpolating '
+                                 'ext_cff_mss_ice, using nearest value instead\n')
             
             # g
             nearest_g = asm_in[idx_wvl[:2]]
-            
             try:
-                g_interp = interpolate.interp1d(nearest_wvls, nearest_g)
-                g = g_interp(wvl)
+                if nearest_wvls[0] < nearest_wvls[1]:
+                    g_interp = interpolate.interp1d(nearest_wvls, nearest_g)
+                    g = g_interp(wvl)
+                else:
+                    g_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                    nearest_g[::-1])
+                    g = g_interp(wvl)
             except ValueError:
-                g_interp = interpolate.interp1d(nearest_wvls[::-1],
-                                                nearest_g[::-1])
-                g = g_interp(wvl)
+                g = nearest_g[0]
+                sys.stderr.write('error: exception raised while interpolating '
+                                 'g, using nearest value instead\n')
         
         elif np.size(wvls)>1:
             ssa_ice = np.empty(wvls.shape)
@@ -129,38 +143,50 @@ class MonteCarlo(object):
             
                 # ssa_ice
                 nearest_ssa_ice = ssa_in[idx_wvl[:2]]
-                
                 try:
-                    ssa_ice_interp = interpolate.interp1d(nearest_wvls,
-                                                          nearest_ssa_ice)
-                    ssa_ice[i] = ssa_ice_interp(wvl)
+                    if nearest_wvls[0] < nearest_wvls[1]:
+                        ssa_ice_interp = interpolate.interp1d(nearest_wvls,
+                                                              nearest_ssa_ice)
+                        ssa_ice[i] = ssa_ice_interp(wvl)
+                    else:
+                        ssa_ice_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                              nearest_ssa_ice[::-1])
+                        ssa_ice[i] = ssa_ice_interp(wvl)
                 except ValueError:
-                    ssa_ice_interp = interpolate.interp1d(nearest_wvls[::-1],
-                                                          nearest_ssa_ice[::-1])
-                    ssa_ice[i] = ssa_ice_interp(wvl)
+                    ssa_ice[i] = nearest_ssa_ice[0]
+                    sys.stderr.write('error: exception raised while interpolating '
+                                     'ssa_ice, using nearest value instead\n')
                     
                 # ext_cff_mss_ice
                 nearest_ext_cff_mss_ice = ext_in[idx_wvl[:2]]
-                
                 try:
-                    ext_cff_mss_ice_interp = interpolate.interp1d(nearest_wvls,
-                                                        nearest_ext_cff_mss_ice)
-                    ext_cff_mss_ice[i] = ext_cff_mss_ice_interp(wvl)
+                    if nearest_wvls[0] < nearest_wvls[1]:
+                        ext_cff_mss_ice_interp = interpolate.interp1d(nearest_wvls,
+                                                            nearest_ext_cff_mss_ice)
+                        ext_cff_mss_ice[i] = ext_cff_mss_ice_interp(wvl)
+                    else:
+                        ext_cff_mss_ice_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                      nearest_ext_cff_mss_ice[::-1])
+                        ext_cff_mss_ice[i] = ext_cff_mss_ice_interp(wvl)
                 except ValueError:
-                    ext_cff_mss_ice_interp = interpolate.interp1d(nearest_wvls[::-1],
-                                                  nearest_ext_cff_mss_ice[::-1])
-                    ext_cff_mss_ice[i] = ext_cff_mss_ice_interp(wvl)
+                    ext_cff_mss_ice[i] = nearest_ext_cff_mss_ice[0]
+                    sys.stderr.write('error: exception raised while interpolating '
+                                     'ext_cff_mss_ice, using nearest value instead\n')
             
                 # g
                 nearest_g = asm_in[idx_wvl[:2]]
-                
                 try:
-                    g_interp = interpolate.interp1d(nearest_wvls, nearest_g)
-                    g[i] = g_interp(wvl)
+                    if nearest_wvls[0] < nearest_wvls[1]:
+                        g_interp = interpolate.interp1d(nearest_wvls, nearest_g)
+                        g[i] = g_interp(wvl)
+                    else:
+                        g_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                        nearest_g[::-1])
+                        g[i] = g_interp(wvl)
                 except ValueError:
-                    g_interp = interpolate.interp1d(nearest_wvls[::-1],
-                                                    nearest_g[::-1])
-                    g[i] = g_interp(wvl)
+                    g[i] = nearest_g[0]
+                    sys.stderr.write('error: exception raised while interpolating '
+                                     'g, using nearest value instead\n')
             
         snow_optics.close()
 
@@ -181,26 +207,35 @@ class MonteCarlo(object):
             
             # ssa_imp
             nearest_ssa_imp = ssa_in_imp[idx_wvl[:2]]
-            
             try:
-                ssa_imp_interp = interpolate.interp1d(nearest_wvls,
-                                                      nearest_ssa_imp)
-                ssa_imp = ssa_imp_interp(wvl)
+                if nearest_wvls[0] < nearest_wvls[1]:
+                    ssa_imp_interp = interpolate.interp1d(nearest_wvls,
+                                                          nearest_ssa_imp)
+                    ssa_imp = ssa_imp_interp(wvl)
+                else:
+                    ssa_imp_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                          nearest_ssa_imp[::-1])
+                    ssa_imp = ssa_imp_interp(wvl)
             except ValueError:
-                ssa_imp_interp = interpolate.interp1d(nearest_wvls[::-1],
-                                                      nearest_ssa_imp[::-1])
-                ssa_imp = ssa_imp_interp(wvl)
+                ssa_imp = nearest_ssa_imp[0]
+                sys.stderr.write('error: exception raised while interpolating '
+                                 'ssa_imp, using nearest value instead\n')
             
             # ext_cff_mss_imp
             nearest_ext_cff_mss_imp = ext_in_imp[idx_wvl[:2]]
             try:
-                ext_cff_mss_imp_interp = interpolate.interp1d(nearest_wvls,
-                                                        nearest_ext_cff_mss_imp)
-                ext_cff_mss_imp = ext_cff_mss_imp_interp(wvl)
+                if nearest_wvls[0] < nearest_wvls[1]:
+                    ext_cff_mss_imp_interp = interpolate.interp1d(nearest_wvls,
+                                                            nearest_ext_cff_mss_imp)
+                    ext_cff_mss_imp = ext_cff_mss_imp_interp(wvl)
+                else:
+                    ext_cff_mss_imp_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                      nearest_ext_cff_mss_imp[::-1])
+                    ext_cff_mss_imp = ext_cff_mss_imp_interp(wvl)
             except ValueError:
-                ext_cff_mss_imp_interp = interpolate.interp1d(nearest_wvls[::-1],
-                                                  nearest_ext_cff_mss_imp[::-1])
-                ext_cff_mss_imp = ext_cff_mss_imp_interp(wvl)
+                ext_cff_mss_imp = nearest_ext_cff_mss_imp[0]
+                sys.stderr.write('error: exception raised while interpolating '
+                                 'ext_cff_mss_imp, using nearest value instead\n')
             
         elif np.size(wvls)>1:
             ssa_imp = np.empty(wvls.shape)
@@ -214,27 +249,35 @@ class MonteCarlo(object):
             
                 # ssa_imp
                 nearest_ssa_imp = ssa_in_imp[idx_wvl[:2]]
-                
                 try:
-                    ssa_imp_interp = interpolate.interp1d(nearest_wvls,
-                                                          nearest_ssa_imp)
-                    ssa_imp[i] = ssa_imp_interp(wvl)
+                    if nearest_wvls[0] < nearest_wvls[1]:
+                        ssa_imp_interp = interpolate.interp1d(nearest_wvls,
+                                                              nearest_ssa_imp)
+                        ssa_imp[i] = ssa_imp_interp(wvl)
+                    else:
+                        ssa_imp_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                              nearest_ssa_imp[::-1])
+                        ssa_imp[i] = ssa_imp_interp(wvl)
                 except ValueError:
-                    ssa_imp_interp = interpolate.interp1d(nearest_wvls[::-1],
-                                                          nearest_ssa_imp[::-1])
-                    ssa_imp[i] = ssa_imp_interp(wvl)
+                    ssa_imp[i] = nearest_ssa_imp[0]
+                    sys.stderr.write('error: exception raised while interpolating '
+                                     'ssa_imp, using nearest value instead\n')
             
                 # ext_cff_mss_imp
                 nearest_ext_cff_mss_imp = ext_in_imp[idx_wvl[:2]]
-                
                 try:
-                    ext_cff_mss_imp_interp = interpolate.interp1d(nearest_wvls,
-                                                        nearest_ext_cff_mss_imp)
-                    ext_cff_mss_imp[i] = ext_cff_mss_imp_interp(wvl)
+                    if nearest_wvls[0] < nearest_wvls[1]:
+                        ext_cff_mss_imp_interp = interpolate.interp1d(nearest_wvls,
+                                                            nearest_ext_cff_mss_imp)
+                        ext_cff_mss_imp[i] = ext_cff_mss_imp_interp(wvl)
+                    else:
+                        ext_cff_mss_imp_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                      nearest_ext_cff_mss_imp[::-1])
+                        ext_cff_mss_imp[i] = ext_cff_mss_imp_interp(wvl)
                 except ValueError:
-                    ext_cff_mss_imp_interp = interpolate.interp1d(nearest_wvls[::-1],
-                                                  nearest_ext_cff_mss_imp[::-1])
-                    ext_cff_mss_imp[i] = ext_cff_mss_imp_interp(wvl)
+                    ext_cff_mss_imp[i] = nearest_ext_cff_mss_imp[0]
+                    sys.stderr.write('error: exception raised while interpolating '
+                                     'ext_cff_mss_imp, using nearest value instead\n')
                     
         impurity_optics.close()
         
@@ -277,6 +320,7 @@ class MonteCarlo(object):
              
             # SANITY CHECK:  mean of the random distribution (should equal g)
             #p_mean = np.mean(p_rand[i,:])
+            #print p_mean - val
             
             # 2. Populate PDF of optical path traversed between scattering 
             #    events
@@ -288,7 +332,7 @@ class MonteCarlo(object):
             #tau_median = np.median(tau_rand)
                   
             # 3. Populate PDF of scattering azimuth angle with random numbers
-            phi_rand[i,:] = np.random.rand(RANDOM_NUMBERS) # 0 -> 1
+            phi_rand[i,:] = np.random.rand(RANDOM_NUMBERS) * 2*np.pi # 0 -> 2pi
         
             # 4. Populate PDF of single-scatter albedo with random numbers
             ssa_rand[i,:] = np.random.rand(RANDOM_NUMBERS) # 0 -> 1
@@ -298,14 +342,58 @@ class MonteCarlo(object):
                                    
         return(p_rand, tau_rand, phi_rand, ssa_rand, ext_spc_rand)
     
+    def scatter_photon(self, i, dtau_current, theta_sca, phi_sca):
+        """
+        """
+        x_tau = self.x_tau
+        y_tau = self.y_tau
+        z_tau = self.z_tau
+    
+        mux_0 = self.mux_0
+        muy_0 = self.muy_0
+        muz_0 = self.muz_0
+    
+    
+        sintheta = np.sin(theta_sca * (np.pi / 180.))
+        costheta = np.cos(theta_sca * (np.pi / 180.))
+        sinphi = np.sin(phi_sca * (np.pi / 180.))
+        cosphi = np.cos(phi_sca * (np.pi / 180.))
+
+        if muz_0==1:
+            mux_n = sintheta * cosphi
+            muy_n = sintheta * sinphi
+            muz_n = costheta
+        elif muz_0==-1:
+            mux_n = sintheta * cosphi
+            muy_n = -sintheta * sinphi
+            muz_n = -costheta
+        else:
+            mux_n = ((sintheta*(mux_0*muz_0*cosphi - 
+                                muy_0*sinphi)) / (np.sqrt(1 - muz_0**2)) + 
+                     mux_0*costheta)
+            muy_n = ((sintheta*(muy_0*muz_0*cosphi + 
+                                mux_0*sinphi)) / (np.sqrt(1 - muz_0**2)) + 
+                     muy_0*costheta)
+            muz_n = -np.sqrt(1 - muz_0**2)*sintheta*cosphi + muz_0*costheta
+
+        # update coordinates:
+        self.x_tau = np.append(x_tau, x_tau[i-1] + dtau_current*mux_n)
+        self.y_tau = np.append(y_tau, y_tau[i-1] + dtau_current*muy_n)
+        self.z_tau = np.append(z_tau, z_tau[i-1] + dtau_current*muz_n)
+
+        # update current direction (0):
+        self.mux_0 = mux_n
+        self.muy_0 = muy_n
+        self.muz_0 = muz_n
+    
     def monte_carlo3D(self, wvl):
         """ Translated from matlab to python by Adam Schneider
         
             Returns albedo and fraction of incident photons reaching sensor
         """        
         # initialization:
-        y_tau = np.array([0])
         x_tau = np.array([0])
+        y_tau = np.array([0])
         z_tau = np.array([0])
         
         # initial direction cosines
@@ -313,23 +401,80 @@ class MonteCarlo(object):
         muy_0 = 0
         muz_0 = -1
         
-        y_crt = np.array([0])
         x_crt = np.array([0])
+        y_crt = np.array([0])
         z_crt = np.array([0])
         
         path_length = 0
         
         if False: # debugging / demonstration of 2 scattering events:
+            self.x_tau = x_tau
+            self.y_tau = y_tau
+            self.z_tau = z_tau
+            
+            self.mux_0 = mux_0
+            self.muy_0 = muy_0
+            self.muz_0 = muz_0            
+            
             # 1. photon enters from above, moving straight down:
             i = 1
             dtau_current = 0.2
             theta_sca = 0
             phi_sca = 50
-            sintheta = np.sin(theta_sca * (np.pi / 180.))
-            costheta = np.cos(theta_sca * (np.pi / 180.))
-            sinphi = np.sin(phi_sca * (np.pi / 180.))
-            cosphi = np.cos(phi_sca * (np.pi / 180.))
+            self.scatter_photon(i, dtau_current, theta_sca, phi_sca)
             
+            # 2. photon is scattered in some random direction
+            i = 2
+            dtau_current = 0.4
+            theta_sca = 20
+            phi_sca = 50
+            self.scatter_photon(i, dtau_current, theta_sca, phi_sca)
+            
+            x_tau = self.x_tau
+            y_tau = self.y_tau
+            z_tau = self.z_tau
+            
+            # 2-D plot:
+            fig = plt.figure()
+            plt.plot(x_tau, z_tau, linewidth=3)
+            plt.xlim(-0.14, 0.14)
+            plt.ylim(-0.5, 0)
+            plt.xlabel('Optical Depth (x)', fontsize=18)
+            plt.ylabel('Optical Depth (z)', fontsize=18)
+            plt.grid()
+            plt.show()
+            
+            # 3-D plot:
+            fig = plt.figure()
+            ax = fig.add_subplot(111, projection='3d')
+            ax.plot(x_tau, y_tau, z_tau, linewidth=3)
+            ax.set_xlabel('Optical Depth (x)', fontsize=18)
+            ax.set_ylabel('Optical Depth (y)', fontsize=18)
+            ax.set_zlabel('Optical Depth (z)', fontsize=18)
+            
+        # scatter the photon inside the cloud/snow until it escapes or is 
+        # absorbed
+        condition = 0
+        i = 0
+        
+        while condition==0:
+            i+=1
+            # distance, in optical depth space, to move photon
+            dtau_current = self.tau_rand[self.photon, i-1]
+            
+            # scattering phase angle:
+            if i==1: # the photon enters travelling straight down
+                costheta = 1
+                sintheta = 0
+            else:
+                costheta = self.p_rand[self.photon, i-1]
+                sintheta = np.sqrt(1 - costheta**2)
+                
+            # scattering azimuth angle:
+            cosphi = np.cos(self.phi_rand[self.photon, i-1])
+            sinphi = np.sin(self.phi_rand[self.photon, i-1])
+            
+            # new cosine directional angles
             if muz_0==1:
                 mux_n = sintheta * cosphi
                 muy_n = sintheta * sinphi
@@ -338,18 +483,67 @@ class MonteCarlo(object):
                 mux_n = sintheta * cosphi
                 muy_n = -sintheta * sinphi
                 muz_n = -costheta
-            else:
-                mux_n = ((sintheta*(mux_0*muz_0*cosphi - 
-                                    muy_0*sinphi)) / (np.sqrt(1 - muz_0**2)) + 
-                         mux_0*costheta)
-                muy_n = ((sintheta*(muy_0*muz_0*cosphi + 
-                                    mux_0*sinphi)) / (np.sqrt(1 - muz_0**2)) + 
-                         muy_0*costheta)
+            else: # equations from  http://en.wikipedia.org/wiki/Monte_Carlo_method_for_photon_transport
+                mux_n = ((sintheta*(mux_0*muz_0*cosphi - muy_0*sinphi)) /
+                         (np.sqrt(1 - muz_0**2)) + mux_0*costheta)
+                muy_n = ((sintheta*(muy_0*muz_0*cosphi + mux_0*sinphi)) /
+                         (np.sqrt(1 - muz_0**2)) + muy_0*costheta)
                 muz_n = -np.sqrt(1 - muz_0**2)*sintheta*cosphi + muz_0*costheta
-                
-            # update coordinates:
             
-        return wvl
+            # update tau coordinates:
+            x_tau = np.append(x_tau, x_tau[i-1] + dtau_current*mux_n)
+            y_tau = np.append(y_tau, y_tau[i-1] + dtau_current*muy_n)
+            z_tau = np.append(z_tau, z_tau[i-1] + dtau_current*muz_n)
+            
+            # update Cartesian coordinates:
+            ext_cff_mss = self.ext_cff_mss[self.photon]
+            x_crt = np.append(x_crt, x_crt[i-1] + 
+                              dtau_current * mux_n / (ext_cff_mss*self.rho_snw))                            
+            y_crt = np.append(y_crt, y_crt[i-1] + 
+                              dtau_current * muy_n / (ext_cff_mss*self.rho_snw))
+            z_crt = np.append(z_crt, z_crt[i-1] + 
+                              dtau_current * muz_n / (ext_cff_mss*self.rho_snw))
+                              
+            # update current direction:
+            mux_0 = mux_n
+            muy_0 = muy_n
+            muz_0 = muz_n
+            
+            # update path length
+            path_length = path_length + dtau_current / (ext_cff_mss *
+                                                        self.rho_snw)
+                                                        
+            # was the extinction event caused by ice or impurity?
+            if self.ext_spc_rand[self.photon, i-1] > self.P_ext_imp[self.photon]:
+                # extinction from ice
+                ext_state = 1
+                ssa_event = self.ssa_ice[self.photon]
+            else:
+                # extinction from impurity
+                ext_state = 2
+                ssa_event = self.ssa_imp[self.photon]
+                        
+            # check for exit status:
+            if z_tau[i] > 0:
+                # photon has left the top of the cloud/snow (reflected)
+                condition = 1
+                
+            elif z_tau[i] < -self.tau_tot and i==1:
+                # photon has left the bottom of the cloud/snow WITHOUT 
+                # scattering ONCE (direct transmittance)
+                condition = 3
+            elif z_tau[i] < -self.tau_tot:
+                # photon has left the bottom of the cloud/snow (diffuse 
+                # transmittance)
+                condition = 2
+            elif self.ssa_rand[self.photon, i-1] >= ssa_event:
+                # photon was absorbed, archive which species absorbed it:
+                if ext_state==1:
+                    condition = 4
+                elif ext_state==2:
+                    condition = 5
+                    
+        return condition
               
     def run(self, n_photon, wvl0, half_width, rds_snw, test=False):
         """ Run the Monte Carlo model given a normal distribution of
@@ -374,40 +568,40 @@ class MonteCarlo(object):
                                                         rds_snw)
         if test:
             try:
-                ssa_ice = np.array([self.ssa_ice])
+                ssa_ice = self.ssa_ice * np.ones(n_photon)
             except AttributeError:
                 pass
             try:
-                ext_cff_mss_ice = np.array([self.ext_cff_mss_ice])
+                ext_cff_mss_ice = self.ext_cff_mss_ice * np.ones(n_photon)
             except AttributeError:
                 pass
             try:
-                g = np.array([self.g])
+                g = self.g * np.ones(n_photon)
             except AttributeError:
                 pass
             try:
-                ssa_imp = np.array([self.ssa_imp])
+                ssa_imp = self.ssa_imp * np.ones(n_photon)
             except AttributeError:
                 pass
             try:
-                ext_cff_mss_imp = np.array([self.ext_cff_mss_imp])
+                ext_cff_mss_imp = self.ext_cff_mss_imp * np.ones(n_photon)
             except AttributeError:
                 pass
                 
         imp_cnc = self.imp_cnc
         # combined mass extinction cross-section of ice+impurity system (m2/kg)
-        ext_cff_mss = ext_cff_mss_ice*(1-imp_cnc) + ext_cff_mss_imp*imp_cnc
+        self.ext_cff_mss = ext_cff_mss_ice*(1-imp_cnc) + ext_cff_mss_imp*imp_cnc
         
         # calculate probability that extinction event is caused by impurity
-        P_ext_imp = (imp_cnc*ext_cff_mss_imp) / (imp_cnc*ext_cff_mss_imp + 
-                                                 (1-imp_cnc)*ext_cff_mss_ice)
+        self.P_ext_imp = (imp_cnc*ext_cff_mss_imp) / (imp_cnc*ext_cff_mss_imp + 
+                                                    (1-imp_cnc)*ext_cff_mss_ice)
 
         # cos(theta) array over which to compute function
-        costheta_p = np.arange(-1.000, 1.001, 0.001)
-        self.costheta_p = costheta_p    
+        self.costheta_p = np.arange(-1.000, 1.001, 0.001)
         self.g = g
-        p = self.Henyey_Greenstein()
-        self.p = p
+        self.p = self.Henyey_Greenstein()
+        self.ssa_ice = ssa_ice
+        self.ssa_imp = ssa_imp
         
         (self.p_rand,
          self.tau_rand,
@@ -423,6 +617,7 @@ class MonteCarlo(object):
        
         answer = list() 
         for i, wvl in enumerate(par_wvls.working_set):
+            self.photon = i
             answer.append(self.monte_carlo3D(wvl))
             
         all_answers = par_wvls.answer_and_reduce(answer,
@@ -522,7 +717,7 @@ class MonteCarlo(object):
     def flatten_list(klass, l):            
         return [item for sublist in l for item in sublist]
 
-def test(n_photon=50000, wvl=1.3, half_width=0.085, rds_snw=100):
+def test(n_photon=50000, wvl=0.5, half_width=0.085, rds_snw=100):
     """ Test case for comparison with Wang et al (1995) Table 1, and van de
         Hulst (1980).  Albedo should be ~0.09739.  Total transmittance
         (diffuse+direct) should be ~0.66096.
@@ -540,7 +735,7 @@ def test(n_photon=50000, wvl=1.3, half_width=0.085, rds_snw=100):
     test_case.run(n_photon, wvl, half_width, rds_snw, test=True)
     test_case.plot_phase_function()
 
-def test_and_debug(n_photon=100, wvl=1.3, half_width=0.085, rds_snw=100):
+def test_and_debug(n_photon=100, wvl=0.5, half_width=0.085, rds_snw=250):
     """ manually specify optical properties for test cases and debugging:
     """
     # mass extinction cross-section of ice grains (m2/kg at 500nm)
@@ -558,7 +753,7 @@ def test_and_debug(n_photon=100, wvl=1.3, half_width=0.085, rds_snw=100):
     # single-scatter albedo of black carbon (500nm)
     ssa_imp = 0.30
     
-    test_case = MonteCarlo()
+    test_case = MonteCarlo(tau_tot=10)
     test_case.ext_cff_mss_ice = ext_cff_mss_ice
     test_case.ssa_ice = ssa_ice
     test_case.g = g
