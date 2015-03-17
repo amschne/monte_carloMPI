@@ -562,7 +562,7 @@ class MonteCarlo(object):
                 elif ext_state==2:
                     condition = 5
                     
-        return condition
+        return(wvl, condition)
               
     def run(self, n_photon, wvl0, half_width, rds_snw, test=False, debug=False):
         """ Run the Monte Carlo model given a normal distribution of
@@ -644,7 +644,17 @@ class MonteCarlo(object):
                                                  MonteCarlo.flatten_list)
         if all_answers is not None:
             # this is the root processor
-            print(all_answers, len(all_answers))
+            Q_down = 0
+            Q_up = 0
+            for i, answer in enumerate(all_answers):
+                Q_down += 1. / answer[0]
+                if answer[1]==1:
+                    Q_up += 1./answer[0]
+            R = Q_up / Q_down
+            
+            print('snow reflectance = %r' % R)
+            
+        return R
     
     def plot_phase_function(self):
         """ plot phase function versus cos(theta)

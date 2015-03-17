@@ -12,15 +12,18 @@ def single_grain_size(n_photon, wvl, half_width, rds_snw):
     
 def multiple_grain_sizes(n_photon, wvl, half_width, rds_snw):
     monte_carlo_run = monte_carlo3D.MonteCarlo()
+    R = np.empty(np.shape(rds_snw))
     for i, rds in enumerate(rds_snw):
-        monte_carlo_run.run(n_photon, wvl, half_width, rds, debug=DEBUG)
+        R[i] = monte_carlo_run.run(n_photon, wvl, half_width, rds, debug=DEBUG)
         #monte_carlo_run.plot_phase_function()
+        
+    return R
 
 def run():    
     """ USER INPUT
     """
     # set number of photons
-    n_photon = 100
+    n_photon = 1000
     
     # wavelength [um]
     wvl = 1.3
