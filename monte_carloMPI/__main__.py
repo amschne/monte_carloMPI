@@ -3,16 +3,18 @@
 import numpy as np
 import monte_carlo3D
 
+DEBUG = False
+
 def single_grain_size(n_photon, wvl, half_width, rds_snw):
     monte_carlo_run = monte_carlo3D.MonteCarlo()
-    monte_carlo_run.run(n_photon, wvl, half_width, rds_snw)
-    monte_carlo_run.plot_phase_function()
+    monte_carlo_run.run(n_photon, wvl, half_width, rds_snw, debug=DEBUG)
+    #monte_carlo_run.plot_phase_function()
     
 def multiple_grain_sizes(n_photon, wvl, half_width, rds_snw):
     monte_carlo_run = monte_carlo3D.MonteCarlo()
     for i, rds in enumerate(rds_snw):
-        monte_carlo_run.run(n_photon, wvl, half_width, rds)
-        monte_carlo_run.plot_phase_function()
+        monte_carlo_run.run(n_photon, wvl, half_width, rds, debug=DEBUG)
+        #monte_carlo_run.plot_phase_function()
 
 def run():    
     """ USER INPUT

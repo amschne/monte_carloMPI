@@ -407,7 +407,7 @@ class MonteCarlo(object):
         
         path_length = 0
         
-        if False: # debugging / demonstration of 2 scattering events:
+        if self.debug: # debugging / demonstration of 2 scattering events:
             self.x_tau = x_tau
             self.y_tau = y_tau
             self.z_tau = z_tau
@@ -434,24 +434,43 @@ class MonteCarlo(object):
             y_tau = self.y_tau
             z_tau = self.z_tau
             
-            # 2-D plot:
-            fig = plt.figure()
-            plt.plot(x_tau, z_tau, linewidth=3)
-            plt.xlim(-0.14, 0.14)
-            plt.ylim(-0.5, 0)
-            plt.xlabel('Optical Depth (x)', fontsize=18)
-            plt.ylabel('Optical Depth (z)', fontsize=18)
-            plt.grid()
-            plt.show()
+            if self.flg_3D==0: # 2-D plot:
+                # 2-D plot:
+                fig = plt.figure()
+                plt.plot(x_tau, z_tau, linewidth=3)
+                plt.xlim(-0.14, 0.14)
+                plt.ylim(-0.5, 0)
+                plt.xlabel('Optical Depth (x)', fontsize=18)
+                plt.ylabel('Optical Depth (z)', fontsize=18)
+                plt.grid()
+                plt.show()
             
-            # 3-D plot:
-            fig = plt.figure()
-            ax = fig.add_subplot(111, projection='3d')
-            ax.plot(x_tau, y_tau, z_tau, linewidth=3)
-            ax.set_xlabel('Optical Depth (x)', fontsize=18)
-            ax.set_ylabel('Optical Depth (y)', fontsize=18)
-            ax.set_zlabel('Optical Depth (z)', fontsize=18)
+            elif self.flg_3D==1: # 3-D plot
+                fig = plt.figure()
+                ax = fig.add_subplot(111, projection='3d')
+                ax.plot(x_tau, y_tau, z_tau, linewidth=3)
+                ax.set_xlabel('Optical Depth (x)', fontsize=18)
+                ax.set_ylabel('Optical Depth (y)', fontsize=18)
+                ax.set_zlabel('Optical Depth (z)', fontsize=18)
+                plt.show()
+         
+            # reinitialize
+            # initialization:
+            x_tau = np.array([0])
+            y_tau = np.array([0])
+            z_tau = np.array([0])
+        
+            # initial direction cosines
+            mux_0 = 0
+            muy_0 = 0
+            muz_0 = -1
             
+            x_crt = np.array([0])
+            y_crt = np.array([0])
+            z_crt = np.array([0])
+            
+            path_length = 0
+        
         # scatter the photon inside the cloud/snow until it escapes or is 
         # absorbed
         condition = 0
@@ -545,13 +564,14 @@ class MonteCarlo(object):
                     
         return condition
               
-    def run(self, n_photon, wvl0, half_width, rds_snw, test=False):
+    def run(self, n_photon, wvl0, half_width, rds_snw, test=False, debug=False):
         """ Run the Monte Carlo model given a normal distribution of
             wavelengths [um].  This better simulates what NERD does with
             non-monochromatic LEDs.
             
             ALL VALUES IN MICRONS
         """
+        self.debug = debug
         # Convert half_width to standard deviation
         scale = half_width / 2.355
         
@@ -633,6 +653,8 @@ class MonteCarlo(object):
             The first 100 curves are random, so this will give a good sample 
             for larger N
         """
+        fig = plt.figure()
+        
         p = np.asarray(self.p)
         
         if np.size(self.g)>1:
