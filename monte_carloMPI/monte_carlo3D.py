@@ -529,8 +529,7 @@ class MonteCarlo(object):
             muz_0 = muz_n
             
             # update path length
-            path_length = path_length + dtau_current / (ext_cff_mss *
-                                                        self.rho_snw)
+            path_length += dtau_current / (ext_cff_mss * self.rho_snw)
                                                         
             # was the extinction event caused by ice or impurity?
             if self.ext_spc_rand[self.photon, i-1] > self.P_ext_imp[self.photon]:
@@ -562,7 +561,12 @@ class MonteCarlo(object):
                 elif ext_state==2:
                     condition = 5
                     
-        return(wvl, condition)
+        wvn = 1. / wvl
+        theta_n = np.arccos(muz_0)
+        phi_n = np.arctan(muy_0 / mux_0)
+        n_scat = i-1 # number of scattering events
+        
+        return(condition, wvn, theta_n, phi_n, n_scat, path_length)
               
     def run(self, n_photon, wvl0, half_width, rds_snw, test=False, debug=False):
         """ Run the Monte Carlo model given a normal distribution of
@@ -619,7 +623,7 @@ class MonteCarlo(object):
         # cos(theta) array over which to compute function
         self.costheta_p = np.arange(-1.000, 1.001, 0.001)
         self.g = g
-        self.p = self.Henyey_Greenstein()
+        #self.p = self.Henyey_Greenstein()
         self.ssa_ice = ssa_ice
         self.ssa_imp = ssa_imp
         
@@ -631,9 +635,9 @@ class MonteCarlo(object):
          
         # counters for saving coordinates of absorption events and exit_top 
         # events
-        self.i1 = 1
-        self.i2 = 1
-        self.i_sensor = 0
+        #self.i1 = 1
+        #self.i2 = 1
+        #self.i_sensor = 0
        
         answer = list() 
         for i, wvl in enumerate(par_wvls.working_set):
@@ -644,17 +648,14 @@ class MonteCarlo(object):
                                                  MonteCarlo.flatten_list)
         if all_answers is not None:
             # this is the root processor
-            Q_down = 0
-            Q_up = 0
+            print('# wvl0[um]\thalf_width[um]\trds_snw[um]\ttau_tot\t'
+                  'imp_cnc\trho_snw[kg/m^3]\tcondition\twvn[um^-1]\t'
+                  'theta_n\tphi_n\tn_scat\tpath_length[m]')
             for i, answer in enumerate(all_answers):
-                Q_down += 1. / answer[0]
-                if answer[1]==1:
-                    Q_up += 1./answer[0]
-            R = Q_up / Q_down
-            
-            print('snow reflectance = %r' % R)
-            
-        return R
+                print('%r\t%r\t%r\t%r\t%r\t%r\t%d\t%r\t%r\t%r\t%d\t%r'
+                      % (wvl0, half_width, rds_snw, self.tau_tot, self.imp_cnc,
+                         self.rho_snw, answer[0], answer[1], answer[2],
+                         answer[3], answer[4], answer[5]))
     
     def plot_phase_function(self):
         """ plot phase function versus cos(theta)
@@ -663,10 +664,10 @@ class MonteCarlo(object):
             The first 100 curves are random, so this will give a good sample 
             for larger N
         """
-        fig = plt.figure()
-        
+        self.p = self.Henyey_Greenstein()
         p = np.asarray(self.p)
         
+        fig = plt.figure()
         if np.size(self.g)>1:
             mean_g = np.around(np.mean(self.g), 4)
             std_g = np.around(np.std(self.g), 4)
