@@ -19,6 +19,9 @@ from scipy.io import netcdf
 
 from parallelize import Parallel
 
+#import ipdb
+#from memory_profiler import profile
+
 class MonteCarlo(object):
     def __init__(self, **model_kwargs):
         """ valid model_kwargs:
@@ -212,7 +215,7 @@ class MonteCarlo(object):
                     sys.stderr.write('error: exception raised while interpolating '
                                      'g, using nearest value instead\n')
             
-        snow_optics.close()
+        #snow_optics.close()
 
         # impurity optics:
         fi_imp = os.path.join(self.optics_dir, self.fi_imp)
@@ -303,7 +306,7 @@ class MonteCarlo(object):
                     sys.stderr.write('error: exception raised while interpolating '
                                      'ext_cff_mss_imp, using nearest value instead\n')
                     
-        impurity_optics.close()
+        #impurity_optics.close()
         
         return(ssa_ice, ext_cff_mss_ice, g, ssa_imp, ext_cff_mss_imp)
     
@@ -319,7 +322,7 @@ class MonteCarlo(object):
         
         return p_HG
     
-    def populate_pdfs(self, g, RANDOM_NUMBERS=100):
+    def populate_pdfs(self, g, RANDOM_NUMBERS=10):
         """ 1. Populate PDF of cos(scattering phase angle) with random numbers
             2. Populate PDF of optical path traversed between scattering events
             3. Populate PDF of scattering azimuth angle with random numbers
@@ -335,13 +338,14 @@ class MonteCarlo(object):
         phi_rand = np.empty((g.size, r1.size))
         ssa_rand = np.empty((g.size, r1.size))
         ext_spc_rand = np.empty((g.size, r1.size))
+        
         for i, val in enumerate(g):
             if val==0:
                 p_rand[i,:] = 1 - 2*r1
             else:
                 p_rand[i,:] = (1./(2.*val)) * (1 + val**2 - 
-                                         ((1 - val**2)/(1 - val + 2*val*r1))**2)           
-             
+                                         ((1 - val**2)/(1 - val + 2*val*r1))**2)
+
             # SANITY CHECK:  mean of the random distribution (should equal g)
             #p_mean = np.mean(p_rand[i,:])
             #print p_mean - val

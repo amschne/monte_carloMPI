@@ -20,7 +20,7 @@ def run():
     """ USER INPUT
     """
     # set number of photons
-    n_photon = 100
+    n_photon = 1000
     
     # wavelength [um]
     wvl = 1.3
@@ -36,7 +36,7 @@ def run():
         single_grain_size(n_photon, wvl, half_width, rds_snw)
     
     if True: # multiple grain sizes
-        rds_snw = np.arange(100., 120., 10)
+        rds_snw = np.arange(100., 1100, 200)
         multiple_grain_sizes(n_photon, wvl, half_width, rds_snw)
         
     """ END USER INPUT
