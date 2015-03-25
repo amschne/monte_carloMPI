@@ -29,6 +29,7 @@ class MonteCarlo(object):
             hsensor = [SENSOR HIEGHT ABOVE SNOW [m]]
             flg_crt = plot in optical depth space (=0) or Cartesian space (=1)?
             flg_3D = plot in 2-D (=0), 3-D (=1). or no plot (=999)?
+            output_dir = [DIRECTORY TO WRITE OUTPUT DATA TO]
             optics_dir = [DIRECTORY OF OPTICS FILES]
             fi_imp = [IMPURITY OPTICS FILE]
         """       
@@ -42,6 +43,7 @@ class MonteCarlo(object):
                            'hsensor' : model_args.hsensor,
                            'flg_crt' : model_args.flg_crt,
                            'flg_3D' : model_args.flg_3D,
+                           'output_dir' : model_args.output_dir,
                            'optics_dir' : model_args.optics_dir,
                            'fi_imp' : model_args.fi_imp}
         
@@ -56,8 +58,30 @@ class MonteCarlo(object):
         self.hsensor = model_args_dict['hsensor']
         self.flg_crt = model_args_dict['flg_crt']
         self.flg_3D = model_args_dict['flg_3D']
+        self.output_dir = model_args_dict['output_dir']
         self.optics_dir = model_args_dict['optics_dir']
         self.fi_imp = model_args_dict['fi_imp']
+    
+    def setup_output(self, n_photon, wvl0, half_width, rds_snw):
+        """ Create output dir for writing data to
+        
+            Returns output_file path
+        """
+        dir_name = 'monte_carlo3D'
+        full_path = os.path.join(self.output_dir, dir_name)
+        if not os.path.isdir(full_path):
+            os.mkdir(full_path)
+            
+        run_name = '%s_%s_%s_%s.txt' % (wvl0, half_width, rds_snw, n_photon)
+        output_file = os.path.join(full_path, run_name)
+        i = 0
+        while os.path.isfile(output_file):
+            i += 1
+            run_name = '%s_%s_%s_%s_%d.txt' % (wvl0, half_width, rds_snw,
+                                               n_photon, i)
+            output_file = os.path.join(full_path, run_name)
+            
+        return output_file
     
     def get_optical_properties(self, wvls, rds_snw):
         """ Retrieve snow and impurity optical properties from NetCDF files,
@@ -295,7 +319,7 @@ class MonteCarlo(object):
         
         return p_HG
     
-    def populate_pdfs(self, RANDOM_NUMBERS=1000):
+    def populate_pdfs(self, g, RANDOM_NUMBERS=100):
         """ 1. Populate PDF of cos(scattering phase angle) with random numbers
             2. Populate PDF of optical path traversed between scattering events
             3. Populate PDF of scattering azimuth angle with random numbers
@@ -306,12 +330,12 @@ class MonteCarlo(object):
         """
         # 1. Populate PDF of cos(scattering phase angle) with random numbers
         r1 = np.random.rand(RANDOM_NUMBERS) # distribution from 0 -> 1
-        p_rand = np.empty((self.g.size, r1.size))
-        tau_rand = np.empty((self.g.size, r1.size))
-        phi_rand = np.empty((self.g.size, r1.size))
-        ssa_rand = np.empty((self.g.size, r1.size))
-        ext_spc_rand = np.empty((self.g.size, r1.size))
-        for i, val in enumerate(self.g):
+        p_rand = np.empty((g.size, r1.size))
+        tau_rand = np.empty((g.size, r1.size))
+        phi_rand = np.empty((g.size, r1.size))
+        ssa_rand = np.empty((g.size, r1.size))
+        ext_spc_rand = np.empty((g.size, r1.size))
+        for i, val in enumerate(g):
             if val==0:
                 p_rand[i,:] = 1 - 2*r1
             else:
@@ -391,6 +415,7 @@ class MonteCarlo(object):
         
             Returns albedo and fraction of incident photons reaching sensor
         """        
+        i_max = self.p_rand.shape[1]
         # initialization:
         x_tau = np.array([0])
         y_tau = np.array([0])
@@ -475,23 +500,35 @@ class MonteCarlo(object):
         # absorbed
         condition = 0
         i = 0
-        
+        i_rand = 0
         while condition==0:
             i+=1
+            i_rand+=1
+            if i_rand > i_max: # we need more random numbers!
+                g = np.array([self.g[self.photon]])
+                pdfs = self.populate_pdfs(g)
+                self.p_rand[self.photon] = pdfs[0][0]
+                self.tau_rand[self.photon] = pdfs[1][0]
+                self.phi_rand[self.photon] = pdfs[2][0]
+                self.ssa_rand[self.photon] = pdfs[3][0]
+                self.ext_spc_rand[self.photon] = pdfs[4][0]
+                
+                i_rand = 1
+            
             # distance, in optical depth space, to move photon
-            dtau_current = self.tau_rand[self.photon, i-1]
+            dtau_current = self.tau_rand[self.photon, i_rand-1]
             
             # scattering phase angle:
             if i==1: # the photon enters travelling straight down
                 costheta = 1
                 sintheta = 0
             else:
-                costheta = self.p_rand[self.photon, i-1]
+                costheta = self.p_rand[self.photon, i_rand-1]
                 sintheta = np.sqrt(1 - costheta**2)
                 
             # scattering azimuth angle:
-            cosphi = np.cos(self.phi_rand[self.photon, i-1])
-            sinphi = np.sin(self.phi_rand[self.photon, i-1])
+            cosphi = np.cos(self.phi_rand[self.photon, i_rand-1])
+            sinphi = np.sin(self.phi_rand[self.photon, i_rand-1])
             
             # new cosine directional angles
             if muz_0==1:
@@ -513,7 +550,7 @@ class MonteCarlo(object):
             x_tau = np.append(x_tau, x_tau[i-1] + dtau_current*mux_n)
             y_tau = np.append(y_tau, y_tau[i-1] + dtau_current*muy_n)
             z_tau = np.append(z_tau, z_tau[i-1] + dtau_current*muz_n)
-            
+                        
             # update Cartesian coordinates:
             ext_cff_mss = self.ext_cff_mss[self.photon]
             x_crt = np.append(x_crt, x_crt[i-1] + 
@@ -532,7 +569,7 @@ class MonteCarlo(object):
             path_length += dtau_current / (ext_cff_mss * self.rho_snw)
                                                         
             # was the extinction event caused by ice or impurity?
-            if self.ext_spc_rand[self.photon, i-1] > self.P_ext_imp[self.photon]:
+            if self.ext_spc_rand[self.photon, i_rand-1] > self.P_ext_imp[self.photon]:
                 # extinction from ice
                 ext_state = 1
                 ssa_event = self.ssa_ice[self.photon]
@@ -545,22 +582,37 @@ class MonteCarlo(object):
             if z_tau[i] > 0:
                 # photon has left the top of the cloud/snow (reflected)
                 condition = 1
+                # correct path_length (we only want photon path length within
+                # the snow pack)
+                correction = -((z_tau[i] * dtau_current) /
+                               ((z_tau[i] - z_tau[i-1]) * ext_cff_mss*self.rho_snw))
+                path_length += correction
                 
             elif z_tau[i] < -self.tau_tot and i==1:
                 # photon has left the bottom of the cloud/snow WITHOUT 
                 # scattering ONCE (direct transmittance)
                 condition = 3
+                # correct path_length (we only want photon path length within
+                # the snow pack)
+                path_length = self.tau_tot / (ext_cff_mss * self.rho_snw)
+                
             elif z_tau[i] < -self.tau_tot:
                 # photon has left the bottom of the cloud/snow (diffuse 
                 # transmittance)
                 condition = 2
-            elif self.ssa_rand[self.photon, i-1] >= ssa_event:
+                # correct path_length (we only want photon path length within
+                # the snow pack)
+                correction = -(((z_tau[i] + self.tau_tot) * dtau_current) /
+                               ((z_tau[i] - z_tau[i-1]) * ext_cff_mss*self.rho_snw))
+                path_length += correction
+                
+            elif self.ssa_rand[self.photon, i_rand-1] >= ssa_event:
                 # photon was absorbed, archive which species absorbed it:
                 if ext_state==1:
                     condition = 4
                 elif ext_state==2:
                     condition = 5
-                    
+
         wvn = 1. / wvl
         theta_n = np.arccos(muz_0)
         phi_n = np.arctan(muy_0 / mux_0)
@@ -631,7 +683,7 @@ class MonteCarlo(object):
          self.tau_rand,
          self.phi_rand,
          self.ssa_rand,
-         self.ext_spc_rand) = self.populate_pdfs()
+         self.ext_spc_rand) = self.populate_pdfs(g)
          
         # counters for saving coordinates of absorption events and exit_top 
         # events
@@ -648,14 +700,29 @@ class MonteCarlo(object):
                                                  MonteCarlo.flatten_list)
         if all_answers is not None:
             # this is the root processor
-            print('# wvl0[um]\thalf_width[um]\trds_snw[um]\ttau_tot\t'
-                  'imp_cnc\trho_snw[kg/m^3]\tcondition\twvn[um^-1]\t'
-                  'theta_n\tphi_n\tn_scat\tpath_length[m]')
+            output_file = self.setup_output(n_photon, wvl0, half_width, rds_snw)
+            txt_file = open(output_file, 'w')
+            txt_file.write('condition wvn[um^-1] theta_n phi_n n_scat '
+                           'path_length[m]\n')
             for i, answer in enumerate(all_answers):
-                print('%r\t%r\t%r\t%r\t%r\t%r\t%d\t%r\t%r\t%r\t%d\t%r'
-                      % (wvl0, half_width, rds_snw, self.tau_tot, self.imp_cnc,
-                         self.rho_snw, answer[0], answer[1], answer[2],
-                         answer[3], answer[4], answer[5]))
+                txt_file.write('%d %r %r %r %d %r\n' % (answer[0], answer[1],
+                                                        answer[2], answer[3],
+                                                        answer[4], answer[5]))
+            txt_file.close()
+                                                      
+    def calculate_albedo(self, answers):
+        """ Compute black sky albedo (directional-hemispherical reflectance) of
+            the snow/cloud
+        """
+        Q_down = 0
+        Q_up = 0
+        for photon, answer in enumerate(answers):
+            Q_down += answer[1]
+            if answer[0] == 1:
+                Q_up += answer[1]
+        albedo = Q_up / Q_down
+                
+        return albedo
     
     def plot_phase_function(self):
         """ plot phase function versus cos(theta)
@@ -715,6 +782,7 @@ class MonteCarlo(object):
 
         # data
         section_name = 'data'
+        output_dir = config.get(section_name, 'output_dir')
         optics_dir = config.get(section_name, 'optics_dir')
         fi_imp = config.get(section_name, 'fi_imp')
 
@@ -738,6 +806,8 @@ class MonteCarlo(object):
         parser.add_argument('--flg_3D', type=int, default=flg_3D,
                             help='plot in 2-D (=0), 3-D (=1). '
                                  'or no plot (=999)?')
+        parser.add_argument('--output_dir', type=str, default=output_dir,
+                            help='directory to write output data')
         parser.add_argument('--optics_dir', type=str, default=optics_dir, 
                             help='directory of optics files')
         parser.add_argument('--fi_imp', type=str, default=fi_imp)

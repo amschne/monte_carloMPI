@@ -12,11 +12,10 @@ def single_grain_size(n_photon, wvl, half_width, rds_snw):
     
 def multiple_grain_sizes(n_photon, wvl, half_width, rds_snw):
     monte_carlo_run = monte_carlo3D.MonteCarlo()
-    R = np.empty(np.shape(rds_snw))
     for i, rds in enumerate(rds_snw):
         monte_carlo_run.run(n_photon, wvl, half_width, rds, debug=DEBUG)
         #monte_carlo_run.plot_phase_function()
-        
+
 def run():    
     """ USER INPUT
     """
@@ -32,11 +31,11 @@ def run():
     half_width = 0.085
     
     # snow effective grain size [um]
-    if True: # single grain size
+    if False: # single grain size
         rds_snw = 100.
         single_grain_size(n_photon, wvl, half_width, rds_snw)
     
-    if False: # multiple grain sizes
+    if True: # multiple grain sizes
         rds_snw = np.arange(100., 120., 10)
         multiple_grain_sizes(n_photon, wvl, half_width, rds_snw)
         
