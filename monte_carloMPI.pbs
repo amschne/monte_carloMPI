@@ -1,6 +1,6 @@
 #!/bin/sh
 #PBS -S /bin/sh
-##PBS -N your-mpi-job
+#PBS -N monte_carlo3D
 #PBS -l procs=12,pmem=3gb,walltime=1:00:00
 #PBS -A climate_flux
 #PBS -l qos=flux
@@ -21,4 +21,4 @@ cat $PBS_NODEFILE
 cd $CASEROOT
 
 # Use mpirun to run with n cores (#PBS -l procs=...)
-mpirun -N $CASE monte_carlo3D-run.py
+mpirun monte_carlo3D-run.py

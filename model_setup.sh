@@ -23,7 +23,7 @@ cp $MONTE_CARLO_ROOT/model_setup.sh $CASEROOT
 cd $CASEROOT
 
 # AUGMENT PYTHONPATH
-export PYTHONPATH=$CASEROOT/monte_carloMPI
+export PYTHONPATH=$MONTE_CARLO_ROOT/monte_carloMPI
 
 echo ' '
 echo 'CASEROOT (cwd) setup'
