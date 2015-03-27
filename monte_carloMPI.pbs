@@ -1,7 +1,7 @@
 #!/bin/sh
 #PBS -S /bin/sh
 ##PBS -N your-mpi-job
-#PBS -l procs=12,pmem=1gb,walltime=1:00:00
+#PBS -l procs=12,pmem=3gb,walltime=1:00:00
 #PBS -A climate_flux
 #PBS -l qos=flux
 #PBS -q flux
