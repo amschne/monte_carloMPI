@@ -70,19 +70,18 @@ class MonteCarlo(object):
         
             Returns output_file path
         """
-        dir_name = 'monte_carlo3D'
-        full_path = os.path.join(self.output_dir, dir_name)
-        if not os.path.isdir(full_path):
-            os.mkdir(full_path)
+        self.output_dir
+        if not os.path.isdir(self.output_dir):
+            os.mkdir(self.output_dir)
             
         run_name = '%s_%s_%s_%s.txt' % (wvl0, half_width, rds_snw, n_photon)
-        output_file = os.path.join(full_path, run_name)
+        output_file = os.path.join(self.output_dir, run_name)
         i = 0
         while os.path.isfile(output_file):
             i += 1
             run_name = '%s_%s_%s_%s_%d.txt' % (wvl0, half_width, rds_snw,
                                                n_photon, i)
-            output_file = os.path.join(full_path, run_name)
+            output_file = os.path.join(self.output_dir, run_name)
             
         return output_file
     
