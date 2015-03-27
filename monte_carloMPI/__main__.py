@@ -42,7 +42,7 @@ def run():
         single_grain_size(n_photon, wvl, half_width, rds_snw)
     
     if True: # multiple grain sizes
-        rds_snw = np.arange(100., 1100, 100)
+        rds_snw = np.arange(100., 1100., 100.)
         multiple_grain_sizes(n_photon, wvl, half_width, rds_snw)
         
     """ END USER INPUT
