@@ -24,8 +24,11 @@ cd $CASEROOT
 # AUGMENT PYTHONPATH
 export PYTHONPATH=$CASEROOT/monte_carloMPI
 
+echo ' '
 echo 'CASEROOT (cwd) setup'
+echo '--------------------'
 echo 'Edit config.ini for basic configuration options'
 echo 'In config.ini, be sure to set output_dir=$DATA/$CASE'
 echo 'Edit monte_carlo3D-run.py to setup run parameters'
 echo 'Finally, $ qsub monte_carloMPI.pbs # to submit job'
+echo ' '
