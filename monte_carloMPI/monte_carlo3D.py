@@ -802,8 +802,8 @@ class MonteCarlo(object):
         tau_tot = config.getfloat(section_name, 'tau_tot')
         imp_cnc = config.getfloat(section_name, 'imp_cnc')
         rho_snw = config.getfloat(section_name, 'rho_snw')
-        rsensor = config.getfloat(section_name, 'rsensor')
-        hsensor = config.getfloat(section_name, 'hsensor')
+        #rsensor = config.getfloat(section_name, 'rsensor')
+        #hsensor = config.getfloat(section_name, 'hsensor')
         
         # plot options
         section_name = 'plot options'
@@ -826,9 +826,9 @@ class MonteCarlo(object):
         parser.add_argument('--rho_snw', type=float, default=rho_snw,
                             help='snow density (kg/m3, only needed if '
                                  'flg_crt=1)')
-        parser.add_argument('--rsensor', type=float, default=rsensor,
+        parser.add_argument('--rsensor', type=float, default=None,
                             help='sensor radius [m]') 
-        parser.add_argument('--hsensor', type=float, default=hsensor,
+        parser.add_argument('--hsensor', type=float, default=None,
                             help='sensor height above snow [m]')
         parser.add_argument('--flg_crt', type=int, default=flg_crt,
                             help='plot in optical depth space (=0) or '
