@@ -1,3 +1,4 @@
+# SET FILEPATHS
 export MONTE_CARLO_ROOT=/home/$USER/monte_carloMPI
 export DATA=/scratch/climate_flux/$USER
 
