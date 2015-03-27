@@ -389,7 +389,6 @@ class MonteCarlo(object):
         muy_0 = self.muy_0
         muz_0 = self.muz_0
     
-    
         sintheta = np.sin(theta_sca * (np.pi / 180.))
         costheta = np.cos(theta_sca * (np.pi / 180.))
         sinphi = np.sin(phi_sca * (np.pi / 180.))
