@@ -322,7 +322,19 @@ class MonteCarlo(object):
         
         return p_HG
     
-    def populate_pdfs(self, g, RANDOM_NUMBERS=10):
+    def Henyey_Greenstein2(self, g, costheta_p):
+        """ Henyey Greenstein scattering phase function given asymmetry
+            parameter g
+        """
+        if g==0:
+            p_HG = 1 - 2*costheta_p
+        else:
+            p_HG = (1./(2.*g)) * (1 + g**2 - 
+                                       ((1 - g**2)/(1 - g + 2*g*costheta_p))**2)
+        
+        return p_HG 
+    
+    def populate_pdfs(self, g, RANDOM_NUMBERS=1):
         """ 1. Populate PDF of cos(scattering phase angle) with random numbers
             2. Populate PDF of optical path traversed between scattering events
             3. Populate PDF of scattering azimuth angle with random numbers
@@ -340,11 +352,7 @@ class MonteCarlo(object):
         ext_spc_rand = np.empty((g.size, r1.size))
         
         for i, val in enumerate(g):
-            if val==0:
-                p_rand[i,:] = 1 - 2*r1
-            else:
-                p_rand[i,:] = (1./(2.*val)) * (1 + val**2 - 
-                                         ((1 - val**2)/(1 - val + 2*val*r1))**2)
+            p_rand[i, :] = self.Henyey_Greenstein2(val, r1)
 
             # SANITY CHECK:  mean of the random distribution (should equal g)
             #p_mean = np.mean(p_rand[i,:])
@@ -521,11 +529,22 @@ class MonteCarlo(object):
             
             # distance, in optical depth space, to move photon
             dtau_current = self.tau_rand[self.photon, i_rand-1]
+            if self.Lambertian and i==1: # photon scattered at surface
+                dtau_current = 0
             
             # scattering phase angle:
             if i==1: # the photon enters travelling straight down
                 costheta = 1
                 sintheta = 0
+            elif self.Lambertian:
+                valid_val=0
+                while valid_val==0:
+                    theta_rand = np.random.uniform(0, np.pi/2)
+                    r1 = np.random.rand()
+                    if r1 < 2 * np.sin(theta_rand) * np.cos(theta_rand):
+                        costheta = np.cos(theta_rand + np.arccos(muz_0))
+                        sintheta = np.sqrt(1 - costheta**2)
+                        valid_val=1
             else:
                 costheta = self.p_rand[self.photon, i_rand-1]
                 sintheta = np.sqrt(1 - costheta**2)
@@ -534,7 +553,7 @@ class MonteCarlo(object):
             cosphi = np.cos(self.phi_rand[self.photon, i_rand-1])
             sinphi = np.sin(self.phi_rand[self.photon, i_rand-1])
             
-            # new cosine directional angles
+            # new cosine directional angles                
             if muz_0==1:
                 mux_n = sintheta * cosphi
                 muy_n = sintheta * sinphi
@@ -581,6 +600,9 @@ class MonteCarlo(object):
                 # extinction from impurity
                 ext_state = 2
                 ssa_event = self.ssa_imp[self.photon]
+            
+            if self.Lambertian: # set ssa_event to Lambertian reflectance
+                 ssa_event = self.R_Lambertian
                         
             # check for exit status:
             if z_tau[i] > 0:
@@ -609,7 +631,7 @@ class MonteCarlo(object):
                 correction = -(((z_tau[i] + self.tau_tot) * dtau_current) /
                                ((z_tau[i] - z_tau[i-1]) * ext_cff_mss*self.rho_snw))
                 path_length += correction
-                
+            
             elif self.ssa_rand[self.photon, i_rand-1] >= ssa_event:
                 # photon was absorbed, archive which species absorbed it:
                 if ext_state==1:
@@ -624,7 +646,8 @@ class MonteCarlo(object):
         
         return(condition, wvn, theta_n, phi_n, n_scat, path_length)
               
-    def run(self, n_photon, wvl0, half_width, rds_snw, test=False, debug=False):
+    def run(self, n_photon, wvl0, half_width, rds_snw, test=False, debug=False,
+            Lambertian=False, Lambertian_reflectance=1.):
         """ Run the Monte Carlo model given a normal distribution of
             wavelengths [um].  This better simulates what NERD does with
             non-monochromatic LEDs.
@@ -632,6 +655,9 @@ class MonteCarlo(object):
             ALL VALUES IN MICRONS
         """
         self.debug = debug
+        self.Lambertian = Lambertian
+        if self.Lambertian:
+            self.R_Lambertian = Lambertian_reflectance
         # Convert half_width to standard deviation
         scale = half_width / 2.355
         
@@ -713,6 +739,7 @@ class MonteCarlo(object):
                                                         answer[2], answer[3],
                                                         answer[4], answer[5]))
             txt_file.close()
+            print('%s' % output_file) # for easy post processing
                                                       
     def calculate_albedo(self, answers):
         """ Compute black sky albedo (directional-hemispherical reflectance) of
