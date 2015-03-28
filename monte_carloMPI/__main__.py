@@ -26,7 +26,7 @@ def run():
     """ USER INPUT
     """
     # set number of photons
-    n_photon = 1000
+    n_photon = 10000
     
     # wavelength [um]
     wvl = 1.3
@@ -35,6 +35,7 @@ def run():
     
     # half width [um]
     half_width = 0.085
+    half_width = 0.3
     
     # snow effective grain size [um]
     if False: # single grain size
