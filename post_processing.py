@@ -15,7 +15,7 @@ from matplotlib import pyplot as plt
 
 import polar_demo
 
-import ipdb as pdb    
+import ipdb as pdb
 
 def bi_directional_reflectance_factor(args, file_list):
     """ take list of monte_carlo3D output files and create polar plots of the
@@ -92,71 +92,77 @@ def bi_directional_reflectance_factor(args, file_list):
                    bbox_transform=plt.gcf().transFigure)   
         
         if args.save_figs:
-            fig_path = os.path.join(args.save_dir, 'bdrf_%s.pdf' % rds_snw)
+            fig_path = os.path.join(args.save_dir, 'bdrf_%s.%s' % (rds_snw,
+                                                                   args.fig_format))
             plt.savefig(fig_path)        
         else:
             plt.show()
+        plt.close()
     
-    # histogram of photon path length
-    plt.figure()
-    for i, wvl0 in enumerate(wvl0_list):
-        for j, rds_snw in enumerate(rds_snw_list):
-            plt.subplot(len(wvl0_list), len(rds_snw_list),
-                        j + 1 + (i*len(rds_snw_list)))
-            path_lengths = data_dict[rds_snw][wvl0]['path_length[m]']*100
-            path_lengths.hist(bins=args.path_length_bins)
-            h = np.histogram(path_lengths, bins=args.path_length_bins)
-            y_max = np.max(h[0])
-            xticks = np.arange(0, 25, 10)
-            yticks = np.array([])
-            plt.xlim(0, 20)
-            plt.ylim(0, y_max)
-            plt.xticks(xticks)
-            plt.yticks(yticks)
-            if i==0:
-                plt.title('%s ' % (rds_snw) + r'$\mathrm{\mu m}$')
-            elif i==1 and j==2:
-                plt.xlabel('Photon path length [cm]')
+    if not args.no_histograms:
+        # histogram of photon path length
+        plt.figure()
+        for i, wvl0 in enumerate(wvl0_list):
+            for j, rds_snw in enumerate(rds_snw_list):
+                plt.subplot(len(wvl0_list), len(rds_snw_list),
+                            j + 1 + (i*len(rds_snw_list)))
+                path_lengths = data_dict[rds_snw][wvl0]['path_length[m]']*100
+                path_lengths.hist(bins=args.path_length_bins)
+                h = np.histogram(path_lengths, bins=args.path_length_bins)
+                y_max = np.max(h[0])
+                xticks = np.arange(0, 25, 10)
+                yticks = np.array([])
+                plt.xlim(0, 20)
+                plt.ylim(0, y_max)
+                plt.xticks(xticks)
+                plt.yticks(yticks)
+                if i==0:
+                    plt.title('%s ' % (rds_snw) + r'$\mathrm{\mu m}$')
+                elif i==1 and j==2:
+                    plt.xlabel('Photon path length [cm]')
             
-            if j==0:
-                plt.ylabel('%s ' % (wvl0) + r'$\mathrm{\mu m}$')
+                if j==0:
+                    plt.ylabel('%s ' % (wvl0) + r'$\mathrm{\mu m}$')
     
-    if args.save_figs:        
-        fig_path = os.path.join(args.save_dir, 'photon_pathlength_hist.pdf')
-        plt.savefig(fig_path)
-    else:
-        plt.show()
+        if args.save_figs:        
+            fig_path = os.path.join(args.save_dir, 'photon_pathlength_hist.pdf')
+            plt.savefig(fig_path)
+        else:
+            plt.show()
+        plt.close()
 
-    # histogram of number of scattering events
-    plt.figure()
-    for i, wvl0 in enumerate(wvl0_list):
-        for j, rds_snw in enumerate(rds_snw_list):
-            plt.subplot(len(wvl0_list), len(rds_snw_list),
-                        j + 1 + (i*len(rds_snw_list)))
-            n_scat = data_dict[rds_snw][wvl0]['n_scat']
-            n_scat.hist(bins=args.n_scat_bins)
-            h = np.histogram(n_scat, bins=args.n_scat_bins)
-            y_max = np.max(h[0])
-            xticks = np.arange(0, 220, 100)
-            yticks = np.array([])
-            plt.xlim(0, 200)
-            plt.ylim(0, y_max)
-            plt.xticks(xticks)
-            plt.yticks(yticks)
-            if i==0:
-                plt.title('%s ' % (rds_snw) + r'$\mathrm{\mu m}$')
-            elif i==1 and j==2:
-                plt.xlabel('Scattering events')
+        # histogram of number of scattering events
+        plt.figure()
+        for i, wvl0 in enumerate(wvl0_list):
+            for j, rds_snw in enumerate(rds_snw_list):
+                plt.subplot(len(wvl0_list), len(rds_snw_list),
+                            j + 1 + (i*len(rds_snw_list)))
+                n_scat = data_dict[rds_snw][wvl0]['n_scat']
+                n_scat.hist(bins=args.n_scat_bins)
+                h = np.histogram(n_scat, bins=args.n_scat_bins)
+                y_max = np.max(h[0])
+                xticks = np.arange(0, 220, 100)
+                yticks = np.array([])
+                plt.xlim(0, 200)
+                plt.ylim(0, y_max)
+                plt.xticks(xticks)
+                plt.yticks(yticks)
+                if i==0:
+                    plt.title('%s ' % (rds_snw) + r'$\mathrm{\mu m}$')
+                elif i==1 and j==2:
+                    plt.xlabel('Scattering events')
             
-            if j==0:
-                plt.ylabel('%s ' % (wvl0) + r'$\mathrm{\mu m}$')
+                if j==0:
+                    plt.ylabel('%s ' % (wvl0) + r'$\mathrm{\mu m}$')
     
-    if args.save_figs:        
-        fig_path = os.path.join(args.save_dir, 'scattering_events_hist.pdf')
-        plt.savefig(fig_path)
-    else:
-        plt.show()
-        
+        if args.save_figs:        
+            fig_path = os.path.join(args.save_dir, 'scattering_events_hist.pdf')
+            plt.savefig(fig_path)
+        else:
+            plt.show()
+        plt.close()
+    
+    '''    
     # plot albedo
     plt.figure()
     for i, wvl0 in enumerate(wvl0_list):
@@ -178,6 +184,8 @@ def bi_directional_reflectance_factor(args, file_list):
         plt.savefig(fig_path)
     else:
         plt.show()
+    plt.close()
+    ''' 
                                  
 def get_args():
     config = ConfigParser.SafeConfigParser()
@@ -200,6 +208,8 @@ def get_args():
     parser.add_argument('--save_figs', action='store_true')
     parser.add_argument('file_list', nargs=argparse.REMAINDER)
     parser.add_argument('--save_dir', type=str, default='figures')
+    parser.add_argument('--no_histograms', action='store_true')
+    parser.add_argument('--fig_format', type=str, default='pdf')
                         
     args = parser.parse_args()
     
@@ -264,6 +274,7 @@ def read_data(args, file_list):
         plt.savefig(fig_path)
     else:
         plt.show()
+    plt.close()
 
     print(' ')
     for i, wvl0 in enumerate(wvl0_list):
@@ -283,7 +294,9 @@ def read_data(args, file_list):
 def process():
     args = get_args()    
     file_list = args.file_list
-    
+    for i, file_name in enumerate(file_list):
+        file_list[i] = file_name.split('/')[-1]
+        
     if False:
         file_list = ['1.3_0.085_100.0_1000000.txt',
                      '1.3_0.085_300.0_1000000.txt',
@@ -325,10 +338,9 @@ def process():
                      '1.555_1e-12_1000.0_1000000.txt']
     
     # Create bi-directional reflectance factor polar plots for each grain size
-    #bi_directional_reflectance_factor(args, file_list)
-    data_dict = read_data(args, file_list)
-    
-    return data_dict
+    bi_directional_reflectance_factor(args, file_list)
+    #data_dict = read_data(args, file_list)
+    #return data_dict
     
                                 
 def main():
