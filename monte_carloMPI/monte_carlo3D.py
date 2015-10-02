@@ -14,8 +14,8 @@ import argparse
 import numpy as np
 from scipy import interpolate
 from scipy.io import netcdf
-#from matplotlib import pyplot as plt
-#from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 from parallelize import Parallel
 
@@ -125,6 +125,8 @@ class MonteCarlo(object):
                 sys.stderr.write('error: exception raised while interpolating '
                                  'ssa_ice, using nearest value instead\n')
             
+            ssa_ice = np.array([ssa_ice])
+            
             # ext_cff_mss_ice
             nearest_ext_cff_mss_ice = ext_in[idx_wvl[:2]]
             try:
@@ -141,6 +143,8 @@ class MonteCarlo(object):
                 sys.stderr.write('error: exception raised while interpolating '
                                  'ext_cff_mss_ice, using nearest value instead\n')
             
+            ext_cff_mss_ice = np.array([ext_cff_mss_ice])
+            
             # g
             nearest_g = asm_in[idx_wvl[:2]]
             try:
@@ -155,6 +159,8 @@ class MonteCarlo(object):
                 g = nearest_g[0]
                 sys.stderr.write('error: exception raised while interpolating '
                                  'g, using nearest value instead\n')
+                                 
+            g = np.array([g])
         
         elif np.size(wvls)>1:
             ssa_ice = np.empty(wvls.shape)
@@ -247,6 +253,8 @@ class MonteCarlo(object):
                 sys.stderr.write('error: exception raised while interpolating '
                                  'ssa_imp, using nearest value instead\n')
             
+            ssa_imp = np.array([ssa_imp])
+            
             # ext_cff_mss_imp
             nearest_ext_cff_mss_imp = ext_in_imp[idx_wvl[:2]]
             try:
@@ -263,6 +271,8 @@ class MonteCarlo(object):
                 sys.stderr.write('error: exception raised while interpolating '
                                  'ext_cff_mss_imp, using nearest value instead\n')
             
+            ext_cff_mss_imp = np.array([ext_cff_mss_imp])
+        
         elif np.size(wvls)>1:
             ssa_imp = np.empty(wvls.shape)
             ext_cff_mss_imp = np.empty(wvls.shape)
@@ -422,8 +432,6 @@ class MonteCarlo(object):
     
     def monte_carlo3D(self, wvl):
         """ Translated from matlab to python by Adam Schneider
-        
-            Returns albedo and fraction of incident photons reaching sensor
         """        
         i_max = self.p_rand.shape[1]
         # initialization:
@@ -574,12 +582,13 @@ class MonteCarlo(object):
                         
             # update Cartesian coordinates:
             ext_cff_mss = self.ext_cff_mss[self.photon]
+            ext_cff = ext_cff_mss * self.rho_snw
             x_crt = np.append(x_crt, x_crt[i-1] + 
-                              dtau_current * mux_n / (ext_cff_mss*self.rho_snw))                            
+                              dtau_current * mux_n / ext_cff)                            
             y_crt = np.append(y_crt, y_crt[i-1] + 
-                              dtau_current * muy_n / (ext_cff_mss*self.rho_snw))
+                              dtau_current * muy_n / ext_cff)
             z_crt = np.append(z_crt, z_crt[i-1] + 
-                              dtau_current * muz_n / (ext_cff_mss*self.rho_snw))
+                              dtau_current * muz_n / ext_cff)
                               
             # update current direction:
             mux_0 = mux_n
@@ -587,7 +596,7 @@ class MonteCarlo(object):
             muz_0 = muz_n
             
             # update path length
-            path_length += dtau_current / (ext_cff_mss * self.rho_snw)
+            path_length += dtau_current / ext_cff
                                                         
             # was the extinction event caused by ice or impurity?
             if self.ext_spc_rand[self.photon, i_rand-1] > self.P_ext_imp[self.photon]:
@@ -609,7 +618,7 @@ class MonteCarlo(object):
                 # correct path_length (we only want photon path length within
                 # the snow pack)
                 correction = -((z_tau[i] * dtau_current) /
-                               ((z_tau[i] - z_tau[i-1]) * ext_cff_mss*self.rho_snw))
+                               ((z_tau[i] - z_tau[i-1]) * ext_cff))
                 path_length += correction
                 
             elif z_tau[i] < -self.tau_tot and i==1:
@@ -618,7 +627,7 @@ class MonteCarlo(object):
                 condition = 3
                 # correct path_length (we only want photon path length within
                 # the snow pack)
-                path_length = self.tau_tot / (ext_cff_mss * self.rho_snw)
+                path_length = self.tau_tot / ext_cff
                 
             elif z_tau[i] < -self.tau_tot:
                 # photon has left the bottom of the cloud/snow (diffuse 
@@ -627,7 +636,7 @@ class MonteCarlo(object):
                 # correct path_length (we only want photon path length within
                 # the snow pack)
                 correction = -(((z_tau[i] + self.tau_tot) * dtau_current) /
-                               ((z_tau[i] - z_tau[i-1]) * ext_cff_mss*self.rho_snw))
+                               ((z_tau[i] - z_tau[i-1]) * ext_cff))
                 path_length += correction
             
             elif self.ssa_rand[self.photon, i_rand-1] >= ssa_event:
@@ -899,15 +908,16 @@ def run():
     """ USER INPUT
     """
     # set number of photons
-    n_photon = 1000
+    n_photon = 100
     
     # wavelength [um]
     wvl = 1.3
     #wvl = 1.55
-    #wvl = 0.5
+    wvl = 0.3
     
     # half width [um]
     half_width = 0.085
+    half_width = 1e-15
     
     # snow effective grain size [um]
     rds_snw = 100.

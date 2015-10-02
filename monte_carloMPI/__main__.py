@@ -26,7 +26,7 @@ def run():
     """ USER INPUT
     """
     # set number of photons
-    n_photon = 10000
+    n_photon = 100
     
     # wavelength [um]
     wvl = 1.3
@@ -35,16 +35,31 @@ def run():
     
     # half width [um]
     half_width = 0.085
-    half_width = 0.3
+    #half_width = 0.3
     
-    # snow effective grain size [um]
-    if False: # single grain size
-        rds_snw = 100.
-        single_grain_size(n_photon, wvl, half_width, rds_snw)
+    if True:  # use for runs of multiple wavelengths
+        wvls = np.arange(0.305, 3., 0.1)
+        half_width = 1e-15
+        
+        for i, wvl in enumerate(wvls):
+            # snow effective grain size [um]
+            if False: # single grain size
+                rds_snw = 10.
+                single_grain_size(n_photon, wvl, half_width, rds_snw)
     
-    if True: # multiple grain sizes
-        rds_snw = np.arange(100., 1100., 100.)
-        multiple_grain_sizes(n_photon, wvl, half_width, rds_snw)
+            if True: # multiple grain sizes
+                rds_snw = np.arange(10., 1000., 100.)
+                multiple_grain_sizes(n_photon, wvl, half_width, rds_snw)
+    
+    if False:  # use for run of single wavelength
+        # snow effective grain size [um]
+        if False: # single grain size
+            rds_snw = 100.
+            single_grain_size(n_photon, wvl, half_width, rds_snw)
+    
+        if True: # multiple grain sizes
+            rds_snw = np.arange(100., 1100., 100.)
+            multiple_grain_sizes(n_photon, wvl, half_width, rds_snw)
         
     """ END USER INPUT
     """
