@@ -29,7 +29,7 @@ def run():
     n_photon = 100
     
     # wavelength [um]
-    wvl = 1.3
+    #wvl = 1.3
     #wvl = 1.55
     #wvl = 0.5
     
@@ -48,7 +48,8 @@ def run():
                 single_grain_size(n_photon, wvl, half_width, rds_snw)
     
             if True: # multiple grain sizes
-                rds_snw = np.arange(10., 1000., 100.)
+                #rds_snw = np.arange(10., 1000., 100.)
+                rds_snw = np.array([50, 100, 200, 500, 1000])
                 multiple_grain_sizes(n_photon, wvl, half_width, rds_snw)
     
     if False:  # use for run of single wavelength
