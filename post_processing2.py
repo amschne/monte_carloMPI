@@ -43,7 +43,57 @@ class MonteCarloData(object):
         self.rds_snw_list = sorted(data_dict.keys())
         self.data_dict = data_dict
     
+    def brf(self):
+        """ plot brfs for different grain sizes on one plot
+        
+            for ONE wavelength
+        """
+        colors = ['b', 'g', 'r', 'c', 'm']
+        hist_range = (0., np.pi/2)
+        r_step = (self.args.r_max / 10) - 0.01
+        
+        fig = plt.figure()
+        auxa = polar_demo.fractional_polar_axes(fig, thlim=(0, 90),
+                                                rlim=(0, self.args.r_max),
+                                                step=(15, r_step),
+                                                thlabel='Elevation angle',
+                                                rlabel='Reflectance factor')
+        
+        for i, rds_snw in enumerate(self.rds_snw_list):
+            if i==0:
+                wvl0 = sorted(self.data_dict[rds_snw].keys())[0]
+                
+            data = self.data_dict[rds_snw][wvl0]
+            
+            Q_down = data['wvn[um^-1]'].sum()
+            weights = data[data.condition==1]['wvn[um^-1]']
+            theta_exit = data[data.condition==1]['theta_n']
+            
+            h = np.histogram(theta_exit, bins=self.args.bins, range=hist_range,
+                             weights=weights)
+            midpoints = (np.diff(h[1]) / 2.) + h[1][:-1]
+            brf_weights = (np.sin(midpoints)*np.cos(midpoints) / 
+                            np.sum(np.sin(midpoints)*np.cos(midpoints)))
+            brf = h[0] / (Q_down * brf_weights)
+            theta_deg = np.rad2deg(midpoints[::-1])
+            auxa.plot(theta_deg, brf,
+                      label='%s ' % (rds_snw) + r'$\mathrm{\mu m}$',
+                      color=colors[i])
+        
+        plt.title('Nadir BRFs for ' +
+                  r'$\lambda_0 = $' + '%s' % wvl0 + r'$\mathrm{\mu m}$')
+        plt.legend(bbox_to_anchor=(1, 1),
+                   bbox_transform=plt.gcf().transFigure,
+                   title='Snow grain effective radius')
 
+        if self.args.save_figs:
+            fig_path = os.path.join(self.args.save_dir, 'brf_%s.%s' % (wvl0,
+                                    self.args.fig_format))
+            plt.savefig(fig_path)        
+        else:
+            plt.show()
+        plt.close() 
+            
     def bi_directional_reflectance_factor(self):
         """ take list of monte_carlo3D output files and create polar plots of 
             the bi-rectional reflectance factors
@@ -194,7 +244,7 @@ class MonteCarloData(object):
     ''' 
                                  
     def spectral_albedo(self):
-        """ Just read data into workspace - useful for interactive work
+        """ plot spectral albedo for multiple grain sizes
         """    
         albedo_dict = dict()
         albedo_dict2 = dict()
@@ -376,7 +426,9 @@ def process():
     
     # Create bi-directional reflectance factor polar plots for each grain size
     monte_carlo_data = MonteCarloData(args, file_list)
-    monte_carlo_data.spectral_albedo()
+    #monte_carlo_data.spectral_albedo()
+    monte_carlo_data.brf()
+    
     #monte_carlo_data.bi_directional_reflectance_factor()
     #data_dict = read_data(args, file_list)
     #return data_dict
