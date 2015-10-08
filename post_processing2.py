@@ -241,7 +241,12 @@ class MonteCarloData(object):
         plt.title('Nadir directional-hemispherical reflectance')
     
         if self.args.save_figs:
-            fig_path = os.path.join(args.save_dir, 'albedo.pdf')        
+            i=0
+            fig_path = os.path.join(self.args.save_dir, 'albedo.pdf')
+            while os.path.exists(fig_path):
+                i+=1
+                fig_path = os.path.join(self.args.save_dir, 'albedo%d.pdf' % i)
+        
             plt.savefig(fig_path)
         else:
             plt.show()
@@ -337,7 +342,12 @@ def read_data(args, file_list):
     plt.title('Nadir directional-hemispherical reflectance')
     
     if args.save_figs:
-        fig_path = os.path.join(args.save_dir, 'albedo.pdf')        
+        i=0
+        fig_path = os.path.join(args.save_dir, 'albedo.pdf')
+        while os.path.exists(fig_path):
+            i+=1
+            fig_path = os.path.join(args.save_dir, 'albedo%d.pdf' % i)
+        
         plt.savefig(fig_path)
     else:
         plt.show()
