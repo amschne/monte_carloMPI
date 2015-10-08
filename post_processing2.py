@@ -230,8 +230,11 @@ class MonteCarloData(object):
             plt.plot(wvl0_list, albedo,
                      label='%s ' % (rds_snw) + r'$\mathrm{\mu m}$', color=colors[i])
             plt.plot(wvl0_list, albedo2, color=colors[i])
-        plt.legend()
+        plt.legend(title='Snow grain effective radius')
         plt.grid()
+        plt.xlim((np.min(wvl0_list), np.max(wvl0_list)))
+        plt.xticks(np.arange(np.min(wvl0_list), np.max(wvl0_list) + 0.1, 0.2))
+        plt.yticks(np.arange(0, 1.1, 0.1))
         plt.xlabel(r'Wavelength ($\mathrm{\mu m}$)')
         plt.ylabel('Reflectance')
         plt.title('Nadir directional-hemispherical reflectance')
