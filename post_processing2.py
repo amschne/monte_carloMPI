@@ -253,7 +253,9 @@ def get_args():
     section_name = 'data'
     output_dir = config.get(section_name, 'output_dir')
     
-    parser = argparse.ArgumentParser(description='[DESCRIPTION]')
+    parser = argparse.ArgumentParser(description='Syntax:  $ python '
+             'post_processing2.py --output_dir [OUTPUT_DIR] '
+             '$(ls [OUTPUT_DIR]/[FILE_SUBSET] | xargs)')
     parser.add_argument('--output_dir', type=str, default=output_dir,
                         help='directory containing data')
     parser.add_argument('--bins', type=int, default=90,
