@@ -232,8 +232,9 @@ class MonteCarloData(object):
             plt.plot(wvl0_list, albedo2, color=colors[i])
         plt.legend(title='Snow grain effective radius')
         plt.grid()
-        plt.xlim((np.min(wvl0_list), np.max(wvl0_list)))
-        plt.xticks(np.arange(np.min(wvl0_list), np.max(wvl0_list) + 0.1, 0.2))
+        plt.xlim((self.args.wvl_min, self.args.wvl_max))
+        plt.xticks(np.arange(self.args.wvl_min, self.args.wvl_max + 0.1, 0.2))
+        plt.ylim((0.0,1.0))
         plt.yticks(np.arange(0, 1.1, 0.1))
         plt.xlabel(r'Wavelength ($\mathrm{\mu m}$)')
         plt.ylabel('Reflectance')
@@ -273,6 +274,9 @@ def get_args():
     parser.add_argument('--save_dir', type=str, default='figures')
     parser.add_argument('--no_histograms', action='store_true')
     parser.add_argument('--fig_format', type=str, default='pdf')
+    
+    parser.add_argument('--wvl_min', type=float, default=0.2)
+    parser.add_argument('--wvl_max', type=float, default=3.0)
                         
     args = parser.parse_args()
     
