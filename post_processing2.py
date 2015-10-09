@@ -43,14 +43,16 @@ class MonteCarloData(object):
         self.rds_snw_list = sorted(data_dict.keys())
         self.data_dict = data_dict
     
-    def brf(self):
+    def brf(self, r_step=None):
         """ plot brfs for different grain sizes on one plot
         
             for ONE wavelength
         """
         colors = ['b', 'g', 'r', 'c', 'm']
         hist_range = (0., np.pi/2)
-        r_step = (self.args.r_max / 10) - 0.01
+        
+        if r_step is None:
+            r_step = (self.args.r_max / 10) - 0.01
         
         fig = plt.figure()
         auxa = polar_demo.fractional_polar_axes(fig, thlim=(0, 90),
@@ -428,7 +430,8 @@ def process():
     # Create bi-directional reflectance factor polar plots for each grain size
     monte_carlo_data = MonteCarloData(args, file_list)
     #monte_carlo_data.spectral_albedo()
-    monte_carlo_data.brf()
+    monte_carlo_data.brf(r_step=0.1)
+    #monte_carlo_data.brf(r_step=0.01)
     
     #monte_carlo_data.bi_directional_reflectance_factor()
     #data_dict = read_data(args, file_list)
