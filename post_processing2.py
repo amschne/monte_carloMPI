@@ -84,7 +84,8 @@ class MonteCarloData(object):
                   r'$\lambda_0 = $' + '%s' % wvl0 + r'$\mathrm{\mu m}$')
         plt.legend(bbox_to_anchor=(1, 1),
                    bbox_transform=plt.gcf().transFigure,
-                   title='Snow grain effective radius')
+                   title='Snow grain effective radius',
+                   fontsize='x-small')
 
         if self.args.save_figs:
             fig_path = os.path.join(self.args.save_dir, 'brf_%s.%s' % (wvl0,
