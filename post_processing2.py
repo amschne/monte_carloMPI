@@ -250,7 +250,7 @@ class MonteCarloData(object):
         plt.close()
     ''' 
                                  
-    def spectral_albedo(self):
+    def spectral_albedo(self, colors=['b', 'g', 'r', 'c', 'm']):
         """ plot spectral albedo for multiple grain sizes
         """    
         albedo_dict = dict()
@@ -277,7 +277,6 @@ class MonteCarloData(object):
                 albedo_dict2[rds_snw][wvl0] = Q_non_absorbed / Q_down
     
         print(' ')
-        colors = ['b', 'g', 'r', 'c', 'm']
         for i, rds_snw in enumerate(self.rds_snw_list):
             print('Plotting snow effective radii of %r um' % rds_snw)
             albedo = np.empty((len(wvl0_list)))
@@ -311,7 +310,7 @@ class MonteCarloData(object):
             plt.savefig(fig_path)
         else:
             plt.show()
-        plt.close()
+        #plt.close()
 
         print(' ')
 
