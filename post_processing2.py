@@ -35,6 +35,8 @@ class MonteCarloData(object):
             rds_snw = float(name.split('_')[2])
         
             file_path = os.path.join(data_dir, name)
+            
+            print('Reading %s...  wait just a second!' % file_path)
             data = pd.read_csv(file_path, delim_whitespace=True)
         
             data_dict[rds_snw][wvl0] = data
@@ -254,10 +256,13 @@ class MonteCarloData(object):
         albedo_dict = dict()
         albedo_dict2 = dict()
         for i, rds_snw in enumerate(self.rds_snw_list):
+            print('Calculating albedo for snow effective radii of %r um'
+                  % rds_snw)
             albedo_dict[rds_snw] = dict()
             albedo_dict2[rds_snw] = dict()
             wvl0_list = sorted(self.data_dict[rds_snw].keys())
             for j, wvl0 in enumerate(wvl0_list):
+                print('wavelength = %r um' % wvl0)
                 data = self.data_dict[rds_snw][wvl0]
             
                 Q_down = data['wvn[um^-1]'].sum()
@@ -274,6 +279,7 @@ class MonteCarloData(object):
         print(' ')
         colors = ['b', 'g', 'r', 'c', 'm']
         for i, rds_snw in enumerate(self.rds_snw_list):
+            print('Plotting snow effective radii of %r um' % rds_snw)
             albedo = np.empty((len(wvl0_list)))
             albedo2 = np.empty((len(wvl0_list)))
             for j, wvl0 in enumerate(wvl0_list):
@@ -432,8 +438,8 @@ def process():
     
     # Create bi-directional reflectance factor polar plots for each grain size
     monte_carlo_data = MonteCarloData(args, file_list)
-    #monte_carlo_data.spectral_albedo()
-    monte_carlo_data.brf()
+    monte_carlo_data.spectral_albedo()
+    #monte_carlo_data.brf()
     
     #monte_carlo_data.bi_directional_reflectance_factor()
     #data_dict = read_data(args, file_list)
