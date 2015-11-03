@@ -816,11 +816,11 @@ class MonteCarlo(object):
                                                           rds_snw)
         elif wvl0 >= 0.2 and wvl0 <= 15.25:
             self.far_IR = False
-            self.get_aspherical_SSPs()
+            self.get_aspherical_SSPs(par_wvls.working_set, rds_snw)
             
         elif wvl0 >= 16.4 and wvl0 <= 99.0:
             self.far_IR = True
-            self.get_aspherical_SSPs()
+            self.get_aspherical_SSPs(par_wvls.working_set, rds_snw)
                                 
         if test:
             try:
