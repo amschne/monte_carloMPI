@@ -782,7 +782,7 @@ class MonteCarlo(object):
         
         return(condition, wvn, theta_n, phi_n, n_scat, path_length)
               
-    def run(self, n_photon, wvl0, half_width, rds_snw, theta_0=0.
+    def run(self, n_photon, wvl0, half_width, rds_snw, theta_0=0.,
             stokes_params=np.array([1,0,0,0]), shape='sphere',
             roughness='smooth', test=False, debug=False, Lambertian=False,
             Lambertian_reflectance=1.):
