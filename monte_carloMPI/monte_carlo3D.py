@@ -19,7 +19,7 @@ from scipy.io import netcdf
 
 from parallelize import Parallel
 
-import ipdb
+#import ipdb
 #from memory_profiler import profile
 
 class MonteCarlo(object):
@@ -153,6 +153,7 @@ class MonteCarlo(object):
         # get index with smallest abs(rds_snw - RE)
         idx_RE = np.argsort(np.absolute(rds_snw - RE))[0]
         valid_idxs = np.where(RE == RE[idx_RE])
+        self.snow_effective_radius = RE[idx_RE]
         
         # screen data for relevent snow radii
         wvl_in = np.array(wvl_in)[valid_idxs]
@@ -207,20 +208,31 @@ class MonteCarlo(object):
             ext_cff_mss_ice[i] = ((1e6 * G_in[idx_wvl[0]] * Q_ext) /
                                 (self.rho_ice * particle_volume_in[idx_wvl[0]]))
             
-        ipdb.set_trace()
+            # g
+            nearest_g = asm_in[idx_wvl[:2]]
+            try:
+                if nearest_wvls[0] < nearest_wvls[1]:
+                    g_interp = interpolate.interp1d(nearest_wvls, nearest_g)
+                    g[i] = g_interp(wvl)
+                else:
+                    g_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                    nearest_g[::-1])
+                    g[i] = g_interp(wvl)
+            except ValueError:
+                g[i] = nearest_g[0]
+                sys.stderr.write('error: exception raised while interpolating '
+                                 'g, using nearest value instead\n')
+        
+        return(ssa_ice, ext_cff_mss_ice, g)
             
-        
-            
-        
-        
-    
     def get_optical_properties(self, wvls, rds_snw):
-        """ Retrieve snow and impurity optical properties from NetCDF files,
-            based on user-specified wavelengths (wvls), snow grain size
-            (rds_snw), and impurity optics file (self.fi_imp)
+        """ Retrieve snow optical properties from NetCDF files,
+            based on user-specified wavelengths (wvls) and snow grain size
+            (rds_snw)
             
             Returns ssa_ice, ext_cff_mss_ice, g, ssa_imp, ext_cff_mss_imp
         """
+        self.snow_effective_radius = rds_snw
         # snow optics:
         fi_name = 'ice_wrn_%04d.nc' % rds_snw
         fi = os.path.join(self.optics_dir, 'mie', 'snicar', fi_name)
@@ -350,63 +362,23 @@ class MonteCarlo(object):
                                      'g, using nearest value instead\n')
             
         #snow_optics.close()
-
-        # impurity optics:
-        fi_imp = os.path.join(self.optics_dir, 'mie', 'snicar', self.fi_imp)
-        impurity_optics = netcdf.netcdf_file(fi_imp, 'r')
         
-        wvl_in_imp = impurity_optics.variables['wvl']
-        ssa_in_imp = impurity_optics.variables['ss_alb']
-        ext_in_imp = impurity_optics.variables['ext_cff_mss']
+        return(ssa_ice, ext_cff_mss_ice, g)
         
-        if np.size(wvls)==1:
-            wvl = wvls*1e-6
+        def get_impurity_optics(self, wvls):
+            """ fetch ssa and ext_cff_mss for impurities from self.fi_imp
             
-            # get indicies with smallest abs(wvl - wvl_in_imp)
-            idx_wvl = np.argsort(np.absolute(wvl - wvl_in_imp.data))
-            nearest_wvls = wvl_in_imp[idx_wvl[:2]]
-            
-            # ssa_imp
-            nearest_ssa_imp = ssa_in_imp[idx_wvl[:2]]
-            try:
-                if nearest_wvls[0] < nearest_wvls[1]:
-                    ssa_imp_interp = interpolate.interp1d(nearest_wvls,
-                                                          nearest_ssa_imp)
-                    ssa_imp = ssa_imp_interp(wvl)
-                else:
-                    ssa_imp_interp = interpolate.interp1d(nearest_wvls[::-1],
-                                                          nearest_ssa_imp[::-1])
-                    ssa_imp = ssa_imp_interp(wvl)
-            except ValueError:
-                ssa_imp = nearest_ssa_imp[0]
-                sys.stderr.write('error: exception raised while interpolating '
-                                 'ssa_imp, using nearest value instead\n')
-            
-            ssa_imp = np.array([ssa_imp])
-            
-            # ext_cff_mss_imp
-            nearest_ext_cff_mss_imp = ext_in_imp[idx_wvl[:2]]
-            try:
-                if nearest_wvls[0] < nearest_wvls[1]:
-                    ext_cff_mss_imp_interp = interpolate.interp1d(nearest_wvls,
-                                                            nearest_ext_cff_mss_imp)
-                    ext_cff_mss_imp = ext_cff_mss_imp_interp(wvl)
-                else:
-                    ext_cff_mss_imp_interp = interpolate.interp1d(nearest_wvls[::-1],
-                                                      nearest_ext_cff_mss_imp[::-1])
-                    ext_cff_mss_imp = ext_cff_mss_imp_interp(wvl)
-            except ValueError:
-                ext_cff_mss_imp = nearest_ext_cff_mss_imp[0]
-                sys.stderr.write('error: exception raised while interpolating '
-                                 'ext_cff_mss_imp, using nearest value instead\n')
-            
-            ext_cff_mss_imp = np.array([ext_cff_mss_imp])
+                returns ssa_imp and ext_cff_mss_imp
+            """
+            fi_imp = os.path.join(self.optics_dir, 'mie', 'snicar', self.fi_imp)
+            impurity_optics = netcdf.netcdf_file(fi_imp, 'r')
         
-        elif np.size(wvls)>1:
-            ssa_imp = np.empty(wvls.shape)
-            ext_cff_mss_imp = np.empty(wvls.shape)
-            for i, wvl in enumerate(wvls):
-                wvl = wvl*1e-6
+            wvl_in_imp = impurity_optics.variables['wvl']
+            ssa_in_imp = impurity_optics.variables['ss_alb']
+            ext_in_imp = impurity_optics.variables['ext_cff_mss']
+        
+            if np.size(wvls)==1:
+                wvl = wvls*1e-6
             
                 # get indicies with smallest abs(wvl - wvl_in_imp)
                 idx_wvl = np.argsort(np.absolute(wvl - wvl_in_imp.data))
@@ -418,35 +390,79 @@ class MonteCarlo(object):
                     if nearest_wvls[0] < nearest_wvls[1]:
                         ssa_imp_interp = interpolate.interp1d(nearest_wvls,
                                                               nearest_ssa_imp)
-                        ssa_imp[i] = ssa_imp_interp(wvl)
+                        ssa_imp = ssa_imp_interp(wvl)
                     else:
-                        ssa_imp_interp = interpolate.interp1d(nearest_wvls[::-1],
-                                                              nearest_ssa_imp[::-1])
-                        ssa_imp[i] = ssa_imp_interp(wvl)
+                        ssa_imp_interp = interpolate.interp1d(nearest_wvls[::-1], nearest_ssa_imp[::-1])
+                        ssa_imp = ssa_imp_interp(wvl)
                 except ValueError:
-                    ssa_imp[i] = nearest_ssa_imp[0]
-                    sys.stderr.write('error: exception raised while interpolating '
-                                     'ssa_imp, using nearest value instead\n')
+                    ssa_imp = nearest_ssa_imp[0]
+                    sys.stderr.write('error: exception raised while '
+                                     'interpolating ssa_imp, using nearest '
+                                     'value instead\n')
+            
+                ssa_imp = np.array([ssa_imp])
             
                 # ext_cff_mss_imp
                 nearest_ext_cff_mss_imp = ext_in_imp[idx_wvl[:2]]
                 try:
                     if nearest_wvls[0] < nearest_wvls[1]:
-                        ext_cff_mss_imp_interp = interpolate.interp1d(nearest_wvls,
-                                                            nearest_ext_cff_mss_imp)
-                        ext_cff_mss_imp[i] = ext_cff_mss_imp_interp(wvl)
+                        ext_cff_mss_imp_interp = interpolate.interp1d(nearest_wvls, nearest_ext_cff_mss_imp)
+                        ext_cff_mss_imp = ext_cff_mss_imp_interp(wvl)
                     else:
-                        ext_cff_mss_imp_interp = interpolate.interp1d(nearest_wvls[::-1],
-                                                      nearest_ext_cff_mss_imp[::-1])
-                        ext_cff_mss_imp[i] = ext_cff_mss_imp_interp(wvl)
+                        ext_cff_mss_imp_interp = interpolate.interp1d(nearest_wvls[::-1], nearest_ext_cff_mss_imp[::-1])
+                        ext_cff_mss_imp = ext_cff_mss_imp_interp(wvl)
                 except ValueError:
-                    ext_cff_mss_imp[i] = nearest_ext_cff_mss_imp[0]
-                    sys.stderr.write('error: exception raised while interpolating '
-                                     'ext_cff_mss_imp, using nearest value instead\n')
-                    
-        #impurity_optics.close()
+                    ext_cff_mss_imp = nearest_ext_cff_mss_imp[0]
+                    sys.stderr.write('error: exception raised while '
+                                     'interpolating ext_cff_mss_imp, using '
+                                     'nearest value instead\n')
+            
+                ext_cff_mss_imp = np.array([ext_cff_mss_imp])
         
-        return(ssa_ice, ext_cff_mss_ice, g, ssa_imp, ext_cff_mss_imp)
+            elif np.size(wvls)>1:
+                ssa_imp = np.empty(wvls.shape)
+                ext_cff_mss_imp = np.empty(wvls.shape)
+                for i, wvl in enumerate(wvls):
+                    wvl = wvl*1e-6
+            
+                    # get indicies with smallest abs(wvl - wvl_in_imp)
+                    idx_wvl = np.argsort(np.absolute(wvl - wvl_in_imp.data))
+                    nearest_wvls = wvl_in_imp[idx_wvl[:2]]
+            
+                    # ssa_imp
+                    nearest_ssa_imp = ssa_in_imp[idx_wvl[:2]]
+                    try:
+                        if nearest_wvls[0] < nearest_wvls[1]:
+                            ssa_imp_interp = interpolate.interp1d(nearest_wvls,
+                                                                nearest_ssa_imp)
+                            ssa_imp[i] = ssa_imp_interp(wvl)
+                        else:
+                            ssa_imp_interp = interpolate.interp1d(nearest_wvls[::-1], nearest_ssa_imp[::-1])
+                            ssa_imp[i] = ssa_imp_interp(wvl)
+                    except ValueError:
+                        ssa_imp[i] = nearest_ssa_imp[0]
+                        sys.stderr.write('error: exception raised while '
+                                         'interpolating ssa_imp, using nearest '
+                                         'value instead\n')
+            
+                    # ext_cff_mss_imp
+                    nearest_ext_cff_mss_imp = ext_in_imp[idx_wvl[:2]]
+                    try:
+                        if nearest_wvls[0] < nearest_wvls[1]:
+                            ext_cff_mss_imp_interp = interpolate.interp1d(nearest_wvls, nearest_ext_cff_mss_imp)
+                            ext_cff_mss_imp[i] = ext_cff_mss_imp_interp(wvl)
+                        else:
+                            ext_cff_mss_imp_interp = interpolate.interp1d(nearest_wvls[::-1], nearest_ext_cff_mss_imp[::-1])
+                            ext_cff_mss_imp[i] = ext_cff_mss_imp_interp(wvl)
+                    except ValueError:
+                        ext_cff_mss_imp[i] = nearest_ext_cff_mss_imp[0]
+                        sys.stderr.write('error: exception raised while '
+                                         'interpolating ext_cff_mss_imp, using '
+                                         'nearest value instead\n')
+                    
+            #impurity_optics.close()
+        
+        return(ssa_imp, ext_cff_mss_imp)
     
     def Henyey_Greenstein(self):
         """ Henyey-Greenstein scattering phase function
@@ -807,13 +823,12 @@ class MonteCarlo(object):
                                           size=(n_photon)), decimals=3)
         par_wvls = Parallel(wvls)
         
+        # get ice optical data
         if shape=='sphere':
             (ssa_ice,
              ext_cff_mss_ice,
-             g, 
-              ssa_imp,
-             ext_cff_mss_imp)=self.get_optical_properties(par_wvls.working_set,
-                                                          rds_snw)
+             g) = self.get_optical_properties(par_wvls.working_set, rds_snw)
+             
         elif wvl0 >= 0.2 and wvl0 <= 15.25:
             self.far_IR = False
             self.get_aspherical_SSPs(par_wvls.working_set, rds_snw)
@@ -821,7 +836,13 @@ class MonteCarlo(object):
         elif wvl0 >= 16.4 and wvl0 <= 99.0:
             self.far_IR = True
             self.get_aspherical_SSPs(par_wvls.working_set, rds_snw)
-                                
+         
+         # get impurity optical data                       
+         (ssa_imp,
+          ext_cff_mss_imp) = self.get_impurity_optics(par_wvls.working_set)
+        
+        print self.snow_effective_radius
+        
         if test:
             try:
                 ssa_ice = self.ssa_ice * np.ones(n_photon)
