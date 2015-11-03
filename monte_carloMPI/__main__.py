@@ -4,23 +4,11 @@ import numpy as np
 import monte_carlo3D
 
 DEBUG = False
-LAMBERTIAN = False
-LAMBERTIAN_REFLECTANCE = 1.
+LAMBERTIAN = False # setting LAMBERTIAN = True will simply simulate a
+                    # Lambertian surface
 
-def single_grain_size(n_photon, wvl, half_width, rds_snw):
-    monte_carlo_run = monte_carlo3D.MonteCarlo()
-    monte_carlo_run.run(n_photon, wvl, half_width, rds_snw, debug=DEBUG,
-                        Lambertian=LAMBERTIAN,
-                        Lambertian_reflectance=LAMBERTIAN_REFLECTANCE)
-    #monte_carlo_run.plot_phase_function()
-    
-def multiple_grain_sizes(n_photon, wvl, half_width, rds_snw):
-    monte_carlo_run = monte_carlo3D.MonteCarlo()
-    for i, rds in enumerate(rds_snw):
-        monte_carlo_run.run(n_photon, wvl, half_width, rds, debug=DEBUG,
-                            Lambertian=LAMBERTIAN,
-                            Lambertian_reflectance=LAMBERTIAN_REFLECTANCE)
-        #monte_carlo_run.plot_phase_function()
+LAMBERTIAN_REFLECTANCE = 1. # Set reflectance of Lambertian surface OR
+                            # reflectance of underlying surface beneath snow 
 
 def run():    
     """ USER INPUT
@@ -28,13 +16,41 @@ def run():
     # set number of photons
     n_photon = 100
     
+    # set initial incidence zenith angle (degrees)
+    theta_0 = 0.
+    
+    # set initial Stokes parameters
+    I = 1
+    Q = 0
+    U = 0
+    V = 0
+    
+    stokes_params = np.array([I, Q, U, V])
+    
+    # select one of the following snow grain shape habits:
+    shape = 'sphere' # default
+    #shape = 'hexagonal column'
+    #shape = 'plate'
+    #shape = 'hollow column'
+    #shape = 'droxtal'
+    #shape = 'hollow bullet rosette'
+    #shape = 'solid bullet rosette'
+    #shape = '8-element column aggregate'
+    #shape = '5-element column aggregate'
+    #shape = '10-element plate aggregate'
+    
+    # select degree of surface roughness:
+    roughness = 'smooth' # default
+    #roughness = 'moderatley rough'
+    #roughness = 'severely rough'
+    
     # wavelength [um]
     #wvl = 1.3
     #wvl = 1.55
     #wvl = 0.5
     
     # half width [um]
-    half_width = 0.085
+    #half_width = 0.085
     #half_width = 0.3
     
     if True:  # use for runs of multiple wavelengths
@@ -64,6 +80,28 @@ def run():
         
     """ END USER INPUT
     """
+    
+def single_grain_size(n_photon, wvl, half_width, rds_snw, theta_0=0.,
+                      stokes_params=np.array([1,0,0,0]),
+                      shape='sphere', roughness='smooth'):
+    monte_carlo_run = monte_carlo3D.MonteCarlo()
+    monte_carlo_run.run(n_photon, wvl, half_width, rds_snw, theta_0=theta_0,
+                        stokes_params=stokes_params, shape=shape,
+                        roughness=roughness, debug=DEBUG, Lambertian=LAMBERTIAN,
+                        Lambertian_reflectance=LAMBERTIAN_REFLECTANCE)
+    #monte_carlo_run.plot_phase_function()
+    
+def multiple_grain_sizes(n_photon, wvl, half_width, rds_snw, theta_0=0.,
+                         stokes_params=np.array([1,0,0,0]), shape='sphere',                              roughness='smooth'):
+    monte_carlo_run = monte_carlo3D.MonteCarlo()
+    for i, rds in enumerate(rds_snw):
+        monte_carlo_run.run(n_photon, wvl, half_width, rds, theta_0=theta_0,
+                            stokes_params=stokes_params, shape=shape,
+                            roughness=roughness, debug=DEBUG,
+                            Lambertian=LAMBERTIAN,
+                            Lambertian_reflectance=LAMBERTIAN_REFLECTANCE)
+        #monte_carlo_run.plot_phase_function()
+        
 def main():
    run()
 

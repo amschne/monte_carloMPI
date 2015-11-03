@@ -19,7 +19,7 @@ from scipy.io import netcdf
 
 from parallelize import Parallel
 
-#import ipdb
+import ipdb
 #from memory_profiler import profile
 
 class MonteCarlo(object):
@@ -28,6 +28,7 @@ class MonteCarlo(object):
             tau_tot = [SNOW OPTICAL DEPTH]
             imp_cnc = [MASS CONCENTRATION OF IMPURITY [mIMP/(mIMP+mICE)]]
             rho_snw = [SNOW DENSITY (kg/m3, only needed if flg_crt=1)]
+            rho_ice = [ICE DENSITY (kg/m3)]
             rsensor = [SENSOR RADIUS [m]]
             hsensor = [SENSOR HIEGHT ABOVE SNOW [m]]
             flg_crt = plot in optical depth space (=0) or Cartesian space (=1)?
@@ -42,6 +43,7 @@ class MonteCarlo(object):
         model_args_dict = {'tau_tot' : model_args.tau_tot,
                            'imp_cnc' : model_args.imp_cnc,
                            'rho_snw' : model_args.rho_snw,
+                           'rho_ice' : model_args.rho_ice,
                            'rsensor' : model_args.rsensor,
                            'hsensor' : model_args.hsensor,
                            'flg_crt' : model_args.flg_crt,
@@ -57,6 +59,7 @@ class MonteCarlo(object):
         self.tau_tot = model_args_dict['tau_tot']
         self.imp_cnc = model_args_dict['imp_cnc']
         self.rho_snw = model_args_dict['rho_snw']
+        self.rho_ice = model_args_dict['rho_ice']
         self.rsensor = model_args_dict['rsensor']
         self.hsensor = model_args_dict['hsensor']
         self.flg_crt = model_args_dict['flg_crt']
@@ -85,6 +88,132 @@ class MonteCarlo(object):
             
         return output_file
     
+    def get_aspherical_SSPs(self, wvls, rds_snw):
+        """ Retrieve single scattering properties (SSPs) for aspherical ice
+            particle shapes, based on input wavelengths (wvls) and snow and
+            effective radii (rds_snw).
+            
+            Returns ssa_ice, ext_cff_mss_ice, g
+        """
+        if self.far_IR:
+            wvl_dir = '16.4-99.0'
+        else:
+            wvl_dir = '0.2-15.25'
+            
+        if self.shape == 'hexagonal column':
+            shape_dir = 'solid_column'
+        elif self.shape == 'plate':
+            shape_dir = 'plate'
+        elif self.shape == 'hollow column'
+            shape_dir = 'hollow_column'
+        elif self.shape == 'droxtal'
+            shape_dir = 'droxtal'
+        elif self.shape == 'hollow bullet rosette'
+            shape_dir = 'solid_bullet_rosette'
+        elif self.shape == '8-element column aggregate'
+            shape_dir = 'column_8elements'
+        elif self.shape == '5-element column aggregate'
+            shape_dir = 'plate_5elements'
+        elif self.shape =='10-element plate aggregate'
+            shape_dir = 'plate_10elements'
+            
+        if self.roughness == 'smooth':
+            roughness_dir = 'Rough000'
+        elif self.roughness == 'moderatley rough'
+            roughness_dir = 'Rough003'
+        elif self.roughness == 'severely rough'
+            roughness_dir = 'Rough050'
+            
+        fi_name = 'isca.dat'
+        aspherical_particle_dir = os.path.join(self.optics_dir, 'ice_optics', 
+                                               wvl_dir, shape_dir,roughness_dir)
+        fi = os.path.join(aspherical_particle_dir, fi_name)
+        
+        aspherical_optics = open(fi, 'r')
+        lines = aspherical_optics.readlines()
+        wvl_in = list() # wavelength (um)
+        max_dim_in = list() # maximum dimension of particle size (um)
+        particle_volume_in = list() # volume of particle (um^3)
+        G_in = list() # projected area (um^2)
+        Q_ext_in = list() # extinction efficiency
+        ssa_in = list() # single-scattering albedo
+        asm_in = list() # asymmetry factor
+        for i, line in enumerate(lines):
+            wvl_in.append(float(line.split()[0]))
+            max_dim_in.append(float(line.split()[1]))
+            particle_volume_in.append(float(line.split()[2]))
+            G_in.append(float(line.split()[3]))
+            Q_ext_in.append(float(line.split()[4]))
+            ssa_in.append(float(line.split()[5]))
+            asm_in.append(float(line.split()[6]))
+            
+        # Calculate effective radius
+        RE = (3./4.) * (np.array(particle_volume_in) / np.array(G_in)) # um
+        
+        # get index with smallest abs(rds_snw - RE)
+        idx_RE = np.argsort(np.absolute(rds_snw - RE))[0]
+        valid_idxs = np.where(RE == RE[idx_RE])
+        
+        # screen data for relevent snow radii
+        wvl_in = np.array(wvl_in)[valid_idxs]
+        max_dim_in = np.array(max_dim_in)[valid_idxs]
+        particle_volume_in = np.array(particle_volume_in)[valid_idxs]
+        G_in = np.array(G_in)[valid_idxs]
+        Q_ext_in = np.array(Q_ext_in)[valid_idxs]
+        ssa_in = np.array(ssa_in)[valid_idxs]
+        asm_in = np.array(asm_in)[valid_idxs]
+        
+        # fetch data for relevent wavelengths
+        ssa_ice = np.empty(wvls.shape)
+        ext_cff_mss_ice = np.empty(wvls.shape)
+        g = np.empty(wvls.shape)
+        for i, wvl in enumerate(wvls):
+            # get indicies with smallest abs(wvl - wvl_in)
+            idx_wvl = np.argsort(np.absolute(wvl - wvl_in))
+            nearest_wvls = wvl_in[idx_wvl[:2]]
+            
+            # ssa_ice
+            nearest_ssa_ice = ssa_in[idx_wvl[:2]]
+            try:
+                if nearest_wvls[0] < nearest_wvls[1]:
+                    ssa_ice_interp = interpolate.interp1d(nearest_wvls,
+                                                          nearest_ssa_ice)
+                    ssa_ice[i] = ssa_ice_interp(wvl)
+                else:
+                    ssa_ice_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                          nearest_ssa_ice[::-1])
+                    ssa_ice[i] = ssa_ice_interp(wvl)
+            except ValueError:
+                ssa_ice[i] = nearest_ssa_ice[0]
+                sys.stderr.write('error: exception raised while interpolating '
+                                 'ssa_ice, using nearest value instead\n')
+                                 
+            # ext_cff_mss_ice
+            nearest_Q_ext = Q_ext_in[idx_wvl[:2]]
+            try:
+                if nearest_wvls[0] < nearest_wvls[1]:
+                    Q_ext_interp = interpolate.interp1d(nearest_wvls, 
+                                                        nearest_Q_ext)
+                    Q_ext = Q_ext_interp(wvl)
+                else:
+                    Q_ext_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                        nearest_Q_ext[::-1])
+                    Q_ext = Q_ext_interp(wvl)
+            except ValueError:
+                Q_ext = nearest_Q_ext[0]
+                sys.stderr.write('error: exception raised while interpolating '
+                                 'Q_ext, using nearest value instead\n')
+                                 
+            ext_cff_mss_ice[i] = ((1e6 * G_in[idx_wvl[0]] * Q_ext) /
+                                (self.rho_ice * particle_volume_in[idx_wvl[0]]))
+            
+        ipdb.set_trace()
+            
+        
+            
+        
+        
+    
     def get_optical_properties(self, wvls, rds_snw):
         """ Retrieve snow and impurity optical properties from NetCDF files,
             based on user-specified wavelengths (wvls), snow grain size
@@ -94,7 +223,7 @@ class MonteCarlo(object):
         """
         # snow optics:
         fi_name = 'ice_wrn_%04d.nc' % rds_snw
-        fi = os.path.join(self.optics_dir, fi_name)
+        fi = os.path.join(self.optics_dir, 'mie', 'snicar', fi_name)
         snow_optics = netcdf.netcdf_file(fi, 'r')
         
         wvl_in = snow_optics.variables['wvl']
@@ -223,7 +352,7 @@ class MonteCarlo(object):
         #snow_optics.close()
 
         # impurity optics:
-        fi_imp = os.path.join(self.optics_dir, self.fi_imp)
+        fi_imp = os.path.join(self.optics_dir, 'mie', 'snicar', self.fi_imp)
         impurity_optics = netcdf.netcdf_file(fi_imp, 'r')
         
         wvl_in_imp = impurity_optics.variables['wvl']
@@ -653,8 +782,10 @@ class MonteCarlo(object):
         
         return(condition, wvn, theta_n, phi_n, n_scat, path_length)
               
-    def run(self, n_photon, wvl0, half_width, rds_snw, test=False, debug=False,
-            Lambertian=False, Lambertian_reflectance=1.):
+    def run(self, n_photon, wvl0, half_width, rds_snw, theta_0=0.
+            stokes_params=np.array([1,0,0,0]), shape='sphere',
+            roughness='smooth', test=False, debug=False, Lambertian=False,
+            Lambertian_reflectance=1.):
         """ Run the Monte Carlo model given a normal distribution of
             wavelengths [um].  This better simulates what NERD does with
             non-monochromatic LEDs.
@@ -663,8 +794,11 @@ class MonteCarlo(object):
         """
         self.debug = debug
         self.Lambertian = Lambertian
-        if self.Lambertian:
-            self.R_Lambertian = Lambertian_reflectance
+        self.R_Lambertian = Lambertian_reflectance
+        
+        self.shape = shape
+        self.roughness = roughness
+        
         # Convert half_width to standard deviation
         scale = half_width / 2.355
         
@@ -673,12 +807,21 @@ class MonteCarlo(object):
                                           size=(n_photon)), decimals=3)
         par_wvls = Parallel(wvls)
         
-        (ssa_ice,
-         ext_cff_mss_ice,
-         g, 
-         ssa_imp,
-         ext_cff_mss_imp) = self.get_optical_properties(par_wvls.working_set,
-                                                        rds_snw)
+        if shape=='sphere':
+            (ssa_ice,
+             ext_cff_mss_ice,
+             g, 
+              ssa_imp,
+             ext_cff_mss_imp)=self.get_optical_properties(par_wvls.working_set,
+                                                          rds_snw)
+        elif wvl0 >= 0.2 and wvl0 <= 15.25:
+            self.far_IR = False
+            
+        elif wvl0 >= 16.4 and wvl0 <= 99.0:
+            self.far_IR = True
+            
+                                           
+                                                          
         if test:
             try:
                 ssa_ice = self.ssa_ice * np.ones(n_photon)
@@ -810,6 +953,7 @@ class MonteCarlo(object):
         tau_tot = config.getfloat(section_name, 'tau_tot')
         imp_cnc = config.getfloat(section_name, 'imp_cnc')
         rho_snw = config.getfloat(section_name, 'rho_snw')
+        rho_ice = config.getfloat(section_name, 'rho_ice')
         #rsensor = config.getfloat(section_name, 'rsensor')
         #hsensor = config.getfloat(section_name, 'hsensor')
         
@@ -834,6 +978,8 @@ class MonteCarlo(object):
         parser.add_argument('--rho_snw', type=float, default=rho_snw,
                             help='snow density (kg/m3, only needed if '
                                  'flg_crt=1)')
+        parser.add_argument('--rho_ice', type=float, default=rho_ice,
+                            help='ice density (kg/m3)')
         parser.add_argument('--rsensor', type=float, default=None,
                             help='sensor radius [m]') 
         parser.add_argument('--hsensor', type=float, default=None,
