@@ -104,24 +104,24 @@ class MonteCarlo(object):
             shape_dir = 'solid_column'
         elif self.shape == 'plate':
             shape_dir = 'plate'
-        elif self.shape == 'hollow column'
+        elif self.shape == 'hollow column':
             shape_dir = 'hollow_column'
-        elif self.shape == 'droxtal'
+        elif self.shape == 'droxtal':
             shape_dir = 'droxtal'
-        elif self.shape == 'hollow bullet rosette'
+        elif self.shape == 'hollow bullet rosette':
             shape_dir = 'solid_bullet_rosette'
-        elif self.shape == '8-element column aggregate'
+        elif self.shape == '8-element column aggregate':
             shape_dir = 'column_8elements'
-        elif self.shape == '5-element column aggregate'
+        elif self.shape == '5-element column aggregate':
             shape_dir = 'plate_5elements'
-        elif self.shape =='10-element plate aggregate'
+        elif self.shape =='10-element plate aggregate':
             shape_dir = 'plate_10elements'
             
         if self.roughness == 'smooth':
             roughness_dir = 'Rough000'
-        elif self.roughness == 'moderatley rough'
+        elif self.roughness == 'moderatley rough':
             roughness_dir = 'Rough003'
-        elif self.roughness == 'severely rough'
+        elif self.roughness == 'severely rough':
             roughness_dir = 'Rough050'
             
         fi_name = 'isca.dat'
