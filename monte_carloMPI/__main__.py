@@ -61,22 +61,31 @@ def run():
             # snow effective grain size [um]
             if False: # single grain size
                 rds_snw = 10.
-                single_grain_size(n_photon, wvl, half_width, rds_snw)
+                single_grain_size(n_photon, wvl, half_width, rds_snw,
+                                  theta_0=theta_0, stokes_params=stokes_params,
+                                  shape=shape, roughness=roughness)
     
             if True: # multiple grain sizes
                 #rds_snw = np.arange(10., 1000., 100.)
                 rds_snw = np.array([50, 100, 200, 500, 1000])
-                multiple_grain_sizes(n_photon, wvl, half_width, rds_snw)
+                multiple_grain_sizes(n_photon, wvl, half_width, rds_snw,
+                                     theta_0=theta_0,
+                                     stokes_params=stokes_params,
+                                     shape=shape, roughness=roughness)
     
     if False:  # use for run of single wavelength
         # snow effective grain size [um]
         if False: # single grain size
             rds_snw = 100.
-            single_grain_size(n_photon, wvl, half_width, rds_snw)
+            single_grain_size(n_photon, wvl, half_width, rds_snw,
+                              theta_0=theta_0, stokes_params=stokes_params,
+                              shape=shape, roughness=roughness)
     
         if True: # multiple grain sizes
             rds_snw = np.arange(100., 1100., 100.)
-            multiple_grain_sizes(n_photon, wvl, half_width, rds_snw)
+            multiple_grain_sizes(n_photon, wvl, half_width, rds_snw,
+                                 theta_0=theta_0, stokes_params=stokes_params,
+                                 shape=shape, roughness=roughness)
         
     """ END USER INPUT
     """

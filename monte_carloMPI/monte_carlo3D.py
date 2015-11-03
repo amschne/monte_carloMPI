@@ -816,12 +816,12 @@ class MonteCarlo(object):
                                                           rds_snw)
         elif wvl0 >= 0.2 and wvl0 <= 15.25:
             self.far_IR = False
+            self.get_aspherical_SSPs()
             
         elif wvl0 >= 16.4 and wvl0 <= 99.0:
             self.far_IR = True
-            
-                                           
-                                                          
+            self.get_aspherical_SSPs()
+                                
         if test:
             try:
                 ssa_ice = self.ssa_ice * np.ones(n_photon)
