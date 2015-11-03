@@ -837,9 +837,9 @@ class MonteCarlo(object):
             self.far_IR = True
             self.get_aspherical_SSPs(par_wvls.working_set, rds_snw)
          
-         # get impurity optical data                       
-         (ssa_imp,
-          ext_cff_mss_imp) = self.get_impurity_optics(par_wvls.working_set)
+        # get impurity optical data                       
+        (ssa_imp,
+         ext_cff_mss_imp) = self.get_impurity_optics(par_wvls.working_set)
         
         print self.snow_effective_radius
         
