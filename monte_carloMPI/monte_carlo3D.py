@@ -469,7 +469,7 @@ class MonteCarlo(object):
     def Henyey_Greenstein(self):
         """ Henyey-Greenstein scattering phase function
         """
-        costheta_p = self.costheta_p
+        costheta_p = np.arange(-1.000, 1.001, 0.001)
         g = np.matrix(self.g).T # turn g into column vector
         g_2 = np.multiply(g,g) # compute g^2
         HG_num = 1 - g_2
@@ -814,6 +814,7 @@ class MonteCarlo(object):
         self.Lambertian = Lambertian
         self.R_Lambertian = Lambertian_reflectance
         
+        self.theta_0 = theta_0
         self.shape = shape
         self.roughness = roughness
         
@@ -847,7 +848,7 @@ class MonteCarlo(object):
         (ssa_imp,
          ext_cff_mss_imp) = self.get_impurity_optics(par_wvls.working_set)
         
-        print self.snow_effective_radius
+        #print self.snow_effective_radius
         
         if test:
             try:
@@ -880,7 +881,7 @@ class MonteCarlo(object):
                                                     (1-imp_cnc)*ext_cff_mss_ice)
 
         # cos(theta) array over which to compute function
-        self.costheta_p = np.arange(-1.000, 1.001, 0.001)
+        #self.costheta_p = np.arange(-1.000, 1.001, 0.001)
         self.g = g
         #self.p = self.Henyey_Greenstein()
         self.ssa_ice = ssa_ice
