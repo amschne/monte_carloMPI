@@ -799,7 +799,10 @@ class MonteCarlo(object):
 
         wvn = 1. / wvl
         theta_n = np.arccos(muz_0)
-        phi_n = np.arctan(muy_0 / mux_0)
+        if i==1:
+            phi_n = 0.
+        else:
+            phi_n = np.arctan(muy_0 / mux_0)
         n_scat = i-1 # number of scattering events
         
         return(condition, wvn, theta_n, phi_n, n_scat, path_length)
