@@ -586,11 +586,11 @@ class MonteCarlo(object):
         y_tau = np.array([0])
         z_tau = np.array([0])
         
-        # initial direction cosines
-        mux_0 = 0
+        # initial direction cosines (phi_0 = 0)
+        mux_0 = np.sin(self.theta_0)
         muy_0 = 0
-        muz_0 = -1
-        
+        muz_0 = -np.cos(self.theta_0)
+            
         x_crt = np.array([0])
         y_crt = np.array([0])
         z_crt = np.array([0])
@@ -606,7 +606,7 @@ class MonteCarlo(object):
             self.muy_0 = muy_0
             self.muz_0 = muz_0            
             
-            # 1. photon enters from above, moving straight down:
+            # 1. photon enters from above
             i = 1
             dtau_current = 0.2
             theta_sca = 0
@@ -651,9 +651,9 @@ class MonteCarlo(object):
             z_tau = np.array([0])
         
             # initial direction cosines
-            mux_0 = 0
+            mux_0 = np.sin(self.theta_0)
             muy_0 = 0
-            muz_0 = -1
+            muz_0 = -np.cos(self.theta_0)
             
             x_crt = np.array([0])
             y_crt = np.array([0])
@@ -686,9 +686,12 @@ class MonteCarlo(object):
                 dtau_current = 0
             
             # scattering phase angle:
-            if i==1: # the photon enters travelling straight down
+            if i==1: # the photon enters snow at zenith angle theta_0 with no 
+                      # deflection 
                 costheta = 1
                 sintheta = 0
+                cosphi = 0
+                sinphi = 0
             elif self.Lambertian:
                 valid_val=0
                 while valid_val==0:
@@ -703,8 +706,9 @@ class MonteCarlo(object):
                 sintheta = np.sqrt(1 - costheta**2)
                 
             # scattering azimuth angle:
-            cosphi = np.cos(self.phi_rand[self.photon, i_rand-1])
-            sinphi = np.sin(self.phi_rand[self.photon, i_rand-1])
+            if i > 1:
+                cosphi = np.cos(self.phi_rand[self.photon, i_rand-1])
+                sinphi = np.sin(self.phi_rand[self.photon, i_rand-1])
             
             # new cosine directional angles                
             if muz_0==1:
@@ -814,7 +818,7 @@ class MonteCarlo(object):
         self.Lambertian = Lambertian
         self.R_Lambertian = Lambertian_reflectance
         
-        self.theta_0 = theta_0
+        self.theta_0 = (np.pi * theta_0) / 180. # theta_0 deg -> rad
         self.shape = shape
         self.roughness = roughness
         
