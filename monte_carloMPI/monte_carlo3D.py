@@ -205,12 +205,12 @@ class MonteCarlo(object):
         asm_in = np.array(asm_in)[valid_idxs]
         
         if not self.HG:
-            P11_lines = np.array(P11_lines[valid_idxs])
-            P12_lines = np.array(P12_lines[valid_idxs])
-            P22_lines = np.array(P22_lines[valid_idxs])
-            P33_lines = np.array(P33_lines[valid_idxs])
-            P43_lines = np.array(P43_lines[valid_idxs])
-            P44_lines = np.array(P44_lines[valid_idxs])
+            P11_lines = np.array(P11_lines)[valid_idxs]
+            P12_lines = np.array(P12_lines)[valid_idxs]
+            P22_lines = np.array(P22_lines)[valid_idxs]
+            P33_lines = np.array(P33_lines)[valid_idxs]
+            P43_lines = np.array(P43_lines)[valid_idxs]
+            P44_lines = np.array(P44_lines)[valid_idxs]
             
             P11 = np.empty((wvls.shape[0], len(P11_line0)))
             P12_norm = np.empty((wvls.shape[0], len(P12_line0)))
