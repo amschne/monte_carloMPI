@@ -597,10 +597,10 @@ class MonteCarlo(object):
     
         return(ssa_imp, ext_cff_mss_imp)
     
-    def Henyey_Greenstein(self):
+    def Henyey_Greenstein(self, costheta_p):
         """ Henyey-Greenstein scattering phase function
         """
-        costheta_p = np.arange(-1.000, 1.001, 0.001)
+        #costheta_p = np.arange(-1.000, 1.001, 0.001)
         g = np.matrix(self.g).T # turn g into column vector
         g_2 = np.multiply(g,g) # compute g^2
         HG_num = 1 - g_2
@@ -1101,24 +1101,24 @@ class MonteCarlo(object):
             The first 100 curves are random, so this will give a good sample 
             for larger N
         """
+        costheta_p = np.arange(-1.000, 1.001, 0.001)
         if self.shape=='sphere' or self.HG:
-            self.p = self.Henyey_Greenstein()
-            p = np.asarray(self.p)
-        
+            P = np.asarray(self.Henyey_Greenstein(costheta_p))
+    
             fig = plt.figure()
             if np.size(self.g)>1:
                 mean_g = np.around(np.mean(self.g), 4)
                 std_g = np.around(np.std(self.g), 4)
                 for i, val in enumerate(self.g):
-                    if i < 1000:
-                        plt.semilogy(self.costheta_p, p[i])
+                    if i < 100:
+                        plt.semilogy(costheta_p, P[i])
                     
                         plt.title('Henyey-Greenstein Phase Function for\n'
                                   'mean(g) = %s and std(g) = %s' % (mean_g, std_g),
                                   fontsize=18)
             elif np.size(self.g)==1:
                 g_rounded = np.around(self.g, 4)
-                plt.semilogy(self.costheta_p, p[0])
+                plt.semilogy(costheta_p, P[0])
             
                 plt.title('Henyey-Greenstein Phase Function for\n'
                           'g = %s' % g_rounded[0], fontsize=18)
@@ -1132,13 +1132,13 @@ class MonteCarlo(object):
         else: # plot full scattering phase function for first wvl and initial
               # stokes params
             phi = np.arange(0, 2*np.pi, np.pi / 900)
-            p = self.full_scattering_phase_function(self.P11[0], self.P12[0],
+            P = self.full_scattering_phase_function(self.P11[0], self.P12[0],
                                                     self.initial_stokes_params,
                                                     self.theta_P11, phi)
             
             nlevels = 100
             fig, ax = plt.subplots(subplot_kw=dict(projection='polar'))
-            cax = ax.contourf(phi, self.theta_P11, p, nlevels)
+            cax = ax.contourf(phi, self.theta_P11, P, nlevels)
             
             plt.show()
     
