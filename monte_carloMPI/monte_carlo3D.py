@@ -36,6 +36,8 @@ class MonteCarlo(object):
             output_dir = [DIRECTORY TO WRITE OUTPUT DATA TO]
             optics_dir = [DIRECTORY OF OPTICS FILES]
             fi_imp = [IMPURITY OPTICS FILE]
+            HG = [True] to force Henyey-Greenstein phase function for aspherical
+                 parcicles
         """       
         model_args = self.get_model_args()
         
@@ -50,7 +52,8 @@ class MonteCarlo(object):
                            'flg_3D' : model_args.flg_3D,
                            'output_dir' : model_args.output_dir,
                            'optics_dir' : model_args.optics_dir,
-                           'fi_imp' : model_args.fi_imp}
+                           'fi_imp' : model_args.fi_imp,
+                           'HG': model_args.HG}
         
         # overwrite model_args_dict[kwarg] if specified at instantiation
         for kwarg, val in model_kwargs.items():
@@ -67,6 +70,7 @@ class MonteCarlo(object):
         self.output_dir = model_args_dict['output_dir']
         self.optics_dir = model_args_dict['optics_dir']
         self.fi_imp = model_args_dict['fi_imp']
+        self.HG = model_args_dict['HG']
     
     def setup_output(self, n_photon, wvl0, half_width, rds_snw):
         """ Create output dir for writing data to
@@ -146,6 +150,42 @@ class MonteCarlo(object):
             Q_ext_in.append(float(line.split()[4]))
             ssa_in.append(float(line.split()[5]))
             asm_in.append(float(line.split()[6]))
+        
+        # Scattering phase matrix elements    
+        if not self.HG:
+            P11_filename = 'P11.dat'
+            P12_filename = 'P12.dat'
+            P22_filename = 'P22.dat'
+            P33_filename = 'P33.dat'
+            P43_filename = 'P43.dat'
+            P44_filename = 'P44.dat'
+            
+            P11_fi = os.path.join(aspherical_particle_dir, P11_filename)
+            P12_fi = os.path.join(aspherical_particle_dir, P12_filename)
+            P22_fi = os.path.join(aspherical_particle_dir, P22_filename)
+            P33_fi = os.path.join(aspherical_particle_dir, P33_filename)
+            P43_fi = os.path.join(aspherical_particle_dir, P43_filename)
+            P44_fi = os.path.join(aspherical_particle_dir, P44_filename)
+            
+            P11_dat = open(P11_fi, 'r')
+            P12_dat = open(P12_fi, 'r')
+            P22_dat = open(P22_fi, 'r')
+            P33_dat = open(P33_fi, 'r')
+            P43_dat = open(P43_fi, 'r')
+            P44_dat = open(P44_fi, 'r')
+            
+            P11_line0 = P11_dat.readline().split()
+            P11_lines = P11_dat.readlines()
+            P12_line0 = P12_dat.readline().split()
+            P12_lines = P12_dat.readlines()
+            P22_line0 = P22_dat.readline().split()
+            P22_lines = P22_dat.readlines()
+            P33_line0 = P33_dat.readline().split()
+            P33_lines = P33_dat.readlines()
+            P43_line0 = P43_dat.readline().split()
+            P43_lines = P43_dat.readlines()
+            P44_line0 = P44_dat.readline().split()
+            P44_lines = P44_dat.readlines()
             
         # Calculate effective radius
         RE = (3./4.) * (np.array(particle_volume_in) / np.array(G_in)) # um
@@ -164,6 +204,31 @@ class MonteCarlo(object):
         ssa_in = np.array(ssa_in)[valid_idxs]
         asm_in = np.array(asm_in)[valid_idxs]
         
+        if not self.HG:
+            P11_lines = np.array(P11_lines[valid_idxs])
+            P12_lines = np.array(P12_lines[valid_idxs])
+            P22_lines = np.array(P22_lines[valid_idxs])
+            P33_lines = np.array(P33_lines[valid_idxs])
+            P43_lines = np.array(P43_lines[valid_idxs])
+            P44_lines = np.array(P44_lines[valid_idxs])
+            
+            P11 = np.empty((wvls.shape[0], len(P11_line0)))
+            P12_norm = np.empty((wvls.shape[0], len(P12_line0)))
+            P22_norm = np.empty((wvls.shape[0], len(P22_line0)))
+            P33_norm = np.empty((wvls.shape[0], len(P33_line0)))
+            P43_norm = np.empty((wvls.shape[0], len(P43_line0)))
+            P44_norm = np.empty((wvls.shape[0], len(P44_line0)))
+            
+            theta_P11_deg = np.empty(len(P11_line0))
+            theta_P12_deg = np.empty(len(P12_line0))
+            theta_P22_deg = np.empty(len(P22_line0))
+            theta_P33_deg = np.empty(len(P33_line0))
+            theta_P43_deg = np.empty(len(P43_line0))
+            theta_P44_deg = np.empty(len(P44_line0))
+            
+            # set up container for appropriate wvls
+            self.wvls = np.empty(wvls.shape)
+            
         # fetch data for relevent wavelengths
         ssa_ice = np.empty(wvls.shape)
         ext_cff_mss_ice = np.empty(wvls.shape)
@@ -173,55 +238,121 @@ class MonteCarlo(object):
             idx_wvl = np.argsort(np.absolute(wvl - wvl_in))
             nearest_wvls = wvl_in[idx_wvl[:2]]
             
-            # ssa_ice
-            nearest_ssa_ice = ssa_in[idx_wvl[:2]]
-            try:
-                if nearest_wvls[0] < nearest_wvls[1]:
-                    ssa_ice_interp = interpolate.interp1d(nearest_wvls,
-                                                          nearest_ssa_ice)
-                    ssa_ice[i] = ssa_ice_interp(wvl)
-                else:
-                    ssa_ice_interp = interpolate.interp1d(nearest_wvls[::-1],
-                                                          nearest_ssa_ice[::-1])
-                    ssa_ice[i] = ssa_ice_interp(wvl)
-            except ValueError:
-                ssa_ice[i] = nearest_ssa_ice[0]
-                sys.stderr.write('error: exception raised while interpolating '
-                                 'ssa_ice, using nearest value instead\n')
+            if self.HG: # interpolate across wvls
+                # ssa_ice
+                nearest_ssa_ice = ssa_in[idx_wvl[:2]]
+                try:
+                    if nearest_wvls[0] < nearest_wvls[1]:
+                        ssa_ice_interp = interpolate.interp1d(nearest_wvls,
+                                                              nearest_ssa_ice)
+                        ssa_ice[i] = ssa_ice_interp(wvl)
+                    else:
+                        ssa_ice_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                              nearest_ssa_ice[::-1])
+                        ssa_ice[i] = ssa_ice_interp(wvl)
+                except ValueError:
+                    ssa_ice[i] = nearest_ssa_ice[0]
+                    sys.stderr.write('error: exception raised while interpolating '
+                                     'ssa_ice, using nearest value instead\n')
                                  
-            # ext_cff_mss_ice
-            nearest_Q_ext = Q_ext_in[idx_wvl[:2]]
-            try:
-                if nearest_wvls[0] < nearest_wvls[1]:
-                    Q_ext_interp = interpolate.interp1d(nearest_wvls, 
-                                                        nearest_Q_ext)
-                    Q_ext = Q_ext_interp(wvl)
-                else:
-                    Q_ext_interp = interpolate.interp1d(nearest_wvls[::-1],
-                                                        nearest_Q_ext[::-1])
-                    Q_ext = Q_ext_interp(wvl)
-            except ValueError:
-                Q_ext = nearest_Q_ext[0]
-                sys.stderr.write('error: exception raised while interpolating '
-                                 'Q_ext, using nearest value instead\n')
+                # ext_cff_mss_ice
+                nearest_Q_ext = Q_ext_in[idx_wvl[:2]]
+                try:
+                    if nearest_wvls[0] < nearest_wvls[1]:
+                        Q_ext_interp = interpolate.interp1d(nearest_wvls, 
+                                                            nearest_Q_ext)
+                        Q_ext = Q_ext_interp(wvl)
+                    else:
+                        Q_ext_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                            nearest_Q_ext[::-1])
+                        Q_ext = Q_ext_interp(wvl)
+                except ValueError:
+                    Q_ext = nearest_Q_ext[0]
+                    sys.stderr.write('error: exception raised while interpolating '
+                                     'Q_ext, using nearest value instead\n')
                                  
-            ext_cff_mss_ice[i] = ((1e6 * G_in[idx_wvl[0]] * Q_ext) /
-                                (self.rho_ice * particle_volume_in[idx_wvl[0]]))
+                ext_cff_mss_ice[i] = ((1e6 * G_in[idx_wvl[0]] * Q_ext) /
+                                    (self.rho_ice * particle_volume_in[idx_wvl[0]]))
             
-            # g
-            nearest_g = asm_in[idx_wvl[:2]]
-            try:
-                if nearest_wvls[0] < nearest_wvls[1]:
-                    g_interp = interpolate.interp1d(nearest_wvls, nearest_g)
-                    g[i] = g_interp(wvl)
-                else:
-                    g_interp = interpolate.interp1d(nearest_wvls[::-1],
-                                                    nearest_g[::-1])
-                    g[i] = g_interp(wvl)
-            except ValueError:
-                g[i] = nearest_g[0]
-                sys.stderr.write('error: exception raised while interpolating '
-                                 'g, using nearest value instead\n')
+                # g
+                nearest_g = asm_in[idx_wvl[:2]]
+                try:
+                    if nearest_wvls[0] < nearest_wvls[1]:
+                        g_interp = interpolate.interp1d(nearest_wvls, nearest_g)
+                        g[i] = g_interp(wvl)
+                    else:
+                        g_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                        nearest_g[::-1])
+                        g[i] = g_interp(wvl)
+                except ValueError:
+                    g[i] = nearest_g[0]
+                    sys.stderr.write('error: exception raised while interpolating '
+                                     'g, using nearest value instead\n')
+            else: # NO interpolation across wvls
+                # wvl
+                self.wvls[i] = wvl_in[idx_wvl[0]]
+                
+                # ssa_ice
+                ssa_ice[i] = ssa_in[idx_wvl[0]]
+                                 
+                # ext_cff_mss_ice
+                Q_ext = Q_ext_in[idx_wvl[0]]
+                                                 
+                ext_cff_mss_ice[i] = ((1e6 * G_in[idx_wvl[0]] * Q_ext) /
+                                    (self.rho_ice * particle_volume_in[idx_wvl[0]]))
+            
+                # g
+                g[i] = asm_in[idx_wvl[0]]
+                
+                # Scattering phase matrix elements
+                # P11
+                for j, theta in enumerate(P11_line0):
+                    if i==0:
+                        theta_P11_deg[j] = float(theta)
+                    P11[i][j] = float(P11_lines[idx_wvl[0]].split()[j])
+                # P12
+                for j, theta in enumerate(P12_line0):
+                    if i==0:
+                        theta_P12_deg[j] = float(theta)
+                    P12_norm[i][j] = float(P12_lines[idx_wvl[0]].split()[j])
+                # P22
+                for j, theta in enumerate(P22_line0):
+                    if i==0:
+                        theta_P22_deg[j] = float(theta)
+                    P22_norm[i][j] = float(P22_lines[idx_wvl[0]].split()[j])
+                # P33
+                for j, theta in enumerate(P33_line0):
+                    if i==0:
+                        theta_P33_deg[j] = float(theta)
+                    P33_norm[i][j] = float(P33_lines[idx_wvl[0]].split()[j])
+                # P43
+                for j, theta in enumerate(P43_line0):
+                    if i==0:
+                        theta_P43_deg[j] = float(theta)
+                    P43_norm[i][j] = float(P43_lines[idx_wvl[0]].split()[j])
+                # P44
+                for j, theta in enumerate(P44_line0):
+                    if i==0:
+                        theta_P44_deg[j] = float(theta)
+                    P44_norm[i][j] = float(P44_lines[idx_wvl[0]].split()[j])
+                    
+        if not self.HG:
+            # convert theta from degrees to radians
+            self.theta_P11 = (theta_P11_deg * np.pi) / 180.
+            self.theta_P12 = (theta_P12_deg * np.pi) / 180.
+            self.theta_P22 = (theta_P22_deg * np.pi) / 180.
+            self.theta_P33 = (theta_P33_deg * np.pi) / 180.
+            self.theta_P43 = (theta_P43_deg * np.pi) / 180.
+            self.theta_P44 = (theta_P44_deg * np.pi) / 180.
+            
+            # denormalize elements (P12 / P11, P22 / P11, P33 / P11, P43 / P11, 
+            #                       P44 / P11)
+            self.P11 = P11
+            self.P12 = P12_norm * P11
+            self.P22 = P22_norm * P11
+            self.P33 = P33_norm * P11
+            self.P43 = P43_norm * P11
+            self.P44 = P44_norm * P11                    
         
         return(ssa_ice, ext_cff_mss_ice, g)
             
@@ -489,6 +620,21 @@ class MonteCarlo(object):
                                        ((1 - g**2)/(1 - g + 2*g*costheta_p))**2)
         
         return p_HG 
+    
+    def full_scattering_phase_function(self, P11, P12, stokes_params, theta, phi):
+        """ Calculate the scattering phase function for arbitrarly polarized light
+        """
+        # unpack stokes parameters
+        I = stokes_params[0]
+        Q = stokes_params[1]
+        U = stokes_params[2]
+        V = stokes_params[3]
+        
+        P = np.empty((len(phi), len_theta))
+        for i, val in enumerate(phi):
+            P[i] = P11*I + P12*(Q*np.cos(2*val) + U*np.sin(2*val))
+            
+        return P
     
     def populate_pdfs(self, g, RANDOM_NUMBERS=1):
         """ 1. Populate PDF of cos(scattering phase angle) with random numbers
@@ -825,12 +971,14 @@ class MonteCarlo(object):
         self.shape = shape
         self.roughness = roughness
         
+        self.initial_stokes_params = stokes_params
+        
         # Convert half_width to standard deviation
         scale = half_width / 2.355
         
-        # Generate random array of photon wavelengths, rounded to nearest nm
+        # Generate random array of photon wavelengths, rounded to nearest 10 nm
         wvls = np.around(np.random.normal(loc=wvl0, scale=scale,
-                                          size=(n_photon)), decimals=3)
+                                          size=(n_photon)), decimals=2)
         par_wvls = Parallel(wvls)
         
         # get ice optical data
@@ -844,13 +992,19 @@ class MonteCarlo(object):
             (ssa_ice,
              ext_cff_mss_ice,
              g) = self.get_aspherical_SSPs(par_wvls.working_set, rds_snw)
+             
+             if not self.HG: # reinstantiate par_wvls for new wvls
+                 par_wvls.working_set = self.wvls
             
         elif wvl0 >= 16.4 and wvl0 <= 99.0:
             self.far_IR = True
             (ssa_ice,
              ext_cff_mss_ice,
              g) = self.get_aspherical_SSPs(par_wvls.working_set, rds_snw)
-         
+             
+             if not self.HG: # reinstantiate par_wvls for new wvls
+                 par_wvls.working_set = self.wvls
+             
         # get impurity optical data                       
         (ssa_imp,
          ext_cff_mss_imp) = self.get_impurity_optics(par_wvls.working_set)
@@ -947,32 +1101,46 @@ class MonteCarlo(object):
             The first 100 curves are random, so this will give a good sample 
             for larger N
         """
-        self.p = self.Henyey_Greenstein()
-        p = np.asarray(self.p)
+        if self.shape=='sphere' or self.HG:
+            self.p = self.Henyey_Greenstein()
+            p = np.asarray(self.p)
         
-        fig = plt.figure()
-        if np.size(self.g)>1:
-            mean_g = np.around(np.mean(self.g), 4)
-            std_g = np.around(np.std(self.g), 4)
-            for i, val in enumerate(self.g):
-                if i < 1000:
-                    plt.semilogy(self.costheta_p, p[i])
+            fig = plt.figure()
+            if np.size(self.g)>1:
+                mean_g = np.around(np.mean(self.g), 4)
+                std_g = np.around(np.std(self.g), 4)
+                for i, val in enumerate(self.g):
+                    if i < 1000:
+                        plt.semilogy(self.costheta_p, p[i])
                     
-                    plt.title('Henyey-Greenstein Phase Function for\n'
-                              'mean(g) = %s and std(g) = %s' % (mean_g, std_g),
-                              fontsize=18)
-        elif np.size(self.g)==1:
-            g_rounded = np.around(self.g, 4)
-            plt.semilogy(self.costheta_p, p[0])
+                        plt.title('Henyey-Greenstein Phase Function for\n'
+                                  'mean(g) = %s and std(g) = %s' % (mean_g, std_g),
+                                  fontsize=18)
+            elif np.size(self.g)==1:
+                g_rounded = np.around(self.g, 4)
+                plt.semilogy(self.costheta_p, p[0])
             
-            plt.title('Henyey-Greenstein Phase Function for\n'
-                      'g = %s' % g_rounded[0], fontsize=18)
-        plt.xlabel(r'$\cos(\theta)$', fontsize=18)
-        plt.ylabel('Relative probability', fontsize=18)
-        plt.xlim((-1, 1))
-        plt.grid()
+                plt.title('Henyey-Greenstein Phase Function for\n'
+                          'g = %s' % g_rounded[0], fontsize=18)
+            plt.xlabel(r'$\cos(\theta)$', fontsize=18)
+            plt.ylabel('Relative probability', fontsize=18)
+            plt.xlim((-1, 1))
+            plt.grid()
         
-        plt.show()
+            plt.show()
+        
+        else: # plot full scattering phase function for first wvl and initial
+              # stokes params
+            phi = np.arange(0, 2*np.pi, np.pi / 900)
+            p = self.full_scattering_phase_function(self.P11[0], self.P12[0],
+                                                    self.initial_stokes_params,
+                                                    self.theta_P11, phi)
+            
+            nlevels = 100
+            fig, ax = plt.subplots(subplot_kw=dict(projection='polar'))
+            cax = ax.contourf(phi, self.theta_P11, p, nlevels)
+            
+            plt.show()
     
     def get_model_args(self):    
         """ Specify model kwargs at run time or get values from config.ini
@@ -1030,6 +1198,10 @@ class MonteCarlo(object):
         parser.add_argument('--optics_dir', type=str, default=optics_dir, 
                             help='directory of optics files')
         parser.add_argument('--fi_imp', type=str, default=fi_imp)
+        parser.add_argument('--HG', action=store_true, help='Use '
+                            'Henyey-Greenstein phase function instead of full '
+                            'scattering phase matrix (this is done '
+                            'automatically for spherical particles)')
         
         args = parser.parse_args()
         
