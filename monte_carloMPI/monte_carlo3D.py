@@ -631,7 +631,7 @@ class MonteCarlo(object):
         
         P = np.empty((len(theta), len(phi)))
         for j, val in enumerate(phi):
-            P[:][j] = P11*I + P12*(Q*np.cos(2*val) + U*np.sin(2*val))
+            P[:,j] = P11*I + P12*(Q*np.cos(2*val) + U*np.sin(2*val))
             
         return P
     
