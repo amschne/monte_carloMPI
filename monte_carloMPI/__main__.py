@@ -45,15 +45,15 @@ def run():
     #roughness = 'severely rough'
     
     # wavelength [um]
-    wvl = 1.3
+    #wvl = 1.3
     #wvl = 1.55
     #wvl = 0.5
     
     # half width [um]
-    half_width = 0.085
+    #half_width = 0.085
     #half_width = 0.3
     
-    if False:  # use for runs of multiple wavelengths
+    if True:  # use for runs of multiple wavelengths
         wvls = np.arange(0.305, 3., 0.1)
         half_width = 1e-15
         
@@ -73,7 +73,7 @@ def run():
                                      stokes_params=stokes_params,
                                      shape=shape, roughness=roughness)
     
-    if True:  # use for run of single wavelength
+    if False:  # use for run of single wavelength
         # snow effective grain size [um]
         if False: # single grain size
             rds_snw = 100.
@@ -109,7 +109,7 @@ def multiple_grain_sizes(n_photon, wvl, half_width, rds_snw, theta_0=0.,
                             roughness=roughness, debug=DEBUG,
                             Lambertian=LAMBERTIAN,
                             Lambertian_reflectance=LAMBERTIAN_REFLECTANCE)
-        monte_carlo_run.plot_phase_function()
+        #monte_carlo_run.plot_phase_function()
         
 def main():
    run()
