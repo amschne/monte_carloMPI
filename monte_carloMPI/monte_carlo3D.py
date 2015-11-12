@@ -1198,7 +1198,7 @@ class MonteCarlo(object):
         parser.add_argument('--optics_dir', type=str, default=optics_dir, 
                             help='directory of optics files')
         parser.add_argument('--fi_imp', type=str, default=fi_imp)
-        parser.add_argument('--HG', action=store_true, help='Use '
+        parser.add_argument('--HG', action='store_true', help='Use '
                             'Henyey-Greenstein phase function instead of full '
                             'scattering phase matrix (this is done '
                             'automatically for spherical particles)')
