@@ -993,8 +993,8 @@ class MonteCarlo(object):
              ext_cff_mss_ice,
              g) = self.get_aspherical_SSPs(par_wvls.working_set, rds_snw)
              
-             if not self.HG: # reinstantiate par_wvls for new wvls
-                 par_wvls.working_set = self.wvls
+            if not self.HG: # reinstantiate par_wvls for new wvls
+                par_wvls.working_set = self.wvls
             
         elif wvl0 >= 16.4 and wvl0 <= 99.0:
             self.far_IR = True
@@ -1002,8 +1002,8 @@ class MonteCarlo(object):
              ext_cff_mss_ice,
              g) = self.get_aspherical_SSPs(par_wvls.working_set, rds_snw)
              
-             if not self.HG: # reinstantiate par_wvls for new wvls
-                 par_wvls.working_set = self.wvls
+            if not self.HG: # reinstantiate par_wvls for new wvls
+                par_wvls.working_set = self.wvls
              
         # get impurity optical data                       
         (ssa_imp,
