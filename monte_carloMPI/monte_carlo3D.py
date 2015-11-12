@@ -1138,7 +1138,7 @@ class MonteCarlo(object):
             log_P = np.log10(P) # log scale P
             nlevels = 100
             fig, ax = plt.subplots(subplot_kw=dict(projection='polar'))
-            cax = ax.contourf(phi, self.theta_P11, log_P, nlevels)
+            cax = ax.contourf(phi, theta_deg, log_P, nlevels)
             
             plt.show()
     
