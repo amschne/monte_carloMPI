@@ -629,9 +629,9 @@ class MonteCarlo(object):
         U = stokes_params[2]
         V = stokes_params[3]
         
-        P = np.empty((len(phi), len(theta)))
-        for i, val in enumerate(phi):
-            P[i] = P11*I + P12*(Q*np.cos(2*val) + U*np.sin(2*val))
+        P = np.empty((len(theta), len(phi)))
+        for j, val in enumerate(phi):
+            P[:][j] = P11*I + P12*(Q*np.cos(2*val) + U*np.sin(2*val))
             
         return P
     
@@ -1134,9 +1134,11 @@ class MonteCarlo(object):
                                                     self.initial_stokes_params,
                                                     self.theta_P11, phi)
             
+            theta_deg = (self.theta_P11 * 180.) / np.pi
+            log_P = np.log10(P) # log scale P
             nlevels = 100
             fig, ax = plt.subplots(subplot_kw=dict(projection='polar'))
-            cax = ax.contourf(phi, self.theta_P11, P, nlevels)
+            cax = ax.contourf(phi, self.theta_P11, log_P, nlevels)
             
             plt.show()
     
