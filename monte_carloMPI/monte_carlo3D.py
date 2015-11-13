@@ -237,9 +237,8 @@ class MonteCarlo(object):
         ext_cff_mss_ice = np.empty(wvls.shape)
         g = np.empty(wvls.shape)
         
-        sorted_wvls = np.sorted(wvls)
-        last_wvl = None
-        
+        sorted_wvls = np.sort(wvls)
+        last_wvl = None 
         for i, wvl in enumerate(sorted_wvls):
             print i
             if wvl != last_wvl:
