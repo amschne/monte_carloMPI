@@ -38,6 +38,8 @@ class MonteCarlo(object):
             fi_imp = [IMPURITY OPTICS FILE]
             HG = [True] to force Henyey-Greenstein phase function for aspherical
                  parcicles
+            phase_functions = [True] to plot scattering phase functions
+                                  instead of running model
         """       
         model_args = self.get_model_args()
         
@@ -53,7 +55,8 @@ class MonteCarlo(object):
                            'output_dir' : model_args.output_dir,
                            'optics_dir' : model_args.optics_dir,
                            'fi_imp' : model_args.fi_imp,
-                           'HG': model_args.HG}
+                           'HG': model_args.HG,
+                           'phase_functions': model_args.phase_functions}
         
         # overwrite model_args_dict[kwarg] if specified at instantiation
         for kwarg, val in model_kwargs.items():
@@ -71,6 +74,7 @@ class MonteCarlo(object):
         self.optics_dir = model_args_dict['optics_dir']
         self.fi_imp = model_args_dict['fi_imp']
         self.HG = model_args_dict['HG']
+        self.phase_functions = model_args_dict['phase_functions']
     
     def setup_output(self, n_photon, wvl0, half_width, rds_snw):
         """ Create output dir for writing data to
@@ -1059,25 +1063,32 @@ class MonteCarlo(object):
         #self.i2 = 1
         #self.i_sensor = 0
        
-        answer = list() 
-        for i, wvl in enumerate(par_wvls.working_set):
-            self.photon = i
-            answer.append(self.monte_carlo3D(wvl))
-            
-        all_answers = par_wvls.answer_and_reduce(answer,
-                                                 MonteCarlo.flatten_list)
-        if all_answers is not None:
-            # this is the root processor
-            output_file = self.setup_output(n_photon, wvl0, half_width, rds_snw)
-            txt_file = open(output_file, 'w')
-            txt_file.write('condition wvn[um^-1] theta_n phi_n n_scat '
-                           'path_length[m]\n')
-            for i, answer in enumerate(all_answers):
-                txt_file.write('%d %r %r %r %d %r\n' % (answer[0], answer[1],
-                                                        answer[2], answer[3],
-                                                        answer[4], answer[5]))
-            txt_file.close()
-            print('%s' % output_file) # for easy post processing
+        if not self.phase_functions:
+            answer = list() 
+            for i, wvl in enumerate(par_wvls.working_set):
+                self.photon = i
+                answer.append(self.monte_carlo3D(wvl))
+                
+            all_answers = par_wvls.answer_and_reduce(answer,
+                                                     MonteCarlo.flatten_list)
+            if all_answers is not None:
+                # this is the root processor
+                output_file = self.setup_output(n_photon, wvl0, half_width, rds_snw)
+                txt_file = open(output_file, 'w')
+                txt_file.write('condition wvn[um^-1] theta_n phi_n n_scat '
+                               'path_length[m]\n')
+                for i, answer in enumerate(all_answers):
+                    txt_file.write('%d %r %r %r %d %r\n' % (answer[0], answer[1],
+                                                            answer[2], answer[3],
+                                                            answer[4], answer[5]))
+                txt_file.close()
+                print('%s' % output_file) # for easy post processing
+        
+        else: # no modeling, only plotting phase functions
+            self.plot_phase_function()
+            if not self.shape=='sphere' and not self.HG:
+                # also compare phase functions
+                self.plot_phase_functions()
                                                       
     def calculate_albedo(self, answers):
         """ Compute black sky albedo (directional-hemispherical reflectance) of
@@ -1093,6 +1104,54 @@ class MonteCarlo(object):
                 
         return albedo
     
+    def plot_phase_functions(self):
+        """ Plot azimuthally averaged scattering phase function along with
+            the Henyey-Greenstein phase function for comparison 
+        """
+        costheta_p = np.arange(-1.000, 1.001, 0.001)
+        P_HG = self.Henyey_Greenstein(costheta_p)[0]
+        
+        phi = np.arange(0, 2*np.pi, np.pi / 1800.)
+        P_full = self.full_scattering_phase_function(self.P11[0],
+                                                     self.P12[0],
+                                                     self.initial_stokes_params,
+                                                     self.theta_P11, phi)
+        costheta_full = np.cos(self.theta_P11)
+        P_full_means = np.mean(P_full, axis=1)
+        
+        fig = plt.figure()
+        g_rounded = np.around(self.g, 4)[0]
+        plt.semilogy(costheta_full, P_full_means, label='Full scattering phase function')
+        plt.semilogy(costheta_p, P_HG, label='Henyey-Greenstein phase function')
+        
+        plt.xlabel(r'$\cos(\theta)$', fontsize=18)
+        plt.ylabel('Relative probability', fontsize=18)
+        plt.xlim((-1.01, 1.01))
+        plt.grid()
+        plt.legend(loc=2)
+        plt.title('Scattering phase functions (g = %s)' % g_rounded, fontsize=18)
+        
+        plt.show()
+        
+        theta_p = np.arccos(costheta_p)
+        theta_p_2 = -theta_p + 2*np.pi
+        theta_p = np.array([theta_p, theta_p_2]).flatten()
+        P_HG = np.array([P_HG, P_HG]).flatten()
+        
+        theta_P11_2 =  -self.theta_P11 + 2*np.pi 
+        theta_P11 = np.array([self.theta_P11, theta_P11_2]).flatten()
+        P_full_means = np.array([P_full_means, P_full_means]).flatten()
+        
+        log_P_HG = np.log10(P_HG)
+        log_P_full_means = np.log10(P_full_means)
+        
+        plt.polar(theta_P11, log_P_full_means, label='Full scattering phase function')
+        plt.polar(theta_p, log_P_HG, label='Henyey-Greenstein phase function')
+        plt.legend()
+        plt.title('Scattering phase functions (g = %s)' % g_rounded, fontsize=18)
+        
+        plt.show()
+              
     def plot_phase_function(self):
         """ plot phase function versus cos(theta)
         
@@ -1129,7 +1188,7 @@ class MonteCarlo(object):
         
         else: # plot full scattering phase function for first wvl and initial
               # stokes params
-            phi = np.arange(0, 2*np.pi, np.pi / 900)
+            phi = np.arange(0, 2*np.pi, np.pi / 1800.)
             P = self.full_scattering_phase_function(self.P11[0], self.P12[0],
                                                     self.initial_stokes_params,
                                                     self.theta_P11, phi)
@@ -1202,6 +1261,8 @@ class MonteCarlo(object):
                             'Henyey-Greenstein phase function instead of full '
                             'scattering phase matrix (this is done '
                             'automatically for spherical particles)')
+        parser.add_argument('--phase_functions', action='store_true',
+                            help='Plot phase functions')
         
         args = parser.parse_args()
         
@@ -1223,11 +1284,14 @@ def test(n_photon=50000, wvl=0.5, half_width=0.085, rds_snw=100):
     imp_cnc = 0
     
     test_case = MonteCarlo(tau_tot=tau_tot, imp_cnc=imp_cnc)
+    test_case = MonteCarlo(tau_tot=tau_tot, imp_cnc=imp_cnc, phase_functions=True)
     test_case.ssa_ice = ssa_ice
     test_case.g = g
     
     test_case.run(n_photon, wvl, half_width, rds_snw, test=True)
-    test_case.plot_phase_function()
+    # To plot phase functions, instantiate "test_case" with phase_functions set
+    # to True
+    #test_case.plot_phase_function()
 
 def test_and_debug(n_photon=100, wvl=0.5, half_width=0.085, rds_snw=250):
     """ manually specify optical properties for test cases and debugging:
@@ -1248,6 +1312,7 @@ def test_and_debug(n_photon=100, wvl=0.5, half_width=0.085, rds_snw=250):
     ssa_imp = 0.30
     
     test_case = MonteCarlo(tau_tot=10)
+    #test_case = MonteCarlo(tau_tot=10, phase_functions=True)
     test_case.ext_cff_mss_ice = ext_cff_mss_ice
     test_case.ssa_ice = ssa_ice
     test_case.g = g
@@ -1255,11 +1320,16 @@ def test_and_debug(n_photon=100, wvl=0.5, half_width=0.085, rds_snw=250):
     test_case.ssa_imp = ssa_imp
     
     test_case.run(n_photon, wvl, half_width, rds_snw, test=True)
-    test_case.plot_phase_function()
+    # To plot phase functions, instantiate "test_case" with phase_functions set
+    # to True    
+    #test_case.plot_phase_function()
 
 def run():
     """ USER INPUT
     """
+    # Run model or plot phase functions?
+    phase_functions = False
+    
     # set number of photons
     n_photon = 100
     
@@ -1308,10 +1378,11 @@ def run():
                                    flg_crt=flg_crt, flg_3D=flg_3D,
                                    rho_snw=rho_snw, optics_dir=optics_dir,
                                    rsensor=rsensor, hsensor=hsensor,
-                                   fi_imp=fi_imp)
+                                   fi_imp=fi_imp,
+                                   phase_functions=phase_functions)
                                    
     monte_carlo_model.run(n_photon, wvl, half_width, rds_snw)
-    monte_carlo_model.plot_phase_function()
+    #monte_carlo_model.plot_phase_function()
 
 def main():
     run()
