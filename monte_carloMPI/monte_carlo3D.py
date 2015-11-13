@@ -462,59 +462,64 @@ class MonteCarlo(object):
             ssa_ice = np.empty(wvls.shape)
             ext_cff_mss_ice = np.empty(wvls.shape)
             g = np.empty(wvls.shape)     
-            for i, wvl in enumerate(wvls):
-                wvl = wvl*1e-6
-                
-                # get indicies with smallest abs(wvl - wvl_in)
-                idx_wvl = np.argsort(np.absolute(wvl - wvl_in.data))
-                nearest_wvls = wvl_in[idx_wvl[:2]]
             
-                # ssa_ice
-                nearest_ssa_ice = ssa_in[idx_wvl[:2]]
-                try:
-                    if nearest_wvls[0] < nearest_wvls[1]:
-                        ssa_ice_interp = interpolate.interp1d(nearest_wvls,
-                                                              nearest_ssa_ice)
-                        ssa_ice[i] = ssa_ice_interp(wvl)
-                    else:
-                        ssa_ice_interp = interpolate.interp1d(nearest_wvls[::-1],
-                                                              nearest_ssa_ice[::-1])
-                        ssa_ice[i] = ssa_ice_interp(wvl)
-                except ValueError:
-                    ssa_ice[i] = nearest_ssa_ice[0]
-                    sys.stderr.write('error: exception raised while interpolating '
-                                     'ssa_ice, using nearest value instead\n')
+            sorted_wvls = np.sort(wvls)
+            last_wvl = None
+            for i, wvl in enumerate(sorted_wvls):
+                if wvl != last_wvl:
+                    last_wvl = wvl
+                    working_set_idxs = np.where(wvls==wvl)
+                    wvl = wvl*1e-6
+                    # get indicies with smallest abs(wvl - wvl_in)
+                    idx_wvl = np.argsort(np.absolute(wvl - wvl_in.data))
+                    nearest_wvls = wvl_in[idx_wvl[:2]]
+            
+                    # ssa_ice
+                    nearest_ssa_ice = ssa_in[idx_wvl[:2]]
+                    try:
+                        if nearest_wvls[0] < nearest_wvls[1]:
+                            ssa_ice_interp = interpolate.interp1d(nearest_wvls,
+                                                                  nearest_ssa_ice)
+                            ssa_ice[working_set_idxs] = ssa_ice_interp(wvl)
+                        else:
+                            ssa_ice_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                                  nearest_ssa_ice[::-1])
+                            ssa_ice[working_set_idxs] = ssa_ice_interp(wvl)
+                    except ValueError:
+                        ssa_ice[working_set_idxs] = nearest_ssa_ice[0]
+                        sys.stderr.write('error: exception raised while interpolating '
+                                         'ssa_ice, using nearest value instead\n')
                     
-                # ext_cff_mss_ice
-                nearest_ext_cff_mss_ice = ext_in[idx_wvl[:2]]
-                try:
-                    if nearest_wvls[0] < nearest_wvls[1]:
-                        ext_cff_mss_ice_interp = interpolate.interp1d(nearest_wvls,
-                                                            nearest_ext_cff_mss_ice)
-                        ext_cff_mss_ice[i] = ext_cff_mss_ice_interp(wvl)
-                    else:
-                        ext_cff_mss_ice_interp = interpolate.interp1d(nearest_wvls[::-1],
-                                                      nearest_ext_cff_mss_ice[::-1])
-                        ext_cff_mss_ice[i] = ext_cff_mss_ice_interp(wvl)
-                except ValueError:
-                    ext_cff_mss_ice[i] = nearest_ext_cff_mss_ice[0]
-                    sys.stderr.write('error: exception raised while interpolating '
-                                     'ext_cff_mss_ice, using nearest value instead\n')
+                    # ext_cff_mss_ice
+                    nearest_ext_cff_mss_ice = ext_in[idx_wvl[:2]]
+                    try:
+                        if nearest_wvls[0] < nearest_wvls[1]:
+                            ext_cff_mss_ice_interp = interpolate.interp1d(nearest_wvls,
+                                                                nearest_ext_cff_mss_ice)
+                            ext_cff_mss_ice[working_set_idxs] = ext_cff_mss_ice_interp(wvl)
+                        else:
+                            ext_cff_mss_ice_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                          nearest_ext_cff_mss_ice[::-1])
+                            ext_cff_mss_ice[working_set_idxs] = ext_cff_mss_ice_interp(wvl)
+                    except ValueError:
+                        ext_cff_mss_ice[working_set_idxs] = nearest_ext_cff_mss_ice[0]
+                        sys.stderr.write('error: exception raised while interpolating '
+                                         'ext_cff_mss_ice, using nearest value instead\n')
             
-                # g
-                nearest_g = asm_in[idx_wvl[:2]]
-                try:
-                    if nearest_wvls[0] < nearest_wvls[1]:
-                        g_interp = interpolate.interp1d(nearest_wvls, nearest_g)
-                        g[i] = g_interp(wvl)
-                    else:
-                        g_interp = interpolate.interp1d(nearest_wvls[::-1],
-                                                        nearest_g[::-1])
-                        g[i] = g_interp(wvl)
-                except ValueError:
-                    g[i] = nearest_g[0]
-                    sys.stderr.write('error: exception raised while interpolating '
-                                     'g, using nearest value instead\n')
+                    # g
+                    nearest_g = asm_in[idx_wvl[:2]]
+                    try:
+                        if nearest_wvls[0] < nearest_wvls[1]:
+                            g_interp = interpolate.interp1d(nearest_wvls, nearest_g)
+                            g[working_set_idxs] = g_interp(wvl)
+                        else:
+                            g_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                            nearest_g[::-1])
+                            g[working_set_idxs] = g_interp(wvl)
+                    except ValueError:
+                        g[working_set_idxs] = nearest_g[0]
+                        sys.stderr.write('error: exception raised while interpolating '
+                                         'g, using nearest value instead\n')
             
         #snow_optics.close()
         
@@ -580,43 +585,49 @@ class MonteCarlo(object):
         elif np.size(wvls)>1:
             ssa_imp = np.empty(wvls.shape)
             ext_cff_mss_imp = np.empty(wvls.shape)
+            
+            sorted_wvls = np.sort(wvls)
+            last_wvl = None
             for i, wvl in enumerate(wvls):
-                wvl = wvl*1e-6
+                if wvl != last_wvl:
+                    last_wvl = wvl
+                    working_set_idxs = np.where(wvls==wvl)
+                    wvl = wvl*1e-6
         
-                # get indicies with smallest abs(wvl - wvl_in_imp)
-                idx_wvl = np.argsort(np.absolute(wvl - wvl_in_imp.data))
-                nearest_wvls = wvl_in_imp[idx_wvl[:2]]
+                    # get indicies with smallest abs(wvl - wvl_in_imp)
+                    idx_wvl = np.argsort(np.absolute(wvl - wvl_in_imp.data))
+                    nearest_wvls = wvl_in_imp[idx_wvl[:2]]
         
-                # ssa_imp
-                nearest_ssa_imp = ssa_in_imp[idx_wvl[:2]]
-                try:
-                    if nearest_wvls[0] < nearest_wvls[1]:
-                        ssa_imp_interp = interpolate.interp1d(nearest_wvls,
-                                                              nearest_ssa_imp)
-                        ssa_imp[i] = ssa_imp_interp(wvl)
-                    else:
-                        ssa_imp_interp = interpolate.interp1d(nearest_wvls[::-1], nearest_ssa_imp[::-1])
-                        ssa_imp[i] = ssa_imp_interp(wvl)
-                except ValueError:
-                    ssa_imp[i] = nearest_ssa_imp[0]
-                    sys.stderr.write('error: exception raised while '
-                                     'interpolating ssa_imp, using nearest '
-                                     'value instead\n')
+                    # ssa_imp
+                    nearest_ssa_imp = ssa_in_imp[idx_wvl[:2]]
+                    try:
+                        if nearest_wvls[0] < nearest_wvls[1]:
+                            ssa_imp_interp = interpolate.interp1d(nearest_wvls,
+                                                                  nearest_ssa_imp)
+                            ssa_imp[working_set_idxs] = ssa_imp_interp(wvl)
+                        else:
+                            ssa_imp_interp = interpolate.interp1d(nearest_wvls[::-1], nearest_ssa_imp[::-1])
+                            ssa_imp[working_set_idxs] = ssa_imp_interp(wvl)
+                    except ValueError:
+                        ssa_imp[working_set_idxs] = nearest_ssa_imp[0]
+                        sys.stderr.write('error: exception raised while '
+                                         'interpolating ssa_imp, using nearest '
+                                         'value instead\n')
         
-                # ext_cff_mss_imp
-                nearest_ext_cff_mss_imp = ext_in_imp[idx_wvl[:2]]
-                try:
-                    if nearest_wvls[0] < nearest_wvls[1]:
-                        ext_cff_mss_imp_interp = interpolate.interp1d(nearest_wvls, nearest_ext_cff_mss_imp)
-                        ext_cff_mss_imp[i] = ext_cff_mss_imp_interp(wvl)
-                    else:
-                        ext_cff_mss_imp_interp = interpolate.interp1d(nearest_wvls[::-1], nearest_ext_cff_mss_imp[::-1])
-                        ext_cff_mss_imp[i] = ext_cff_mss_imp_interp(wvl)
-                except ValueError:
-                    ext_cff_mss_imp[i] = nearest_ext_cff_mss_imp[0]
-                    sys.stderr.write('error: exception raised while '
-                                     'interpolating ext_cff_mss_imp, using '
-                                     'nearest value instead\n')
+                    # ext_cff_mss_imp
+                    nearest_ext_cff_mss_imp = ext_in_imp[idx_wvl[:2]]
+                    try:
+                        if nearest_wvls[0] < nearest_wvls[1]:
+                            ext_cff_mss_imp_interp = interpolate.interp1d(nearest_wvls, nearest_ext_cff_mss_imp)
+                            ext_cff_mss_imp[working_set_idxs] = ext_cff_mss_imp_interp(wvl)
+                        else:
+                            ext_cff_mss_imp_interp = interpolate.interp1d(nearest_wvls[::-1], nearest_ext_cff_mss_imp[::-1])
+                            ext_cff_mss_imp[working_set_idxs] = ext_cff_mss_imp_interp(wvl)
+                    except ValueError:
+                        ext_cff_mss_imp[working_set_idxs] = nearest_ext_cff_mss_imp[0]
+                        sys.stderr.write('error: exception raised while '
+                                         'interpolating ext_cff_mss_imp, using '
+                                         'nearest value instead\n')
                 
         #impurity_optics.close()
     
@@ -1172,7 +1183,8 @@ class MonteCarlo(object):
         plt.title('Scattering phase functions (g = %s)' % g_rounded, fontsize=18)
         
         plt.show()
-              
+    
+    @timefunc          
     def plot_phase_function(self):
         """ plot phase function versus cos(theta)
         
