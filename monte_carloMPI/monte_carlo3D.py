@@ -230,12 +230,18 @@ class MonteCarlo(object):
             P43_lines = np.array(P43_lines)[valid_idxs]
             P44_lines = np.array(P44_lines)[valid_idxs]
             
-            P11 = np.empty((wvls.shape[0], len(P11_line0)))
-            P12_norm = np.empty((wvls.shape[0], len(P12_line0)))
-            P22_norm = np.empty((wvls.shape[0], len(P22_line0)))
-            P33_norm = np.empty((wvls.shape[0], len(P33_line0)))
-            P43_norm = np.empty((wvls.shape[0], len(P43_line0)))
-            P44_norm = np.empty((wvls.shape[0], len(P44_line0)))
+            P11 = dict()
+            P12 = dict()
+            P22 = dict()
+            P33 = dict()
+            P43 = dict()
+            P44 = dict()
+            
+            P12_norm = dict()
+            P22_norm = dict()
+            P33_norm = dict()
+            P43_norm = dict()
+            P44_norm = dict()
             
             theta_P11_deg = np.empty(len(P11_line0))
             theta_P12_deg = np.empty(len(P12_line0))
@@ -330,36 +336,57 @@ class MonteCarlo(object):
                 
                     # Scattering phase matrix elements
                     # P11
+                    P11[wvl] = np.empty(len(P11_line0))
                     for j, theta in enumerate(P11_line0):
                         if i==0:
                             theta_P11_deg[j] = float(theta)
-                        P11[working_set_idxs,j] = float(P11_lines[idx_wvl[0]].split()[j])
+                        P11[wvl][j] = float(P11_lines[idx_wvl[0]].split()[j])
+                    
                     # P12
+                    P12_norm[wvl] = np.empty(len(P12_line0))
                     for j, theta in enumerate(P12_line0):
                         if i==0:
                             theta_P12_deg[j] = float(theta)
-                        P12_norm[working_set_idxs,j] = float(P12_lines[idx_wvl[0]].split()[j])
+                        P12_norm[wvl][j] = float(P12_lines[idx_wvl[0]].split()[j])
+                    
+                    P12[wvl] = P12_norm[wvl] * P11[wvl]
+                    
                     # P22
+                    P22_norm[wvl] = np.empty(len(P22_line0))
                     for j, theta in enumerate(P22_line0):
                         if i==0:
                             theta_P22_deg[j] = float(theta)
-                        P22_norm[working_set_idxs,j] = float(P22_lines[idx_wvl[0]].split()[j])
+                        P22_norm[wvl][j] = float(P22_lines[idx_wvl[0]].split()[j])
+                    
+                    P22[wvl] = P22_norm[wvl] * P11[wvl]
+                    
                     # P33
+                    P33_norm[wvl] = np.empty(len(P33_line0))
                     for j, theta in enumerate(P33_line0):
                         if i==0:
                             theta_P33_deg[j] = float(theta)
-                        P33_norm[working_set_idxs,j] = float(P33_lines[idx_wvl[0]].split()[j])
+                        P33_norm[wvl][j] = float(P33_lines[idx_wvl[0]].split()[j])
+                    
+                    P33[wvl] = P33_norm[wvl] * P11[wvl]
+                    
                     # P43
+                    P43_norm[wvl] = np.empty(len(P43_line0))
                     for j, theta in enumerate(P43_line0):
                         if i==0:
                             theta_P43_deg[j] = float(theta)
-                        P43_norm[working_set_idxs,j] = float(P43_lines[idx_wvl[0]].split()[j])
+                        P43_norm[wvl][j] = float(P43_lines[idx_wvl[0]].split()[j])
+                    
+                    P43[wvl] = P43_norm[wvl] * P11[wvl]
+                    
                     # P44
+                    P44_norm[wvl] = np.empty(len(P44_line0))
                     for j, theta in enumerate(P44_line0):
                         if i==0:
                             theta_P44_deg[j] = float(theta)
-                        P44_norm[working_set_idxs,j] = float(P44_lines[idx_wvl[0]].split()[j])
+                        P44_norm[wvl][j] = float(P44_lines[idx_wvl[0]].split()[j])
                     
+                    P44[wvl] = P44_norm[wvl] * P11[wvl]
+
         if not self.HG:
             # convert theta from degrees to radians
             self.theta_P11 = (theta_P11_deg * np.pi) / 180.
@@ -369,14 +396,12 @@ class MonteCarlo(object):
             self.theta_P43 = (theta_P43_deg * np.pi) / 180.
             self.theta_P44 = (theta_P44_deg * np.pi) / 180.
             
-            # denormalize elements (P12 / P11, P22 / P11, P33 / P11, P43 / P11, 
-            #                       P44 / P11)
             self.P11 = P11
-            self.P12 = P12_norm * P11
-            self.P22 = P22_norm * P11
-            self.P33 = P33_norm * P11
-            self.P43 = P43_norm * P11
-            self.P44 = P44_norm * P11                    
+            self.P12 = P12
+            self.P22 = P22
+            self.P33 = P33
+            self.P43 = P43
+            self.P44 = P44                    
         
         return(ssa_ice, ext_cff_mss_ice, g)
             
@@ -1006,6 +1031,7 @@ class MonteCarlo(object):
         self.shape = shape
         self.roughness = roughness
         
+        self.wvl0 = wvl0
         self.initial_stokes_params = stokes_params
         
         # Convert half_width to standard deviation
@@ -1144,8 +1170,8 @@ class MonteCarlo(object):
         P_HG = self.Henyey_Greenstein(costheta_p)[0]
         
         phi = np.arange(0, 2*np.pi, np.pi / 1800.)
-        P_full = self.full_scattering_phase_function(self.P11[0],
-                                                     self.P12[0],
+        P_full = self.full_scattering_phase_function(self.P11[self.wvl0],
+                                                     self.P12[self.wvl0],
                                                      self.initial_stokes_params,
                                                      self.theta_P11, phi)
         costheta_full = np.cos(self.theta_P11)
