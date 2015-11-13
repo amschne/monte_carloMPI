@@ -666,7 +666,7 @@ class MonteCarlo(object):
     
         return(ssa_imp, ext_cff_mss_imp)
     
-    def Henyey_Greenstein(self, costheta_p):
+    def Henyey_Greenstein(self, g, costheta_p):
         """ Henyey-Greenstein scattering phase function
         """
         g = np.matrix(self.g).T # turn g into column vector
@@ -1174,8 +1174,9 @@ class MonteCarlo(object):
         """ Plot azimuthally averaged scattering phase function along with
             the Henyey-Greenstein phase function for comparison 
         """
-        costheta_p = np.arange(-1.000, 1.001, 0.001)
-        P_HG = self.Henyey_Greenstein(costheta_p)[self.wvl0_idx]
+        g = self.g[self.wvl0_idx]
+        costheta_p = np.arange(-1.000, 1.001, 0.001)        
+        P_HG = self.Henyey_Greenstein2(g, costheta_p)
         
         phi = np.arange(0, 2*np.pi, np.pi / 1800.)
         P_full = self.full_scattering_phase_function(self.P11[self.wvl0],
@@ -1186,7 +1187,7 @@ class MonteCarlo(object):
         P_full_means = np.mean(P_full, axis=1)
         
         fig = plt.figure()
-        g_rounded = np.around(self.g[self.wvl0_idx], 4)
+        g_rounded = np.around(g, 4)
         plt.semilogy(costheta_full, P_full_means, label='Full scattering phase function')
         plt.semilogy(costheta_p, P_HG, label='Henyey-Greenstein phase function')
         
@@ -1228,10 +1229,7 @@ class MonteCarlo(object):
         """
         if self.shape=='sphere' or self.HG:
             costheta_p = np.arange(-1.000, 1.001, 0.001)
-            old_g = self.g
-            self.g = self.g[:100]
-            P = self.Henyey_Greenstein(costheta_p)
-            self.g = old_g
+            P = self.Henyey_Greenstein(self.g[:100], costheta_p)
             fig = plt.figure()
             if np.size(self.g)>1:
                 mean_g = np.around(np.mean(self.g), 4)
