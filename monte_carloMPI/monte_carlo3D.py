@@ -21,6 +21,19 @@ from parallelize import Parallel
 #import ipdb
 #from memory_profiler import profile
 
+def timefunc(f):
+    """ Used for timing function calls
+
+        To use, simply place "@timefunc" above the function you wish to time
+    """
+    def f_timer(*args, **kwargs):
+        start = time.time()
+        result = f(*args, **kwargs)
+        end = time.time()
+        print f.__name__, 'took', end - start, 'time'
+        return result
+    return f_timer
+
 class MonteCarlo(object):
     def __init__(self, **model_kwargs):
         """ valid model_kwargs:
@@ -95,6 +108,7 @@ class MonteCarlo(object):
             
         return output_file
     
+    @timefunc
     def get_aspherical_SSPs(self, wvls, rds_snw):
         """ Retrieve single scattering properties (SSPs) for aspherical ice
             particle shapes, based on input wavelengths (wvls) and snow and
@@ -240,7 +254,6 @@ class MonteCarlo(object):
         sorted_wvls = np.sort(wvls)
         last_wvl = None 
         for i, wvl in enumerate(sorted_wvls):
-            print i
             if wvl != last_wvl:
                 last_wvl = wvl
                 working_set_idxs = np.where(wvls==wvl)
@@ -506,6 +519,7 @@ class MonteCarlo(object):
         
         return(ssa_ice, ext_cff_mss_ice, g)
         
+    @timefunc
     def get_impurity_optics(self, wvls):
         """ fetch ssa and ext_cff_mss for impurities from self.fi_imp
         
@@ -1167,7 +1181,10 @@ class MonteCarlo(object):
         """
         if self.shape=='sphere' or self.HG:
             costheta_p = np.arange(-1.000, 1.001, 0.001)
+            old_g = self.g
+            self.g = self.g[:100]
             P = self.Henyey_Greenstein(costheta_p)
+            self.g = old_g
             fig = plt.figure()
             if np.size(self.g)>1:
                 mean_g = np.around(np.mean(self.g), 4)
