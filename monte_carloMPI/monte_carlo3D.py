@@ -319,32 +319,32 @@ class MonteCarlo(object):
                     for j, theta in enumerate(P11_line0):
                         if i==0:
                             theta_P11_deg[j] = float(theta)
-                        P11[working_set_idxs][j] = float(P11_lines[idx_wvl[0]].split()[j])
+                        P11[working_set_idxs,j] = float(P11_lines[idx_wvl[0]].split()[j])
                     # P12
                     for j, theta in enumerate(P12_line0):
                         if i==0:
                             theta_P12_deg[j] = float(theta)
-                        P12_norm[working_set_idxs][j] = float(P12_lines[idx_wvl[0]].split()[j])
+                        P12_norm[working_set_idxs,j] = float(P12_lines[idx_wvl[0]].split()[j])
                     # P22
                     for j, theta in enumerate(P22_line0):
                         if i==0:
                             theta_P22_deg[j] = float(theta)
-                        P22_norm[working_set_idxs][j] = float(P22_lines[idx_wvl[0]].split()[j])
+                        P22_norm[working_set_idxs,j] = float(P22_lines[idx_wvl[0]].split()[j])
                     # P33
                     for j, theta in enumerate(P33_line0):
                         if i==0:
                             theta_P33_deg[j] = float(theta)
-                        P33_norm[working_set_idxs][j] = float(P33_lines[idx_wvl[0]].split()[j])
+                        P33_norm[working_set_idxs,j] = float(P33_lines[idx_wvl[0]].split()[j])
                     # P43
                     for j, theta in enumerate(P43_line0):
                         if i==0:
                             theta_P43_deg[j] = float(theta)
-                        P43_norm[working_set_idxs][j] = float(P43_lines[idx_wvl[0]].split()[j])
+                        P43_norm[working_set_idxs,j] = float(P43_lines[idx_wvl[0]].split()[j])
                     # P44
                     for j, theta in enumerate(P44_line0):
                         if i==0:
                             theta_P44_deg[j] = float(theta)
-                        P44_norm[working_set_idxs][j] = float(P44_lines[idx_wvl[0]].split()[j])
+                        P44_norm[working_set_idxs,j] = float(P44_lines[idx_wvl[0]].split()[j])
                     
         if not self.HG:
             # convert theta from degrees to radians
