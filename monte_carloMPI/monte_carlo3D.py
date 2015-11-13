@@ -4,7 +4,6 @@
     "monte_carlo3D.m", a matlab routine simulating photon pathways through a
     snow pack in 3 dimensions.
 """
-
 import os
 import sys
 
@@ -237,108 +236,116 @@ class MonteCarlo(object):
         ssa_ice = np.empty(wvls.shape)
         ext_cff_mss_ice = np.empty(wvls.shape)
         g = np.empty(wvls.shape)
-        for i, wvl in enumerate(wvls):
-            # get indicies with smallest abs(wvl - wvl_in)
-            idx_wvl = np.argsort(np.absolute(wvl - wvl_in))
-            nearest_wvls = wvl_in[idx_wvl[:2]]
+        
+        sorted_wvls = np.sorted(wvls)
+        last_wvl = None
+        
+        for i, wvl in enumerate(sorted_wvls):
+            print i
+            if wvl != last_wvl:
+                last_wvl = wvl
+                working_set_idxs = np.where(wvls==wvl)
+                # get indicies with smallest abs(wvl - wvl_in)
+                idx_wvl = np.argsort(np.absolute(wvl - wvl_in))
+                nearest_wvls = wvl_in[idx_wvl[:2]]
             
-            if self.HG: # interpolate across wvls
-                # ssa_ice
-                nearest_ssa_ice = ssa_in[idx_wvl[:2]]
-                try:
-                    if nearest_wvls[0] < nearest_wvls[1]:
-                        ssa_ice_interp = interpolate.interp1d(nearest_wvls,
-                                                              nearest_ssa_ice)
-                        ssa_ice[i] = ssa_ice_interp(wvl)
-                    else:
-                        ssa_ice_interp = interpolate.interp1d(nearest_wvls[::-1],
-                                                              nearest_ssa_ice[::-1])
-                        ssa_ice[i] = ssa_ice_interp(wvl)
-                except ValueError:
-                    ssa_ice[i] = nearest_ssa_ice[0]
-                    sys.stderr.write('error: exception raised while interpolating '
-                                     'ssa_ice, using nearest value instead\n')
+                if self.HG: # interpolate across wvls
+                    # ssa_ice
+                    nearest_ssa_ice = ssa_in[idx_wvl[:2]]
+                    try:
+                        if nearest_wvls[0] < nearest_wvls[1]:
+                            ssa_ice_interp = interpolate.interp1d(nearest_wvls,
+                                                                  nearest_ssa_ice)
+                            ssa_ice[working_set_idxs] = ssa_ice_interp(wvl)
+                        else:
+                            ssa_ice_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                                  nearest_ssa_ice[::-1])
+                            ssa_ice[working_set_idxs] = ssa_ice_interp(wvl)
+                    except ValueError:
+                        ssa_ice[working_set_idxs] = nearest_ssa_ice[0]
+                        sys.stderr.write('error: exception raised while interpolating '
+                                         'ssa_ice, using nearest value instead\n')
                                  
-                # ext_cff_mss_ice
-                nearest_Q_ext = Q_ext_in[idx_wvl[:2]]
-                try:
-                    if nearest_wvls[0] < nearest_wvls[1]:
-                        Q_ext_interp = interpolate.interp1d(nearest_wvls, 
-                                                            nearest_Q_ext)
-                        Q_ext = Q_ext_interp(wvl)
-                    else:
-                        Q_ext_interp = interpolate.interp1d(nearest_wvls[::-1],
-                                                            nearest_Q_ext[::-1])
-                        Q_ext = Q_ext_interp(wvl)
-                except ValueError:
-                    Q_ext = nearest_Q_ext[0]
-                    sys.stderr.write('error: exception raised while interpolating '
-                                     'Q_ext, using nearest value instead\n')
+                    # ext_cff_mss_ice
+                    nearest_Q_ext = Q_ext_in[idx_wvl[:2]]
+                    try:
+                        if nearest_wvls[0] < nearest_wvls[1]:
+                            Q_ext_interp = interpolate.interp1d(nearest_wvls, 
+                                                                nearest_Q_ext)
+                            Q_ext = Q_ext_interp(wvl)
+                        else:
+                            Q_ext_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                                nearest_Q_ext[::-1])
+                            Q_ext = Q_ext_interp(wvl)
+                    except ValueError:
+                        Q_ext = nearest_Q_ext[0]
+                        sys.stderr.write('error: exception raised while interpolating '
+                                         'Q_ext, using nearest value instead\n')
                                  
-                ext_cff_mss_ice[i] = ((1e6 * G_in[idx_wvl[0]] * Q_ext) /
-                                    (self.rho_ice * particle_volume_in[idx_wvl[0]]))
+                    ext_cff_mss_ice[working_set_idxs] = ((1e6*G_in[idx_wvl[0]]*Q_ext) /
+                                        (self.rho_ice * particle_volume_in[idx_wvl[0]]))
             
-                # g
-                nearest_g = asm_in[idx_wvl[:2]]
-                try:
-                    if nearest_wvls[0] < nearest_wvls[1]:
-                        g_interp = interpolate.interp1d(nearest_wvls, nearest_g)
-                        g[i] = g_interp(wvl)
-                    else:
-                        g_interp = interpolate.interp1d(nearest_wvls[::-1],
-                                                        nearest_g[::-1])
-                        g[i] = g_interp(wvl)
-                except ValueError:
-                    g[i] = nearest_g[0]
-                    sys.stderr.write('error: exception raised while interpolating '
-                                     'g, using nearest value instead\n')
-            else: # NO interpolation across wvls
-                # wvl
-                self.wvls[i] = wvl_in[idx_wvl[0]]
+                    # g
+                    nearest_g = asm_in[idx_wvl[:2]]
+                    try:
+                        if nearest_wvls[0] < nearest_wvls[1]:
+                            g_interp = interpolate.interp1d(nearest_wvls, nearest_g)
+                            g[working_set_idxs] = g_interp(wvl)
+                        else:
+                            g_interp = interpolate.interp1d(nearest_wvls[::-1],
+                                                            nearest_g[::-1])
+                            g[working_set_idxs] = g_interp(wvl)
+                    except ValueError:
+                        g[working_set_idxs] = nearest_g[0]
+                        sys.stderr.write('error: exception raised while interpolating '
+                                         'g, using nearest value instead\n')
+                else: # NO interpolation across wvls
+                    # wvl
+                    self.wvls[working_set_idxs] = wvl_in[idx_wvl[0]]
                 
-                # ssa_ice
-                ssa_ice[i] = ssa_in[idx_wvl[0]]
+                    # ssa_ice
+                    ssa_ice[working_set_idxs] = ssa_in[idx_wvl[0]]
                                  
-                # ext_cff_mss_ice
-                Q_ext = Q_ext_in[idx_wvl[0]]
+                    # ext_cff_mss_ice
+                    Q_ext = Q_ext_in[idx_wvl[0]]
                                                  
-                ext_cff_mss_ice[i] = ((1e6 * G_in[idx_wvl[0]] * Q_ext) /
-                                    (self.rho_ice * particle_volume_in[idx_wvl[0]]))
+                    ext_cff_mss_ice[working_set_idxs] = ((1e6*G_in[idx_wvl[0]]*Q_ext) /
+                                        (self.rho_ice * particle_volume_in[idx_wvl[0]]))
             
-                # g
-                g[i] = asm_in[idx_wvl[0]]
+                    # g
+                    g[working_set_idxs] = asm_in[idx_wvl[0]]
                 
-                # Scattering phase matrix elements
-                # P11
-                for j, theta in enumerate(P11_line0):
-                    if i==0:
-                        theta_P11_deg[j] = float(theta)
-                    P11[i][j] = float(P11_lines[idx_wvl[0]].split()[j])
-                # P12
-                for j, theta in enumerate(P12_line0):
-                    if i==0:
-                        theta_P12_deg[j] = float(theta)
-                    P12_norm[i][j] = float(P12_lines[idx_wvl[0]].split()[j])
-                # P22
-                for j, theta in enumerate(P22_line0):
-                    if i==0:
-                        theta_P22_deg[j] = float(theta)
-                    P22_norm[i][j] = float(P22_lines[idx_wvl[0]].split()[j])
-                # P33
-                for j, theta in enumerate(P33_line0):
-                    if i==0:
-                        theta_P33_deg[j] = float(theta)
-                    P33_norm[i][j] = float(P33_lines[idx_wvl[0]].split()[j])
-                # P43
-                for j, theta in enumerate(P43_line0):
-                    if i==0:
-                        theta_P43_deg[j] = float(theta)
-                    P43_norm[i][j] = float(P43_lines[idx_wvl[0]].split()[j])
-                # P44
-                for j, theta in enumerate(P44_line0):
-                    if i==0:
-                        theta_P44_deg[j] = float(theta)
-                    P44_norm[i][j] = float(P44_lines[idx_wvl[0]].split()[j])
+                    # Scattering phase matrix elements
+                    # P11
+                    for j, theta in enumerate(P11_line0):
+                        if i==0:
+                            theta_P11_deg[j] = float(theta)
+                        P11[working_set_idxs][j] = float(P11_lines[idx_wvl[0]].split()[j])
+                    # P12
+                    for j, theta in enumerate(P12_line0):
+                        if i==0:
+                            theta_P12_deg[j] = float(theta)
+                        P12_norm[working_set_idxs][j] = float(P12_lines[idx_wvl[0]].split()[j])
+                    # P22
+                    for j, theta in enumerate(P22_line0):
+                        if i==0:
+                            theta_P22_deg[j] = float(theta)
+                        P22_norm[working_set_idxs][j] = float(P22_lines[idx_wvl[0]].split()[j])
+                    # P33
+                    for j, theta in enumerate(P33_line0):
+                        if i==0:
+                            theta_P33_deg[j] = float(theta)
+                        P33_norm[working_set_idxs][j] = float(P33_lines[idx_wvl[0]].split()[j])
+                    # P43
+                    for j, theta in enumerate(P43_line0):
+                        if i==0:
+                            theta_P43_deg[j] = float(theta)
+                        P43_norm[working_set_idxs][j] = float(P43_lines[idx_wvl[0]].split()[j])
+                    # P44
+                    for j, theta in enumerate(P44_line0):
+                        if i==0:
+                            theta_P44_deg[j] = float(theta)
+                        P44_norm[working_set_idxs][j] = float(P44_lines[idx_wvl[0]].split()[j])
                     
         if not self.HG:
             # convert theta from degrees to radians
@@ -1284,15 +1291,12 @@ def test(n_photon=50000, wvl=0.5, half_width=0.085, rds_snw=100):
     imp_cnc = 0
     
     test_case = MonteCarlo(tau_tot=tau_tot, imp_cnc=imp_cnc)
-    test_case = MonteCarlo(tau_tot=tau_tot, imp_cnc=imp_cnc, phase_functions=True)
+    #test_case = MonteCarlo(tau_tot=tau_tot, imp_cnc=imp_cnc, phase_functions=True)
     test_case.ssa_ice = ssa_ice
     test_case.g = g
     
     test_case.run(n_photon, wvl, half_width, rds_snw, test=True)
-    # To plot phase functions, instantiate "test_case" with phase_functions set
-    # to True
-    #test_case.plot_phase_function()
-
+    
 def test_and_debug(n_photon=100, wvl=0.5, half_width=0.085, rds_snw=250):
     """ manually specify optical properties for test cases and debugging:
     """
@@ -1320,9 +1324,6 @@ def test_and_debug(n_photon=100, wvl=0.5, half_width=0.085, rds_snw=250):
     test_case.ssa_imp = ssa_imp
     
     test_case.run(n_photon, wvl, half_width, rds_snw, test=True)
-    # To plot phase functions, instantiate "test_case" with phase_functions set
-    # to True    
-    #test_case.plot_phase_function()
 
 def run():
     """ USER INPUT
@@ -1382,7 +1383,6 @@ def run():
                                    phase_functions=phase_functions)
                                    
     monte_carlo_model.run(n_photon, wvl, half_width, rds_snw)
-    #monte_carlo_model.plot_phase_function()
 
 def main():
     run()

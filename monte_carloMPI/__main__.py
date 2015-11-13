@@ -45,12 +45,12 @@ def run():
     #roughness = 'severely rough'
     
     # wavelength [um]
-    #wvl = 1.3
+    wvl = 1.3
     #wvl = 1.55
     #wvl = 0.5
     
     # half width [um]
-    #half_width = 0.085
+    half_width = 0.085
     #half_width = 0.3
     
     if True:  # use for runs of multiple wavelengths
@@ -98,7 +98,6 @@ def single_grain_size(n_photon, wvl, half_width, rds_snw, theta_0=0.,
                         stokes_params=stokes_params, shape=shape,
                         roughness=roughness, debug=DEBUG, Lambertian=LAMBERTIAN,
                         Lambertian_reflectance=LAMBERTIAN_REFLECTANCE)
-    #monte_carlo_run.plot_phase_function()
     
 def multiple_grain_sizes(n_photon, wvl, half_width, rds_snw, theta_0=0.,
                          stokes_params=np.array([1,0,0,0]), shape='sphere',                              roughness='smooth'):
@@ -109,7 +108,6 @@ def multiple_grain_sizes(n_photon, wvl, half_width, rds_snw, theta_0=0.,
                             roughness=roughness, debug=DEBUG,
                             Lambertian=LAMBERTIAN,
                             Lambertian_reflectance=LAMBERTIAN_REFLECTANCE)
-        #monte_carlo_run.plot_phase_function()
         
 def main():
    run()
