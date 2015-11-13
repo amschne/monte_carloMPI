@@ -109,7 +109,7 @@ class MonteCarlo(object):
             
         return output_file
     
-    @timefunc
+    #@timefunc
     def get_aspherical_SSPs(self, wvls, rds_snw):
         """ Retrieve single scattering properties (SSPs) for aspherical ice
             particle shapes, based on input wavelengths (wvls) and snow and
@@ -558,7 +558,7 @@ class MonteCarlo(object):
         
         return(ssa_ice, ext_cff_mss_ice, g)
         
-    @timefunc
+    #@timefunc
     def get_impurity_optics(self, wvls):
         """ fetch ssa and ext_cff_mss for impurities from self.fi_imp
         
@@ -1176,7 +1176,7 @@ class MonteCarlo(object):
         """
         g = self.g[self.wvl0_idx]
         costheta_p = np.arange(-1.000, 1.001, 0.001)        
-        P_HG = self.Henyey_Greenstein2(g, costheta_p)
+        P_HG = self.Henyey_Greenstein(g, costheta_p)
         
         phi = np.arange(0, 2*np.pi, np.pi / 1800.)
         P_full = self.full_scattering_phase_function(self.P11[self.wvl0],
@@ -1219,7 +1219,7 @@ class MonteCarlo(object):
         
         plt.show()
     
-    @timefunc          
+    #@timefunc          
     def plot_phase_function(self):
         """ plot phase function versus cos(theta)
         
