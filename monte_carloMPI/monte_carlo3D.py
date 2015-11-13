@@ -265,7 +265,7 @@ class MonteCarlo(object):
                 last_wvl = wvl
                 working_set_idxs = np.where(wvls==wvl)
                 
-                if wvl = self.wvl0:
+                if wvl==self.wvl0:
                     self.wvl0_idx = working_set_idxs[0][0] 
                 
                 # get indicies with smallest abs(wvl - wvl_in)
@@ -499,7 +499,7 @@ class MonteCarlo(object):
                     last_wvl = wvl
                     working_set_idxs = np.where(wvls==wvl)
                     
-                    if wvl = self.wvl0:
+                    if wvl==self.wvl0:
                         self.wvl0_idx = working_set_idxs[0][0]                    
                     
                     wvl = wvl*1e-6
