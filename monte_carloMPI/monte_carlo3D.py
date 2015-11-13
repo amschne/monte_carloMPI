@@ -19,6 +19,7 @@ from mpl_toolkits.mplot3d import Axes3D
 from parallelize import Parallel
 
 #import ipdb
+import time
 #from memory_profiler import profile
 
 def timefunc(f):
