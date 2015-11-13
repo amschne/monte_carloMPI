@@ -669,7 +669,7 @@ class MonteCarlo(object):
     def Henyey_Greenstein(self, g, costheta_p):
         """ Henyey-Greenstein scattering phase function
         """
-        g = np.matrix(self.g).T # turn g into column vector
+        g = np.matrix(g).T # turn g into column vector
         g_2 = np.multiply(g,g) # compute g^2
         HG_num = 1 - g_2
         HG_den = np.power(1 + g_2 - 2*g*costheta_p, 3./2.)
