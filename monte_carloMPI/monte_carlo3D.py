@@ -264,6 +264,10 @@ class MonteCarlo(object):
             if wvl != last_wvl:
                 last_wvl = wvl
                 working_set_idxs = np.where(wvls==wvl)
+                
+                if wvl = self.wvl0:
+                    self.wvl0_idx = working_set_idxs[0][0] 
+                
                 # get indicies with smallest abs(wvl - wvl_in)
                 idx_wvl = np.argsort(np.absolute(wvl - wvl_in))
                 nearest_wvls = wvl_in[idx_wvl[:2]]
@@ -494,6 +498,10 @@ class MonteCarlo(object):
                 if wvl != last_wvl:
                     last_wvl = wvl
                     working_set_idxs = np.where(wvls==wvl)
+                    
+                    if wvl = self.wvl0:
+                        self.wvl0_idx = working_set_idxs[0][0]                    
+                    
                     wvl = wvl*1e-6
                     # get indicies with smallest abs(wvl - wvl_in)
                     idx_wvl = np.argsort(np.absolute(wvl - wvl_in.data))
@@ -1167,7 +1175,7 @@ class MonteCarlo(object):
             the Henyey-Greenstein phase function for comparison 
         """
         costheta_p = np.arange(-1.000, 1.001, 0.001)
-        P_HG = self.Henyey_Greenstein(costheta_p)[0]
+        P_HG = self.Henyey_Greenstein(costheta_p)[self.wvl0_idx]
         
         phi = np.arange(0, 2*np.pi, np.pi / 1800.)
         P_full = self.full_scattering_phase_function(self.P11[self.wvl0],
@@ -1178,7 +1186,7 @@ class MonteCarlo(object):
         P_full_means = np.mean(P_full, axis=1)
         
         fig = plt.figure()
-        g_rounded = np.around(self.g, 4)[0]
+        g_rounded = np.around(self.g[self.wvl0_idx], 4)
         plt.semilogy(costheta_full, P_full_means, label='Full scattering phase function')
         plt.semilogy(costheta_p, P_HG, label='Henyey-Greenstein phase function')
         
@@ -1251,7 +1259,7 @@ class MonteCarlo(object):
         else: # plot full scattering phase function for first wvl and initial
               # stokes params
             phi = np.arange(0, 2*np.pi, np.pi / 1800.)
-            P = self.full_scattering_phase_function(self.P11[0], self.P12[0],
+            P = self.full_scattering_phase_function(self.P11[self.wvl0], self.P12[self.wvl0],
                                                     self.initial_stokes_params,
                                                     self.theta_P11, phi)
             
