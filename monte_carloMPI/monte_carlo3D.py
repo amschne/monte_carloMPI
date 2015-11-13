@@ -588,7 +588,7 @@ class MonteCarlo(object):
             
             sorted_wvls = np.sort(wvls)
             last_wvl = None
-            for i, wvl in enumerate(wvls):
+            for i, wvl in enumerate(sorted_wvls):
                 if wvl != last_wvl:
                     last_wvl = wvl
                     working_set_idxs = np.where(wvls==wvl)
