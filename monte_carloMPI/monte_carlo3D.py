@@ -1176,7 +1176,7 @@ class MonteCarlo(object):
         """
         g = self.g[self.wvl0_idx]
         costheta_p = np.arange(-1.000, 1.001, 0.001)        
-        P_HG = self.Henyey_Greenstein(g, costheta_p)
+        P_HG = self.Henyey_Greenstein(g, costheta_p)[0]
         
         phi = np.arange(0, 2*np.pi, np.pi / 1800.)
         P_full = self.full_scattering_phase_function(self.P11[self.wvl0],
