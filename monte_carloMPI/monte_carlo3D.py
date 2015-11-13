@@ -324,8 +324,9 @@ class MonteCarlo(object):
                                          'g, using nearest value instead\n')
                 else: # NO interpolation across wvls
                     # wvl
-                    self.wvls[working_set_idxs] = wvl_in[idx_wvl[0]]
-                
+                    key = wvl_in[idx_wvl[0]]
+                    self.wvls[working_set_idxs] = key
+                    
                     # ssa_ice
                     ssa_ice[working_set_idxs] = ssa_in[idx_wvl[0]]
                                  
@@ -340,56 +341,56 @@ class MonteCarlo(object):
                 
                     # Scattering phase matrix elements
                     # P11
-                    P11[wvl] = np.empty(len(P11_line0))
+                    P11[key] = np.empty(len(P11_line0))
                     for j, theta in enumerate(P11_line0):
                         if i==0:
                             theta_P11_deg[j] = float(theta)
-                        P11[wvl][j] = float(P11_lines[idx_wvl[0]].split()[j])
+                        P11[key][j] = float(P11_lines[idx_wvl[0]].split()[j])
                     
                     # P12
-                    P12_norm[wvl] = np.empty(len(P12_line0))
+                    P12_norm[key] = np.empty(len(P12_line0))
                     for j, theta in enumerate(P12_line0):
                         if i==0:
                             theta_P12_deg[j] = float(theta)
-                        P12_norm[wvl][j] = float(P12_lines[idx_wvl[0]].split()[j])
+                        P12_norm[key][j] = float(P12_lines[idx_wvl[0]].split()[j])
                     
-                    P12[wvl] = P12_norm[wvl] * P11[wvl]
+                    P12[key] = P12_norm[key] * P11[key]
                     
                     # P22
-                    P22_norm[wvl] = np.empty(len(P22_line0))
+                    P22_norm[key] = np.empty(len(P22_line0))
                     for j, theta in enumerate(P22_line0):
                         if i==0:
                             theta_P22_deg[j] = float(theta)
-                        P22_norm[wvl][j] = float(P22_lines[idx_wvl[0]].split()[j])
+                        P22_norm[key][j] = float(P22_lines[idx_wvl[0]].split()[j])
                     
-                    P22[wvl] = P22_norm[wvl] * P11[wvl]
+                    P22[key] = P22_norm[key] * P11[key]
                     
                     # P33
-                    P33_norm[wvl] = np.empty(len(P33_line0))
+                    P33_norm[key] = np.empty(len(P33_line0))
                     for j, theta in enumerate(P33_line0):
                         if i==0:
                             theta_P33_deg[j] = float(theta)
-                        P33_norm[wvl][j] = float(P33_lines[idx_wvl[0]].split()[j])
+                        P33_norm[key][j] = float(P33_lines[idx_wvl[0]].split()[j])
                     
-                    P33[wvl] = P33_norm[wvl] * P11[wvl]
+                    P33[key] = P33_norm[key] * P11[key]
                     
                     # P43
-                    P43_norm[wvl] = np.empty(len(P43_line0))
+                    P43_norm[key] = np.empty(len(P43_line0))
                     for j, theta in enumerate(P43_line0):
                         if i==0:
                             theta_P43_deg[j] = float(theta)
-                        P43_norm[wvl][j] = float(P43_lines[idx_wvl[0]].split()[j])
+                        P43_norm[key][j] = float(P43_lines[idx_wvl[0]].split()[j])
                     
-                    P43[wvl] = P43_norm[wvl] * P11[wvl]
+                    P43[key] = P43_norm[key] * P11[key]
                     
                     # P44
-                    P44_norm[wvl] = np.empty(len(P44_line0))
+                    P44_norm[key] = np.empty(len(P44_line0))
                     for j, theta in enumerate(P44_line0):
                         if i==0:
                             theta_P44_deg[j] = float(theta)
-                        P44_norm[wvl][j] = float(P44_lines[idx_wvl[0]].split()[j])
+                        P44_norm[key][j] = float(P44_lines[idx_wvl[0]].split()[j])
                     
-                    P44[wvl] = P44_norm[wvl] * P11[wvl]
+                    P44[key] = P44_norm[key] * P11[key]
 
         if not self.HG:
             # convert theta from degrees to radians
