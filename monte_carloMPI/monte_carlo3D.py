@@ -252,6 +252,7 @@ class MonteCarlo(object):
             
             # set up container for appropriate wvls
             self.wvls = np.empty(wvls.shape)
+            wvl0_exists = False
             
         # fetch data for relevent wavelengths
         ssa_ice = np.empty(wvls.shape)
@@ -324,8 +325,10 @@ class MonteCarlo(object):
                                          'g, using nearest value instead\n')
                 else: # NO interpolation across wvls
                     # wvl
-                    key = wvl_in[idx_wvl[0]]
+                    key = nearest_wvls[0]
                     self.wvls[working_set_idxs] = key
+                    if self.wvl0 == key:
+                        wvl0_exists = True
                     
                     # ssa_ice
                     ssa_ice[working_set_idxs] = ssa_in[idx_wvl[0]]
@@ -393,6 +396,7 @@ class MonteCarlo(object):
                     P44[key] = P44_norm[key] * P11[key]
 
         if not self.HG:
+            assert wvl0_exists
             # convert theta from degrees to radians
             self.theta_P11 = (theta_P11_deg * np.pi) / 180.
             self.theta_P12 = (theta_P12_deg * np.pi) / 180.
