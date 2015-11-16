@@ -22,6 +22,9 @@ from parallelize import Parallel
 import time
 #from memory_profiler import profile
 
+TWO_PIE = 2*np.pi
+FOUR_PIE = 4*np.pi
+
 def timefunc(f):
     """ Used for timing function calls
 
@@ -775,31 +778,38 @@ class MonteCarlo(object):
                 p_rand[i, :] = self.Henyey_Greenstein2(g[i], r1)
                 
                 # 3. Populate PDF of scattering azimuth angle with random numbers
-                phi_rand[i,:] = np.random.rand(RANDOM_NUMBERS) * 2*np.pi # 0 -> 2pi
+                phi_rand[i,:] = np.random.rand(RANDOM_NUMBERS) * TWO_PIE # 0 -> 2pi
             else:
+                
+                P11_interp = self.P11_interp[val]
+                P12_interp = self.P12_interp[val]
                 
                 max_val = I*self.P11[val].max() + self.P12[val].max() * (Q*np.cos(2*beta) + 
                                                                          U*np.sin(2*beta))
                 theta_rand = np.random.rand(RANDOM_NUMBERS) * np.pi # 0 -> pi
-                phi_rand[i, :] = np.random.rand(RANDOM_NUMBERS) * 2*np.pi # 0 -> 2pi
+                phi_rand[i, :] = np.random.rand(RANDOM_NUMBERS) * TWO_PIE # 0 -> 2pi
+                two_phi = 2 * phi_rand[i, :]
                 for j, theta in enumerate(theta_rand):
                     # rejection method
                     r3 = 1
                     phase_func_val = 0
                     k = 0
                     while r3 > phase_func_val:
+                        """ WHILE LOOP MUST BE EFFICIENT
+                        """
                         if k > 0:
                             theta = np.random.rand() * np.pi
-                            phi_rand[i,j] = np.random.rand() * 2*np.pi
-                            
+                            two_phi = np.random.rand() * FOUR_PIE
+                        
                         r3 = np.random.rand() * max_val
-                        S11 = self.P11_interp[val](theta)
-                        S12 = self.P12_interp[val](theta)
-                        phase_func_val = I*S11 + S12 * (Q*np.cos(2*phi_rand[i,j]) +
-                                                        U*np.sin(2*phi_rand[i,j]))
+                        S11 = P11_interp(theta)
+                        S12 = P12_interp(theta)
+                        phase_func_val = I*S11 + S12 * (Q*np.cos(two_phi) +
+                                                        U*np.sin(two_phi)
                         
                         k += 1
                     theta_rand[j] = theta
+                    phi_rand[i,j] = two_phi / 2.
                 p_rand[i,:] = np.cos(theta_rand)
 
             # SANITY CHECK:  mean of the random distribution (should equal g)
