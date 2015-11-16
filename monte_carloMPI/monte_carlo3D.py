@@ -1279,7 +1279,7 @@ class MonteCarlo(object):
             
             theta_deg = (self.theta_P11 * 180.) / np.pi
             log_P = np.log10(P) # log scale P
-            nlevels = 1024
+            nlevels = 256
             fig, ax = plt.subplots(subplot_kw=dict(projection='polar'))
             cax = ax.contourf(phi, theta_deg, log_P, nlevels)
             
