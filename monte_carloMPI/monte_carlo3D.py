@@ -805,7 +805,7 @@ class MonteCarlo(object):
                         S11 = P11_interp(theta)
                         S12 = P12_interp(theta)
                         phase_func_val = I*S11 + S12 * (Q*np.cos(two_phi) +
-                                                        U*np.sin(two_phi)
+                                                        U*np.sin(two_phi))
                         
                         k += 1
                     theta_rand[j] = theta
