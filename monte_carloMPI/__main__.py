@@ -14,7 +14,7 @@ def run():
     """ USER INPUT
     """
     # set number of photons
-    n_photon = 100
+    n_photon = 1000
     
     # set initial incidence zenith angle (degrees)
     theta_0 = 0.
@@ -29,14 +29,14 @@ def run():
     
     # select one of the following snow grain shape habits:
     shape = 'sphere' # default
-    #shape = 'hexagonal column'
-    #shape = 'plate'
-    #shape = 'hollow column'
+    #shape = 'solid hexagonal column'
+    #shape = 'hexagonal plate'
+    #shape = 'hollow hexagonal column'
     #shape = 'droxtal'
     #shape = 'hollow bullet rosette'
     #shape = 'solid bullet rosette'
     #shape = '8-element column aggregate'
-    #shape = '5-element column aggregate'
+    #shape = '5-element plate aggregate'
     #shape = '10-element plate aggregate'
     
     # select degree of surface roughness:
@@ -53,7 +53,7 @@ def run():
     half_width = 0.085
     #half_width = 0.3
     
-    if True:  # use for runs of multiple wavelengths
+    if False:  # use for runs of multiple wavelengths
         wvls = np.arange(0.305, 3., 0.1)
         half_width = 1e-15
         
@@ -73,15 +73,15 @@ def run():
                                      stokes_params=stokes_params,
                                      shape=shape, roughness=roughness)
     
-    if False:  # use for run of single wavelength
+    if True:  # use for run of single wavelength
         # snow effective grain size [um]
-        if False: # single grain size
+        if True: # single grain size
             rds_snw = 100.
             single_grain_size(n_photon, wvl, half_width, rds_snw,
                               theta_0=theta_0, stokes_params=stokes_params,
                               shape=shape, roughness=roughness)
     
-        if True: # multiple grain sizes
+        if False: # multiple grain sizes
             rds_snw = np.array([50, 100, 200, 500, 1000])
             multiple_grain_sizes(n_photon, wvl, half_width, rds_snw,
                                  theta_0=theta_0, stokes_params=stokes_params,

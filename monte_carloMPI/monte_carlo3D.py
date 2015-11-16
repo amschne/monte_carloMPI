@@ -122,19 +122,21 @@ class MonteCarlo(object):
         else:
             wvl_dir = '0.2-15.25'
             
-        if self.shape == 'hexagonal column':
+        if self.shape == 'solid hexagonal column':
             shape_dir = 'solid_column'
-        elif self.shape == 'plate':
+        elif self.shape == 'hexagonal plate':
             shape_dir = 'plate'
-        elif self.shape == 'hollow column':
+        elif self.shape == 'hollow hexagonal column':
             shape_dir = 'hollow_column'
         elif self.shape == 'droxtal':
             shape_dir = 'droxtal'
         elif self.shape == 'hollow bullet rosette':
+            shape_dir = 'hollow_bullet_rosette'
+        elif self.shape == 'solid bullet rosette'
             shape_dir = 'solid_bullet_rosette'
         elif self.shape == '8-element column aggregate':
             shape_dir = 'column_8elements'
-        elif self.shape == '5-element column aggregate':
+        elif self.shape == '5-element plate aggregate':
             shape_dir = 'plate_5elements'
         elif self.shape =='10-element plate aggregate':
             shape_dir = 'plate_10elements'
