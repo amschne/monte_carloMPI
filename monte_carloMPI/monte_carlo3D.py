@@ -720,7 +720,29 @@ class MonteCarlo(object):
             
         return P
     
-    def populate_pdfs(self, g, RANDOM_NUMBERS=1):
+    def interpolate_phase_matrix(self, wvls):
+        """
+        """
+        self.P11_interp = dict()
+        self.P12_interp = dict()
+        self.P22_interp = dict()
+        self.P33_interp = dict()        
+        self.P43_interp = dict()
+        self.P44_interp = dict()
+        
+        sorted_wvls = np.sort(wvls)
+        last_wvl = None
+        for wvl in self.wvls:
+            if wvl != last_wvl:
+                last_wvl = wvl
+                self.P11_interp[wvl] = interpolate(self.theta_P11, self.P11[wvl])
+                self.P12_interp[wvl] = interpolate(self.theta_P12, self.P12[wvl])
+                self.P22_interp[wvl] = interpolate(self.theta_P11, self.P22[wvl])
+                self.P33_interp[wvl] = interpolate(self.theta_P11, self.P33[wvl])
+                self.P43_interp[wvl] = interpolate(self.theta_P11, self.P43[wvl])
+                self.P44_interp[wvl] = interpolate(self.theta_P11, self.P44[wvl])
+    
+    def populate_pdfs(self, g, wvl, RANDOM_NUMBERS=1):
         """ 1. Populate PDF of cos(scattering phase angle) with random numbers
             2. Populate PDF of optical path traversed between scattering events
             3. Populate PDF of scattering azimuth angle with random numbers
@@ -729,16 +751,59 @@ class MonteCarlo(object):
         
             Returns p_rand, tau_rand, phi_rand, ssa_rand, ext_spc_rand
         """
-        # 1. Populate PDF of cos(scattering phase angle) with random numbers
-        r1 = np.random.rand(RANDOM_NUMBERS) # distribution from 0 -> 1
         p_rand = np.empty((g.size, r1.size))
         tau_rand = np.empty((g.size, r1.size))
         phi_rand = np.empty((g.size, r1.size))
         ssa_rand = np.empty((g.size, r1.size))
         ext_spc_rand = np.empty((g.size, r1.size))
         
-        for i, val in enumerate(g):
-            p_rand[i, :] = self.Henyey_Greenstein2(val, r1)
+        if shape != 'sphere' and not self.HG:
+            I = self.stokes_params[0]
+            Q = self.stokes_params[1]
+            U = self.stokes_params[2]
+            V = self.stokes_params[3]
+            
+            if Q == 0:
+                beta = 0.5 * np.artan(U / 1e-15)
+            else:
+                beta = 0.5 * np.arctan(U / Q)
+        
+        for i, val in enumerate(wvl):
+            if shape == 'sphere' or self.HG:
+                # 1. Populate PDF of cos(scattering phase angle) with random numbers
+                r1 = np.random.rand(RANDOM_NUMBERS) # distribution from 0 -> 1
+                p_rand[i, :] = self.Henyey_Greenstein2(g[i], r1)
+                
+                # 3. Populate PDF of scattering azimuth angle with random numbers
+                phi_rand[i,:] = np.random.rand(RANDOM_NUMBERS) * 2*np.pi # 0 -> 2pi
+            else:
+                
+                max_val = I*self.P11[val].max() + self.P12[val].max() * (Q*np.cos(2*beta) + 
+                                                                         U*np.sin(2*beta))
+                theta_rand = np.random.rand(RANDOM_NUMBERS) * np.pi # 0 -> pi
+                phi_rand[i, :] = np.random.rand(RANDOM_NUMBERS) * 2*np.pi # 0 -> 2pi
+                for j, theta in enumerate(theta_rand):
+                    # rejection method
+                    r3 = 1
+                    phase_func_val = 0
+                    k = 0
+                    while r3 > phase_func_val:
+                        if k > 0:
+                            theta = np.random_rand() * np.pi
+                            phi_rand[i,j] = np.random_rand() * 2*np.pi
+                            
+                        r3 = np.random.rand() * max_val
+                        S11 = self.P11_interp[val](theta)
+                        S12 = self.P12_interp[val](theta)
+                        phase_func_val = I*S11 + S12 * (Q*np.cos(2*phi_rand[i,j]) +
+                                                        U*np.sin(2*phi_rand[i,j]))
+                        
+                        k += 1
+                    theta_rand[j] = theta
+                p_rand[i,:] = np.cos(theta_rand)
+
+            import ipdb
+            ipdb.set_trace()
 
             # SANITY CHECK:  mean of the random distribution (should equal g)
             #p_mean = np.mean(p_rand[i,:])
@@ -752,9 +817,6 @@ class MonteCarlo(object):
         
             # median of tau_rand should be -log(0.5)=0.6931
             #tau_median = np.median(tau_rand)
-                  
-            # 3. Populate PDF of scattering azimuth angle with random numbers
-            phi_rand[i,:] = np.random.rand(RANDOM_NUMBERS) * 2*np.pi # 0 -> 2pi
         
             # 4. Populate PDF of single-scatter albedo with random numbers
             ssa_rand[i,:] = np.random.rand(RANDOM_NUMBERS) # 0 -> 1
@@ -901,7 +963,7 @@ class MonteCarlo(object):
             i_rand+=1
             if i_rand > i_max: # we need more random numbers!
                 g = np.array([self.g[self.photon]])
-                pdfs = self.populate_pdfs(g)
+                pdfs = self.populate_pdfs(g, np.array([wvl]))
                 self.p_rand[self.photon] = pdfs[0][0]
                 self.tau_rand[self.photon] = pdfs[1][0]
                 self.phi_rand[self.photon] = pdfs[2][0]
@@ -1057,6 +1119,7 @@ class MonteCarlo(object):
         
         self.wvl0 = wvl0
         self.initial_stokes_params = stokes_params
+        self.stokes_params = stokes_params
         
         # Convert half_width to standard deviation
         scale = half_width / 2.355
@@ -1133,19 +1196,22 @@ class MonteCarlo(object):
         self.ssa_ice = ssa_ice
         self.ssa_imp = ssa_imp
         
-        (self.p_rand,
-         self.tau_rand,
-         self.phi_rand,
-         self.ssa_rand,
-         self.ext_spc_rand) = self.populate_pdfs(g)
-        
-        # counters for saving coordinates of absorption events and exit_top 
-        # events
-        #self.i1 = 1
-        #self.i2 = 1
-        #self.i_sensor = 0
-       
         if not self.phase_functions:
+            if self.shape != 'sphere' and not self.HG:
+                self.interpolate_phase_maxtrix(par_wvls.working_set)
+        
+            (self.p_rand,
+             self.tau_rand,
+             self.phi_rand,
+             self.ssa_rand,
+             self.ext_spc_rand) = self.populate_pdfs(g, par_wvls.working_set)
+        
+            # counters for saving coordinates of absorption events and exit_top 
+            # events
+            #self.i1 = 1
+            #self.i2 = 1
+            #self.i_sensor = 0
+       
             answer = list() 
             for i, wvl in enumerate(par_wvls.working_set):
                 self.photon = i
