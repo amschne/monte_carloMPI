@@ -412,7 +412,16 @@ class MonteCarlo(object):
             self.P22 = P22
             self.P33 = P33
             self.P43 = P43
-            self.P44 = P44                    
+            self.P44 = P44
+            
+            P11_dat.close()
+            P12_dat.close()
+            P22_dat.close()
+            P33_dat.close()
+            P43_dat.close()
+            P44_dat.close()        
+        
+        aspherical_optics.close()
         
         return(ssa_ice, ext_cff_mss_ice, g)
             
