@@ -732,15 +732,15 @@ class MonteCarlo(object):
         
         sorted_wvls = np.sort(wvls)
         last_wvl = None
-        for wvl in self.wvls:
+        for wvl in sorted_wvls:
             if wvl != last_wvl:
                 last_wvl = wvl
-                self.P11_interp[wvl] = interpolate(self.theta_P11, self.P11[wvl])
-                self.P12_interp[wvl] = interpolate(self.theta_P12, self.P12[wvl])
-                self.P22_interp[wvl] = interpolate(self.theta_P11, self.P22[wvl])
-                self.P33_interp[wvl] = interpolate(self.theta_P11, self.P33[wvl])
-                self.P43_interp[wvl] = interpolate(self.theta_P11, self.P43[wvl])
-                self.P44_interp[wvl] = interpolate(self.theta_P11, self.P44[wvl])
+                self.P11_interp[wvl] = interpolate.interp1d(self.theta_P11, self.P11[wvl])
+                self.P12_interp[wvl] = interpolate.interp1d(self.theta_P12, self.P12[wvl])
+                self.P22_interp[wvl] = interpolate.interp1d(self.theta_P22, self.P22[wvl])
+                self.P33_interp[wvl] = interpolate.interp1d(self.theta_P33, self.P33[wvl])
+                self.P43_interp[wvl] = interpolate.interp1d(self.theta_P43, self.P43[wvl])
+                self.P44_interp[wvl] = interpolate.interp1d(self.theta_P44, self.P44[wvl])
     
     def populate_pdfs(self, g, wvl, RANDOM_NUMBERS=1):
         """ 1. Populate PDF of cos(scattering phase angle) with random numbers
@@ -751,13 +751,13 @@ class MonteCarlo(object):
         
             Returns p_rand, tau_rand, phi_rand, ssa_rand, ext_spc_rand
         """
-        p_rand = np.empty((g.size, r1.size))
-        tau_rand = np.empty((g.size, r1.size))
-        phi_rand = np.empty((g.size, r1.size))
-        ssa_rand = np.empty((g.size, r1.size))
-        ext_spc_rand = np.empty((g.size, r1.size))
+        p_rand = np.empty((g.size, RANDOM_NUMBERS))
+        tau_rand = np.empty((g.size, RANDOM_NUMBERS))
+        phi_rand = np.empty((g.size, RANDOM_NUMBERS))
+        ssa_rand = np.empty((g.size, RANDOM_NUMBERS))
+        ext_spc_rand = np.empty((g.size, RANDOM_NUMBERS))
         
-        if shape != 'sphere' and not self.HG:
+        if self.shape != 'sphere' and not self.HG:
             I = self.stokes_params[0]
             Q = self.stokes_params[1]
             U = self.stokes_params[2]
@@ -769,7 +769,7 @@ class MonteCarlo(object):
                 beta = 0.5 * np.arctan(U / Q)
         
         for i, val in enumerate(wvl):
-            if shape == 'sphere' or self.HG:
+            if self.shape == 'sphere' or self.HG:
                 # 1. Populate PDF of cos(scattering phase angle) with random numbers
                 r1 = np.random.rand(RANDOM_NUMBERS) # distribution from 0 -> 1
                 p_rand[i, :] = self.Henyey_Greenstein2(g[i], r1)
@@ -789,8 +789,8 @@ class MonteCarlo(object):
                     k = 0
                     while r3 > phase_func_val:
                         if k > 0:
-                            theta = np.random_rand() * np.pi
-                            phi_rand[i,j] = np.random_rand() * 2*np.pi
+                            theta = np.random.rand() * np.pi
+                            phi_rand[i,j] = np.random.rand() * 2*np.pi
                             
                         r3 = np.random.rand() * max_val
                         S11 = self.P11_interp[val](theta)
@@ -802,12 +802,9 @@ class MonteCarlo(object):
                     theta_rand[j] = theta
                 p_rand[i,:] = np.cos(theta_rand)
 
-            import ipdb
-            ipdb.set_trace()
-
             # SANITY CHECK:  mean of the random distribution (should equal g)
             #p_mean = np.mean(p_rand[i,:])
-            #print p_mean - val
+            #print p_mean - g[i]
             
             # 2. Populate PDF of optical path traversed between scattering 
             #    events
@@ -823,7 +820,9 @@ class MonteCarlo(object):
         
             # 5. Populate PDF to determine extinction from ice or impurity
             ext_spc_rand[i,:] = np.random.rand(RANDOM_NUMBERS) # 0 -> 1
-                                   
+            print k
+	import ipdb
+	ipdb.set_trace()                           
         return(p_rand, tau_rand, phi_rand, ssa_rand, ext_spc_rand)
     
     def scatter_photon(self, i, dtau_current, theta_sca, phi_sca):
@@ -1197,8 +1196,8 @@ class MonteCarlo(object):
         self.ssa_imp = ssa_imp
         
         if not self.phase_functions:
-            if self.shape != 'sphere' and not self.HG:
-                self.interpolate_phase_maxtrix(par_wvls.working_set)
+            if shape != 'sphere' and not self.HG:
+                self.interpolate_phase_matrix(par_wvls.working_set)
         
             (self.p_rand,
              self.tau_rand,
