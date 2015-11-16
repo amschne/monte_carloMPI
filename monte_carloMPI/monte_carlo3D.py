@@ -132,7 +132,7 @@ class MonteCarlo(object):
             shape_dir = 'droxtal'
         elif self.shape == 'hollow bullet rosette':
             shape_dir = 'hollow_bullet_rosette'
-        elif self.shape == 'solid bullet rosette'
+        elif self.shape == 'solid bullet rosette':
             shape_dir = 'solid_bullet_rosette'
         elif self.shape == '8-element column aggregate':
             shape_dir = 'column_8elements'
