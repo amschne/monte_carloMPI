@@ -14,14 +14,14 @@ def run():
     """ USER INPUT
     """
     # set number of photons
-    n_photon = 1000
+    n_photon = 100
     
     # set initial incidence zenith angle (degrees)
     theta_0 = 0.
     
     # set initial Stokes parameters
     I = 1
-    Q = 0
+    Q = 1
     U = 0
     V = 0
     
@@ -35,7 +35,7 @@ def run():
     #shape = 'droxtal'
     #shape = 'hollow bullet rosette'
     #shape = 'solid bullet rosette'
-    #shape = '8-element column aggregate'
+    shape = '8-element column aggregate'
     #shape = '5-element plate aggregate'
     #shape = '10-element plate aggregate'
     
@@ -76,7 +76,7 @@ def run():
     if True:  # use for run of single wavelength
         # snow effective grain size [um]
         if True: # single grain size
-            rds_snw = 100.
+            rds_snw = 10.
             single_grain_size(n_photon, wvl, half_width, rds_snw,
                               theta_0=theta_0, stokes_params=stokes_params,
                               shape=shape, roughness=roughness)
