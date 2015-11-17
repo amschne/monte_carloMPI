@@ -789,12 +789,20 @@ class MonteCarlo(object):
                 P11_interp = self.P11_interp[val]
                 P12_interp = self.P12_interp[val]
                 
-                max_val1 = (I*self.P11[val][:self.cutoff_idx].max() + 
-                            self.P12[val][:self.cutoff_idx].max() * (Q*np.cos(2*beta) + 
-                                                                     U*np.sin(2*beta)))
-                max_val2 = (I*self.P11[val][self.cutoff_idx:].max() +
-                            self.P12[val][self.cutoff_idx:].max() * (Q*np.cos(2*beta) +
-                                                                     U*np.sin(2*beta)))
+                # find max val in area 1
+                A = np.absolute(I) * np.absolute(self.P11[val][:self.cutoff_idx]).max()
+                B = np.absolute(self.P12[val][:self.cutoff_idx]).max()
+                C = np.absolute(Q * np.cos(2*beta) + U * np.sin(2*beta))
+                
+                max_val1 = A + B * C
+                
+                # find max val in area 2
+                A = np.absolute(I) * np.absolute(self.P11[val][self.cutoff_idx:]).max()
+                B = np.absolute(self.P12[val][self.cutoff_idx:]).max()
+                #C = np.absolute(Q * np.cos(2*beta) + U * np.sin(2*beta)) # C is the same in both areas
+                
+                max_val2 = A + B * C
+
                 area1 = max_val1 * self.theta_cutoff
 		area2 = max_val2 * (self.theta_max - self.theta_cutoff)
 		percent_area1 = area1 / (area1 + area2)
