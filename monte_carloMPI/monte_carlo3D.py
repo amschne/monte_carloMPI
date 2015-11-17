@@ -823,15 +823,15 @@ class MonteCarlo(object):
                             area_rand[j] = np.random.rand()
                             if area_rand[j] <= percent_area1:
                                 area = 1
-                                theta = np.random.rand() * self.theta_cutoff
+                                theta = np.random.rand() * self.theta_cutoff # 0 -> theta_cutoff
                             else:
                                 area = 2
                                 theta = (np.random.rand() * (self.theta_max - self.theta_cutoff) + 
                                                             self.theta_cutoff)
                             two_phi = np.random.rand() * FOUR_PIE
-                        if area = 1:
+                        if area == 1:
                             r3 = np.random.rand() * max_val1
-                        if area = 2:
+                        if area == 2:
                             r3 = np.random.rand() * max_val2
                     
                         S11 = P11_interp(theta)
