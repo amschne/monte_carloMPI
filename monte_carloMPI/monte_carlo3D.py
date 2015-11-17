@@ -772,7 +772,7 @@ class MonteCarlo(object):
             V = self.stokes_params[3]
             
             if Q == 0:
-                beta = 0.5 * np.artan(U / 1e-15)
+                beta = 0.5 * np.arctan(U / 1e-15)
             else:
                 beta = 0.5 * np.arctan(U / Q)
         
@@ -811,9 +811,11 @@ class MonteCarlo(object):
 	                                                          
                 theta_rand = np.random.rand(RANDOM_NUMBERS) # 0 -> 1
                 phi_rand[i, :] = np.random.rand(RANDOM_NUMBERS) * TWO_PIE # 0 -> 2pi
-                two_phi = 2 * phi_rand[i, :]
+                two_phi_rand = 2 * phi_rand[i, :]
                 for j, theta in enumerate(theta_rand):
-                    area_rand_j = area_rand[j]
+                    #print(i,j)
+	            two_phi = two_phi_rand[j]
+		    area_rand_j = area_rand[j]
                     if area_rand_j <= percent_area1:
                         area = 1
                         theta = theta * self.theta_cutoff # 0 -> theta_cutoff
@@ -870,10 +872,7 @@ class MonteCarlo(object):
             ssa_rand[i,:] = np.random.rand(RANDOM_NUMBERS) # 0 -> 1
         
             # 5. Populate PDF to determine extinction from ice or impurity
-            ext_spc_rand[i,:] = np.random.rand(RANDOM_NUMBERS) # 0 -> 1
-            print k
-	import ipdb
-	ipdb.set_trace()                           
+            ext_spc_rand[i,:] = np.random.rand(RANDOM_NUMBERS) # 0 -> 1                          
         
         return(p_rand, tau_rand, phi_rand, ssa_rand, ext_spc_rand)
     
