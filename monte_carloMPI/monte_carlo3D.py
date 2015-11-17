@@ -876,6 +876,21 @@ class MonteCarlo(object):
         
         return(p_rand, tau_rand, phi_rand, ssa_rand, ext_spc_rand)
     
+    def initial_pdfs(self, wvls, RANDOM_NUMBERS=1):
+        """ populate pdfs only needed for photon's first loop
+        """
+        tau_rand = np.empty((g.size, RANDOM_NUMBERS))
+        ssa_rand = np.empty((g.size, RANDOM_NUMBERS))
+        ext_spc_rand = np.empty((g.size, RANDOM_NUMBERS))
+        for i, val in enumerate(wvls):
+            tau_rand[i,:] = -np.log(np.random.rand(RANDOM_NUMBERS))
+            ssa_rand[i,:] = np.random.rand(RANDOM_NUMBERS) # 0 -> 1
+            ext_spc_rand[i,:] = np.random.rand(RANDOM_NUMBERS) # 0 -> 1
+        
+        self.tau_rand = tau_rand
+        self.ssa_rand = ssa_rand
+        self.ext_spc_rand = ext_spc_rand
+            
     def scatter_photon(self, i, dtau_current, theta_sca, phi_sca):
         """
         """
@@ -1249,13 +1264,15 @@ class MonteCarlo(object):
         if not self.phase_functions:
             if shape != 'sphere' and not self.HG:
                 self.interpolate_phase_matrix(par_wvls.working_set)
-        
+            
+            self.initial_pdfs(par_wvls.working_set)
+            """ Deprecated, only use for testing     
             (self.p_rand,
              self.tau_rand,
              self.phi_rand,
              self.ssa_rand,
              self.ext_spc_rand) = self.populate_pdfs(g, par_wvls.working_set)
-        
+            """ 
             # counters for saving coordinates of absorption events and exit_top 
             # events
             #self.i1 = 1
