@@ -796,8 +796,8 @@ class MonteCarlo(object):
                             self.P12[val][self.cutoff_idx:].max() * (Q*np.cos(2*beta) +
                                                                      U*np.sin(2*beta)))
                 area1 = max_val1 * self.theta_cutoff
-		area2 = max_val2 * (self.theta_max - self.theta_cutoff)
-		percent_area1 = area1 / (area1 + area2)
+		        area2 = max_val2 * (self.theta_max - self.theta_cutoff)
+		        percent_area1 = area1 / (area1 + area2)
                 
                 area_rand = np.random.rand(RANDOM_NUMBERS)
 	                                                          
@@ -864,8 +864,8 @@ class MonteCarlo(object):
             # 5. Populate PDF to determine extinction from ice or impurity
             ext_spc_rand[i,:] = np.random.rand(RANDOM_NUMBERS) # 0 -> 1
             print k
-	import ipdb
-	ipdb.set_trace()                           
+	    import ipdb
+	    ipdb.set_trace()                           
         
         return(p_rand, tau_rand, phi_rand, ssa_rand, ext_spc_rand)
     
