@@ -879,15 +879,19 @@ class MonteCarlo(object):
     def initial_pdfs(self, wvls, RANDOM_NUMBERS=1):
         """ populate pdfs only needed for photon's first loop
         """
-        tau_rand = np.empty((g.size, RANDOM_NUMBERS))
-        ssa_rand = np.empty((g.size, RANDOM_NUMBERS))
-        ext_spc_rand = np.empty((g.size, RANDOM_NUMBERS))
+        p_rand = np.empty((wvls.size, RANDOM_NUMBERS))
+	phi_rand = np.empty((wvls.size, RANDOM_NUMBERS))
+	tau_rand = np.empty((wvls.size, RANDOM_NUMBERS))
+        ssa_rand = np.empty((wvls.size, RANDOM_NUMBERS))
+        ext_spc_rand = np.empty((wvls.size, RANDOM_NUMBERS))
         for i, val in enumerate(wvls):
             tau_rand[i,:] = -np.log(np.random.rand(RANDOM_NUMBERS))
             ssa_rand[i,:] = np.random.rand(RANDOM_NUMBERS) # 0 -> 1
             ext_spc_rand[i,:] = np.random.rand(RANDOM_NUMBERS) # 0 -> 1
         
-        self.tau_rand = tau_rand
+        self.p_rand = p_rand
+	self.phi_rand = phi_rand
+	self.tau_rand = tau_rand
         self.ssa_rand = ssa_rand
         self.ext_spc_rand = ext_spc_rand
             
@@ -937,7 +941,7 @@ class MonteCarlo(object):
     def monte_carlo3D(self, wvl):
         """ Translated from matlab to python by Adam Schneider
         """        
-        i_max = self.p_rand.shape[1]
+        i_max = 1
         # initialization:
         x_tau = np.array([0])
         y_tau = np.array([0])
@@ -1024,6 +1028,8 @@ class MonteCarlo(object):
         i = 0
         i_rand = 0
         while condition==0:
+            import ipdb
+            ipdb.set_trace()
             i+=1
             i_rand+=1
             if i_rand > i_max: # we need more random numbers!
