@@ -744,6 +744,11 @@ class MonteCarlo(object):
                 self.P33_interp[wvl] = interpolate.interp1d(self.theta_P33, self.P33[wvl])
                 self.P43_interp[wvl] = interpolate.interp1d(self.theta_P43, self.P43[wvl])
                 self.P44_interp[wvl] = interpolate.interp1d(self.theta_P44, self.P44[wvl])
+                
+        # setup cutoff parameters for rejection method
+        self.theta_cutoff = np.deg2rad(1)
+        self.theta_max = self.theta_P11[:-1]
+        self.cutoff_idx = np.where(self.P11_theta==self.theta_cutoff)[0]
     
     def populate_pdfs(self, g, wvl, RANDOM_NUMBERS=1):
         """ 1. Populate PDF of cos(scattering phase angle) with random numbers
@@ -784,8 +789,16 @@ class MonteCarlo(object):
                 P11_interp = self.P11_interp[val]
                 P12_interp = self.P12_interp[val]
                 
-                max_val = I*self.P11[val].max() + self.P12[val].max() * (Q*np.cos(2*beta) + 
-                                                                         U*np.sin(2*beta))
+                max_val1 = (I*self.P11[val][:self.theta_cutoff].max() + 
+                            self.P12[val][:self.theta_cutoff].max() * (Q*np.cos(2*beta) + 
+                                                                       U*np.sin(2*beta)))
+                max_val2 = (I*self.P11[val][self.theta_cutoff:].max() +
+                            self.P12[val][self.theta_cutoff:].max() * (Q*np.cos(2*beta) +
+                                                                       U*np.sin(2*beta)))
+                                                                       
+                import ipdb
+                ipdb.set_trace()
+                                                                          
                 theta_rand = np.random.rand(RANDOM_NUMBERS) * np.pi # 0 -> pi
                 phi_rand[i, :] = np.random.rand(RANDOM_NUMBERS) * TWO_PIE # 0 -> 2pi
                 two_phi = 2 * phi_rand[i, :]
@@ -833,6 +846,7 @@ class MonteCarlo(object):
             print k
 	import ipdb
 	ipdb.set_trace()                           
+        
         return(p_rand, tau_rand, phi_rand, ssa_rand, ext_spc_rand)
     
     def scatter_photon(self, i, dtau_current, theta_sca, phi_sca):
