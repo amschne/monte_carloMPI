@@ -805,7 +805,8 @@ class MonteCarlo(object):
                 phi_rand[i, :] = np.random.rand(RANDOM_NUMBERS) * TWO_PIE # 0 -> 2pi
                 two_phi = 2 * phi_rand[i, :]
                 for j, theta in enumerate(theta_rand):
-                    if area_rand[j] <= percent_area1:
+                    area_rand_j = area_rand[j]
+                    if area_rand_j <= percent_area1:
                         area = 1
                         theta = theta * self.theta_cutoff # 0 -> theta_cutoff
                     else:
@@ -820,8 +821,8 @@ class MonteCarlo(object):
                         """ WHILE LOOP MUST BE EFFICIENT
                         """
                         if k > 0:
-                            area_rand[j] = np.random.rand()
-                            if area_rand[j] <= percent_area1:
+                            area_rand_j = np.random.rand()
+                            if area_rand_j <= percent_area1:
                                 area = 1
                                 theta = np.random.rand() * self.theta_cutoff # 0 -> theta_cutoff
                             else:
@@ -863,8 +864,8 @@ class MonteCarlo(object):
             # 5. Populate PDF to determine extinction from ice or impurity
             ext_spc_rand[i,:] = np.random.rand(RANDOM_NUMBERS) # 0 -> 1
             print k
-	import ipdb
-	ipdb.set_trace()                           
+	    import ipdb
+	    ipdb.set_trace()                           
         
         return(p_rand, tau_rand, phi_rand, ssa_rand, ext_spc_rand)
     
