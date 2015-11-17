@@ -796,13 +796,22 @@ class MonteCarlo(object):
                             self.P12[val][self.cutoff_idx:].max() * (Q*np.cos(2*beta) +
                                                                      U*np.sin(2*beta)))
                 area1 = max_val1 * self.theta_cutoff
-		area2 = max_val2 * (self.theta_max - self.theta_cutoff)
-		percent_area1 = area1 / (area1 + area2)
+		        area2 = max_val2 * (self.theta_max - self.theta_cutoff)
+		        percent_area1 = area1 / (area1 + area2)
+                
+                area_rand = np.random.rand(RANDOM_NUMBERS)
 	                                                          
-                theta_rand = np.random.rand(RANDOM_NUMBERS) * np.pi # 0 -> pi
+                theta_rand = np.random.rand(RANDOM_NUMBERS) # 0 -> 1
                 phi_rand[i, :] = np.random.rand(RANDOM_NUMBERS) * TWO_PIE # 0 -> 2pi
                 two_phi = 2 * phi_rand[i, :]
                 for j, theta in enumerate(theta_rand):
+                    if area_rand[j] <= percent_area1:
+                        area = 1
+                        theta = theta * self.theta_cutoff # 0 -> theta_cutoff
+                    else:
+                        area = 2
+                        theta = theta * (self.theta_max - self.theta_cutoff) + self.theta_cutoff
+
                     # rejection method
                     r3 = 1
                     phase_func_val = 0
@@ -811,10 +820,20 @@ class MonteCarlo(object):
                         """ WHILE LOOP MUST BE EFFICIENT
                         """
                         if k > 0:
-                            theta = np.random.rand() * np.pi
+                            area_rand[j] = np.random.rand()
+                            if area_rand[j] <= percent_area1:
+                                area = 1
+                                theta = np.random.rand() * self.theta_cutoff
+                            else:
+                                area = 2
+                                theta = (np.random.rand() * (self.theta_max - self.theta_cutoff) + 
+                                                            self.theta_cutoff)
                             two_phi = np.random.rand() * FOUR_PIE
-                        
-                        r3 = np.random.rand() * max_val
+                        if area = 1:
+                            r3 = np.random.rand() * max_val1
+                        if area = 2:
+                            r3 = np.random.rand() * max_val2
+                    
                         S11 = P11_interp(theta)
                         S12 = P12_interp(theta)
                         phase_func_val = I*S11 + S12 * (Q*np.cos(two_phi) +
