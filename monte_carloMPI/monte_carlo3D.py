@@ -747,8 +747,8 @@ class MonteCarlo(object):
                 
         # setup cutoff parameters for rejection method
         self.theta_cutoff = np.deg2rad(1)
-        self.theta_max = self.theta_P11[:-1]
-        self.cutoff_idx = np.where(self.P11_theta==self.theta_cutoff)[0]
+        self.theta_max = self.theta_P11[-1]
+        self.cutoff_idx = np.where(self.theta_P11==self.theta_cutoff)[0]
     
     def populate_pdfs(self, g, wvl, RANDOM_NUMBERS=1):
         """ 1. Populate PDF of cos(scattering phase angle) with random numbers
@@ -789,16 +789,16 @@ class MonteCarlo(object):
                 P11_interp = self.P11_interp[val]
                 P12_interp = self.P12_interp[val]
                 
-                max_val1 = (I*self.P11[val][:self.theta_cutoff].max() + 
-                            self.P12[val][:self.theta_cutoff].max() * (Q*np.cos(2*beta) + 
-                                                                       U*np.sin(2*beta)))
-                max_val2 = (I*self.P11[val][self.theta_cutoff:].max() +
-                            self.P12[val][self.theta_cutoff:].max() * (Q*np.cos(2*beta) +
-                                                                       U*np.sin(2*beta)))
-                                                                       
-                import ipdb
-                ipdb.set_trace()
-                                                                          
+                max_val1 = (I*self.P11[val][:self.cutoff_idx].max() + 
+                            self.P12[val][:self.cutoff_idx].max() * (Q*np.cos(2*beta) + 
+                                                                     U*np.sin(2*beta)))
+                max_val2 = (I*self.P11[val][self.cutoff_idx:].max() +
+                            self.P12[val][self.cutoff_idx:].max() * (Q*np.cos(2*beta) +
+                                                                     U*np.sin(2*beta)))
+                area1 = max_val1 * self.theta_cutoff
+		area2 = max_val2 * (self.theta_max - self.theta_cutoff)
+		percent_area1 = area1 / (area1 + area2)
+	                                                          
                 theta_rand = np.random.rand(RANDOM_NUMBERS) * np.pi # 0 -> pi
                 phi_rand[i, :] = np.random.rand(RANDOM_NUMBERS) * TWO_PIE # 0 -> 2pi
                 two_phi = 2 * phi_rand[i, :]
