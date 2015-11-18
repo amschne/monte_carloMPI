@@ -1204,7 +1204,7 @@ class MonteCarlo(object):
                 ext_state = 2
                 ssa_event = self.ssa_imp[self.photon]
             
-            if self.Lambertian: # set ssa_event to Lambertian reflectance
+            if self.Lambertian_surface: # set ssa_event to Lambertian reflectance
                  ssa_event = self.R_Lambertian
                         
             # check for exit status:
