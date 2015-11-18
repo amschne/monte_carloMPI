@@ -4,9 +4,10 @@ import numpy as np
 import monte_carlo3D
 
 DEBUG = False
-LAMBERTIAN = False # setting LAMBERTIAN = True will simply simulate a
-                    # Lambertian surface
-
+LAMBERTIAN_SURFACE = False # True will simply simulate a
+                           # Lambertian surface
+LAMBERTIAN_BOTTOM = True # True will add Lambertian bottom boundary with reflectance
+                         # set below
 LAMBERTIAN_REFLECTANCE = 1. # Set reflectance of Lambertian surface OR
                             # reflectance of underlying surface beneath snow 
 
@@ -96,7 +97,9 @@ def single_grain_size(n_photon, wvl, half_width, rds_snw, theta_0=0.,
     monte_carlo_run = monte_carlo3D.MonteCarlo()
     monte_carlo_run.run(n_photon, wvl, half_width, rds_snw, theta_0=theta_0,
                         stokes_params=stokes_params, shape=shape,
-                        roughness=roughness, debug=DEBUG, Lambertian=LAMBERTIAN,
+                        roughness=roughness, debug=DEBUG,
+                        Lambertian_surface=LAMBERTIAN_SURFACE,
+                        Lambertian_bottom=LAMBERTIAN_BOTTOM,
                         Lambertian_reflectance=LAMBERTIAN_REFLECTANCE)
     
 def multiple_grain_sizes(n_photon, wvl, half_width, rds_snw, theta_0=0.,
@@ -106,7 +109,8 @@ def multiple_grain_sizes(n_photon, wvl, half_width, rds_snw, theta_0=0.,
         monte_carlo_run.run(n_photon, wvl, half_width, rds, theta_0=theta_0,
                             stokes_params=stokes_params, shape=shape,
                             roughness=roughness, debug=DEBUG,
-                            Lambertian=LAMBERTIAN,
+                            Lambertian_surface=LAMBERTIAN_SURFACE,
+                            Lambertian_bottom=LAMBERTIAN_BOTTOM,
                             Lambertian_reflectance=LAMBERTIAN_REFLECTANCE)
         
 def main():

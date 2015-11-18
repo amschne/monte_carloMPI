@@ -1053,6 +1053,7 @@ class MonteCarlo(object):
         
         # scatter the photon inside the cloud/snow until it escapes or is 
         # absorbed
+        bottom_reflection = False
         condition = 0
         i = 0
         i_rand = 0
@@ -1072,7 +1073,7 @@ class MonteCarlo(object):
             
             # distance, in optical depth space, to move photon
             dtau_current = self.tau_rand[self.photon, i_rand-1]
-            if self.Lambertian and i==1: # photon scattered at surface
+            if self.Lambertian_surface and i==1: # photon scattered at surface
                 dtau_current = 0
             
             # scattering phase angle:
@@ -1082,7 +1083,7 @@ class MonteCarlo(object):
                 sintheta = 0
                 cosphi = 0
                 sinphi = 0
-            elif self.Lambertian:
+            elif self.Lambertian_surface or bottom_reflection:
                 valid_val=0
                 while valid_val==0:
                     theta_rand = np.random.uniform(0, np.pi/2)
@@ -1091,6 +1092,7 @@ class MonteCarlo(object):
                         costheta = np.cos(theta_rand + np.arccos(muz_0))
                         sintheta = np.sqrt(1 - costheta**2)
                         valid_val=1
+                bottom_reflection = False
             else:
                 costheta = self.p_rand[self.photon, i_rand-1]
                 sintheta = np.sqrt(1 - costheta**2)
@@ -1173,12 +1175,15 @@ class MonteCarlo(object):
             # update Cartesian coordinates:
             ext_cff_mss = self.ext_cff_mss[self.photon]
             ext_cff = ext_cff_mss * self.rho_snw
+            
+            multiplier = dtau_current / ext_cff
+            
             x_crt = np.append(x_crt, x_crt[i-1] + 
-                              dtau_current * mux_n / ext_cff)                            
+                                     multiplier * mux_n)                            
             y_crt = np.append(y_crt, y_crt[i-1] + 
-                              dtau_current * muy_n / ext_cff)
+                                     multiplier * muy_n)
             z_crt = np.append(z_crt, z_crt[i-1] + 
-                              dtau_current * muz_n / ext_cff)
+                                     multiplier * muz_n)
                               
             if i > 1:
                 # update current direction:
@@ -1215,20 +1220,64 @@ class MonteCarlo(object):
             elif z_tau[i] < -self.tau_tot and i==1:
                 # photon has left the bottom of the cloud/snow WITHOUT 
                 # scattering ONCE (direct transmittance)
-                condition = 3
                 # correct path_length (we only want photon path length within
                 # the snow pack)
-                path_length = self.tau_tot / ext_cff
+                correction = -(((z_tau[i] + self.tau_tot) * dtau_current) /
+                               ((z_tau[i] - z_tau[i-1]) * ext_cff))
+                path_length += correction                
+                
+                # correct coordinates for reflection off bottom
+                dtau_correction = -(((z_tau[i] + self.tau_tot)/
+                                     (z_tau[i-1] - z_tau[i])) * dtau_current)
+                                     
+                x_tau[i] = x_tau[i] - (mux_n * dtau_correction)
+                y_tau[i] = y_tau[i] - (muy_n * dtau_correction)
+                z_tau[i] = z_tau[i] - (muz_n * dtau_correction)
+                
+                multiplier = dtau_correction / ext_cff
+                x_crt[i] = x_crt[i] - (mux_n * multiplier)
+                y_crt[i] = y_crt[i] - (muy_n * multiplier)
+                z_crt[i] = z_crt[i] - (muz_n * multiplier)
+                
+                if self.Lambertian_bottom:
+                    reflectance_rand = np.random.rand() # 0 -> 1
+                    if reflectance_rand <= self.R_Lambertian:
+                        bottom_reflection = True
+                    else:
+                        condition = 3
+                else:
+                    condition = 3
                 
             elif z_tau[i] < -self.tau_tot:
                 # photon has left the bottom of the cloud/snow (diffuse 
                 # transmittance)
-                condition = 2
                 # correct path_length (we only want photon path length within
                 # the snow pack)
                 correction = -(((z_tau[i] + self.tau_tot) * dtau_current) /
                                ((z_tau[i] - z_tau[i-1]) * ext_cff))
                 path_length += correction
+                
+                # correct coordinates for reflection off bottom
+                dtau_correction = -(((z_tau[i] + self.tau_tot)/
+                                     (z_tau[i-1] - z_tau[i])) * dtau_current)
+                                     
+                x_tau[i] = x_tau[i] - (mux_n * dtau_correction)
+                y_tau[i] = y_tau[i] - (muy_n * dtau_correction)
+                z_tau[i] = z_tau[i] - (muz_n * dtau_correction)
+                
+                multiplier = dtau_correction / ext_cff
+                x_crt[i] = x_crt[i] - (mux_n * multiplier)
+                y_crt[i] = y_crt[i] - (muy_n * multiplier)
+                z_crt[i] = z_crt[i] - (muz_n * multiplier)
+                
+                if self.Lambertian_bottom:
+                    reflectance_rand = np.random.rand() # 0 -> 1
+                    if reflectance_rand <= self.R_Lambertian:
+                        bottom_reflection = True
+                    else:
+                        condition = 2
+                else:
+                    condition = 2
             
             elif self.ssa_rand[self.photon, i_rand-1] >= ssa_event:
                 # photon was absorbed, archive which species absorbed it:
@@ -1249,8 +1298,8 @@ class MonteCarlo(object):
               
     def run(self, n_photon, wvl0, half_width, rds_snw, theta_0=0.,
             stokes_params=np.array([1,0,0,0]), shape='sphere',
-            roughness='smooth', test=False, debug=False, Lambertian=False,
-            Lambertian_reflectance=1.):
+            roughness='smooth', test=False, debug=False, Lambertian_surface=False,
+            Lambertian_bottom=True, Lambertian_reflectance=1.):
         """ Run the Monte Carlo model given a normal distribution of
             wavelengths [um].  This better simulates what NERD does with
             non-monochromatic LEDs.
@@ -1258,7 +1307,8 @@ class MonteCarlo(object):
             ALL VALUES IN MICRONS
         """
         self.debug = debug
-        self.Lambertian = Lambertian
+        self.Lambertian_surface = Lambertian_surface
+        self.Lambertian_bottom = Lambertian_bottom
         self.R_Lambertian = Lambertian_reflectance
         
         self.theta_0 = (np.pi * theta_0) / 180. # theta_0 deg -> rad
