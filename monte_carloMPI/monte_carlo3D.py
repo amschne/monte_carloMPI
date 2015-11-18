@@ -101,6 +101,9 @@ class MonteCarlo(object):
         if not os.path.isdir(self.output_dir):
             os.mkdir(self.output_dir)
             
+        import ipdb
+        ipdb.set_trace()
+        
         run_name = '%s_%s_%s_%s.txt' % (wvl0, half_width, rds_snw, n_photon)
         output_file = os.path.join(self.output_dir, run_name)
         i = 0
@@ -979,13 +982,15 @@ class MonteCarlo(object):
         
         path_length = 0
         
-        if self.shape != 'sphere' and not self.HG:
+        if self.shape != 'sphere' and not self.HG:            
             P11_interp = self.P11_interp[wvl]
             P12_interp = self.P12_interp[wvl]
             P22_interp = self.P22_interp[wvl]
             P33_interp = self.P33_interp[wvl]
             P43_interp = self.P43_interp[wvl]
             P44_interp = self.P44_interp[wvl]
+            
+            self.stokes_params = self.initial_stokes_params
         
         if self.debug: # debugging / demonstration of 2 scattering events:
             self.x_tau = x_tau
@@ -1297,7 +1302,7 @@ class MonteCarlo(object):
             phi_n = np.arctan(muy_0 / mux_0)
         n_scat = i-1 # number of scattering events
         
-        return(condition, wvn, theta_n, phi_n, n_scat, path_length)
+        return(condition, wvn, theta_n, phi_n, n_scat, path_length, self.stokes_params)
               
     def run(self, n_photon, wvl0, half_width, rds_snw, theta_0=0.,
             stokes_params=np.array([1,0,0,0]), shape='sphere',
@@ -1320,7 +1325,6 @@ class MonteCarlo(object):
         
         self.wvl0 = wvl0
         self.initial_stokes_params = stokes_params
-        self.stokes_params = stokes_params
         
         # Convert half_width to standard deviation
         scale = half_width / 2.355
@@ -1403,6 +1407,7 @@ class MonteCarlo(object):
             
             self.initial_pdfs(par_wvls.working_set)
             """ Deprecated, only use for testing     
+            self.stokes_params = stokes_params
             (self.p_rand,
              self.tau_rand,
              self.phi_rand,
