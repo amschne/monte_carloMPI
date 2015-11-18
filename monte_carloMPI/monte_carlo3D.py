@@ -92,7 +92,7 @@ class MonteCarlo(object):
         self.HG = model_args_dict['HG']
         self.phase_functions = model_args_dict['phase_functions']
     
-    def setup_output(self, n_photon, wvl0, half_width, rds_snw):
+    def setup_output(self, n_photon, wvl0, half_width):
         """ Create output dir for writing data to
         
             Returns output_file path
@@ -1302,7 +1302,8 @@ class MonteCarlo(object):
             phi_n = np.arctan(muy_0 / mux_0)
         n_scat = i-1 # number of scattering events
         
-        return(condition, wvn, theta_n, phi_n, n_scat, path_length, self.stokes_params)
+        return(condition, wvn, theta_n, phi_n, n_scat, path_length, 
+               self.snow_depth[self.photon], self.stokes_params)
               
     def run(self, n_photon, wvl0, half_width, rds_snw, theta_0=0.,
             stokes_params=np.array([1,0,0,0]), shape='sphere',
@@ -1419,17 +1420,20 @@ class MonteCarlo(object):
             #self.i1 = 1
             #self.i2 = 1
             #self.i_sensor = 0
-       
-            answer = list() 
+            
+            self.snow_depth = self.tau_tot / (self.ext_cff_mss * self.rho_snow)
+            answer = list()
             for i, wvl in enumerate(par_wvls.working_set):
                 self.photon = i
                 answer.append(self.monte_carlo3D(wvl))
                 
+            import ipdb
+            ipdb.set_trace()
             all_answers = par_wvls.answer_and_reduce(answer,
                                                      MonteCarlo.flatten_list)
             if all_answers is not None:
                 # this is the root processor
-                output_file = self.setup_output(n_photon, wvl0, half_width, rds_snw)
+                output_file = self.setup_output(n_photon, wvl0, half_width)
                 txt_file = open(output_file, 'w')
                 txt_file.write('condition wvn[um^-1] theta_n phi_n n_scat '
                                'path_length[m]\n')
