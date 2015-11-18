@@ -938,6 +938,27 @@ class MonteCarlo(object):
         self.muy_0 = muy_n
         self.muz_0 = muz_n
     
+    def rotate_stokes_vector(self, angle, stokes_params):
+        """ rotate stokes vector into new frame of referecne by angle (angle)
+        """
+        I_old = stokes_params[0]
+        Q_old = stokes_params[1]
+        U_old = stokes_params[2]
+        V_old = stokes_params[3]
+        
+        double_angle = 2*angle
+        cos_double_angle = np.cos(double_angle)
+        sin_double_angle = np.sin(double_angle)
+        
+        I_new = I_old
+        Q_new = Q_old * cos_double_angle + U_old * sin_double_angle
+        U_new = -Q_old * sin_double_angle + U_old * cos_double_angle
+        V_new = V_old
+        
+        rotated_stokes_params = (I_new, Q_new, U_new, V_new)
+        
+        return rotated_stokes_params
+    
     def monte_carlo3D(self, wvl):
         """ Translated from matlab to python by Adam Schneider
         """        
@@ -957,6 +978,14 @@ class MonteCarlo(object):
         z_crt = np.array([0])
         
         path_length = 0
+        
+        if self.shape != 'sphere' and not self.HG:
+            P11_interp = self.P11_interp[wvl]
+            P12_interp = self.P12_interp[wvl]
+            P22_interp = self.P22_interp[wvl]
+            P33_interp = self.P33_interp[wvl]
+            P43_interp = self.P43_interp[wvl]
+            P44_interp = self.P44_interp[wvl]
         
         if self.debug: # debugging / demonstration of 2 scattering events:
             self.x_tau = x_tau
@@ -1068,26 +1097,79 @@ class MonteCarlo(object):
                 costheta = self.p_rand[self.photon, i_rand-1]
                 sintheta = np.sqrt(1 - costheta**2)
                 
-            # scattering azimuth angle:
             if i > 1:
+                # scattering azimuth angle:
                 cosphi = np.cos(self.phi_rand[self.photon, i_rand-1])
                 sinphi = np.sin(self.phi_rand[self.photon, i_rand-1])
             
-            # new cosine directional angles                
-            if muz_0==1:
-                mux_n = sintheta * cosphi
-                muy_n = sintheta * sinphi
-                muz_n = costheta
-            elif muz_0==-1:
-                mux_n = sintheta * cosphi
-                muy_n = -sintheta * sinphi
-                muz_n = -costheta
-            else: # equations from  http://en.wikipedia.org/wiki/Monte_Carlo_method_for_photon_transport
-                mux_n = ((sintheta*(mux_0*muz_0*cosphi - muy_0*sinphi)) /
-                         (np.sqrt(1 - muz_0**2)) + mux_0*costheta)
-                muy_n = ((sintheta*(muy_0*muz_0*cosphi + mux_0*sinphi)) /
-                         (np.sqrt(1 - muz_0**2)) + muy_0*costheta)
-                muz_n = -np.sqrt(1 - muz_0**2)*sintheta*cosphi + muz_0*costheta
+                # new cosine directional angles                
+                if muz_0==1:
+                    mux_n = sintheta * cosphi
+                    muy_n = sintheta * sinphi
+                    muz_n = costheta
+                elif muz_0==-1:
+                    mux_n = sintheta * cosphi
+                    muy_n = -sintheta * sinphi
+                    muz_n = -costheta
+                else: # equations from  http://en.wikipedia.org/wiki/Monte_Carlo_method_for_photon_transport
+                    mux_n = ((sintheta*(mux_0*muz_0*cosphi - muy_0*sinphi)) /
+                             (np.sqrt(1 - muz_0**2)) + mux_0*costheta)
+                    muy_n = ((sintheta*(muy_0*muz_0*cosphi + mux_0*sinphi)) /
+                             (np.sqrt(1 - muz_0**2)) + muy_0*costheta)
+                    muz_n = -np.sqrt(1 - muz_0**2)*sintheta*cosphi + muz_0*costheta
+            
+                if self.shape != 'sphere' and not self.HG:
+                    # update stokes paramters via scattering phase matrix
+                    theta_sca = np.arccos(costheta)
+                    two_phi_sca = 2*np.arccos(cosphi)
+                    
+                    cos_2phi = np.cos(two_phi_sca)
+                    sin_2phi = np.sin(two_phi_sca)
+                    
+                    # step 1 - Rotation of the reference frame into the scattering plane
+                    (I_sp,
+                     Q_sp,
+                     U_sp,
+                     V_sp) = self.rotate_stokes_vector(angle, self.stokes_params)
+                    
+                    # step 2 - Scattering of the photon at an angle theta_sca in the
+                    #          scattering plane
+                    P11 = P11_interp(theta_sca)
+                    P12 = P12_interp(theta_sca)
+                    P22 = P22_interp(theta_sca)
+                    P33 = P33_interp(theta_sca)
+                    P43 = P43_interp(theta_sca)
+                    P44 = P44_interp(theta_sca)
+                    
+                    I_sca = I_sp * P11 + Q_sp * P12
+                    Q_sca = I_sp * P12 + Q_sp * P22
+                    U_sca = U_sp * P33 - V_sp * P43
+                    V_sca = U_sp * P43 + V_sp * P44
+                    
+                    # step 3 - Return the reference frame to a new meridian plane
+                    num = muz_n * np.cos(theta_sca) - muz_0
+                    if phi_sca >= np.pi:
+                        den = np.sqrt((1 - costheta**2)*(1 - muz_n**2))
+                    elif phi_sca < np.pi:
+                        den = -np.sqrt((1 - costheta**2)*(1 - muz_n**2))
+                        
+                    cos_gama = num / den
+                    gama = np.arccos(cos_gama)
+                    
+                    stokes_sca = (I_sca, Q_sca, U_sca, V_sca)
+                    
+                    (I_merd,
+                     Q_merd, 
+                     U_merd,
+                     V_merd) = self.rotate_stokes_vector(-gama)
+                     
+                     self.stokes_params = (np.array([I_merd, Q_merd, U_merd, V_merd]) /
+                                           I_merd)
+                    
+            elif i==1:
+                mux_n = mux_0
+                muy_n = muy_0
+                muz_n = muz_0      
             
             # update tau coordinates:
             x_tau = np.append(x_tau, x_tau[i-1] + dtau_current*mux_n)
@@ -1104,10 +1186,11 @@ class MonteCarlo(object):
             z_crt = np.append(z_crt, z_crt[i-1] + 
                               dtau_current * muz_n / ext_cff)
                               
-            # update current direction:
-            mux_0 = mux_n
-            muy_0 = muy_n
-            muz_0 = muz_n
+            if i > 1:
+                # update current direction:
+                mux_0 = mux_n
+                muy_0 = muy_n
+                muz_0 = muz_n
             
             # update path length
             path_length += dtau_current / ext_cff
