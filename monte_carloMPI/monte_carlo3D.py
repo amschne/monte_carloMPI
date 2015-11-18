@@ -982,6 +982,8 @@ class MonteCarlo(object):
         
         path_length = 0
         
+        self.stokes_params = self.initial_stokes_params
+        
         if self.shape != 'sphere' and not self.HG:            
             P11_interp = self.P11_interp[wvl]
             P12_interp = self.P12_interp[wvl]
@@ -989,9 +991,7 @@ class MonteCarlo(object):
             P33_interp = self.P33_interp[wvl]
             P43_interp = self.P43_interp[wvl]
             P44_interp = self.P44_interp[wvl]
-            
-            self.stokes_params = self.initial_stokes_params
-        
+                    
         if self.debug: # debugging / demonstration of 2 scattering events:
             self.x_tau = x_tau
             self.y_tau = y_tau
