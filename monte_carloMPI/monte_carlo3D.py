@@ -1057,8 +1057,6 @@ class MonteCarlo(object):
         i = 0
         i_rand = 0
         while condition==0:
-            import ipdb
-            ipdb.set_trace()
             i+=1
             i_rand+=1
             if i_rand > i_max: # we need more random numbers!
@@ -1121,16 +1119,13 @@ class MonteCarlo(object):
                 if self.shape != 'sphere' and not self.HG:
                     # update stokes paramters via scattering phase matrix
                     theta_sca = np.arccos(costheta)
-                    two_phi_sca = 2*np.arccos(cosphi)
-                    
-                    cos_2phi = np.cos(two_phi_sca)
-                    sin_2phi = np.sin(two_phi_sca)
+                    phi_sca = np.arccos(cosphi)
                     
                     # step 1 - Rotation of the reference frame into the scattering plane
                     (I_sp,
                      Q_sp,
                      U_sp,
-                     V_sp) = self.rotate_stokes_vector(angle, self.stokes_params)
+                     V_sp) = self.rotate_stokes_vector(phi_sca, self.stokes_params)
                     
                     # step 2 - Scattering of the photon at an angle theta_sca in the
                     #          scattering plane
@@ -1153,18 +1148,17 @@ class MonteCarlo(object):
                     elif phi_sca < np.pi:
                         den = -np.sqrt((1 - costheta**2)*(1 - muz_n**2))
                         
-                    cos_gama = num / den
-                    gama = np.arccos(cos_gama)
+                    gama = np.arccos(num / den)
                     
                     stokes_sca = (I_sca, Q_sca, U_sca, V_sca)
                     
                     (I_merd,
                      Q_merd, 
                      U_merd,
-                     V_merd) = self.rotate_stokes_vector(-gama)
+                     V_merd) = self.rotate_stokes_vector(-gama, stokes_sca)
                      
-                     self.stokes_params = (np.array([I_merd, Q_merd, U_merd, V_merd]) /
-                                           I_merd)
+                    self.stokes_params = (np.array([I_merd, Q_merd, U_merd, V_merd]) /
+                                          I_merd)
                     
             elif i==1:
                 mux_n = mux_0
