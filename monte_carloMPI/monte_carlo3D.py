@@ -1092,7 +1092,6 @@ class MonteCarlo(object):
                         costheta = np.cos(theta_rand + np.arccos(muz_0))
                         sintheta = np.sqrt(1 - costheta**2)
                         valid_val=1
-                bottom_reflection = False
             else:
                 costheta = self.p_rand[self.photon, i_rand-1]
                 sintheta = np.sqrt(1 - costheta**2)
@@ -1118,7 +1117,11 @@ class MonteCarlo(object):
                              (np.sqrt(1 - muz_0**2)) + muy_0*costheta)
                     muz_n = -np.sqrt(1 - muz_0**2)*sintheta*cosphi + muz_0*costheta
             
-                if self.shape != 'sphere' and not self.HG:
+                if bottom_reflection:
+                    self.stokes_params = np.array([1,0,0,0])
+                    bottom_reflection = False
+                
+                elif self.shape != 'sphere' and not self.HG:
                     # update stokes paramters via scattering phase matrix
                     theta_sca = np.arccos(costheta)
                     phi_sca = np.arccos(cosphi)
