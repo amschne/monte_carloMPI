@@ -763,9 +763,12 @@ class MonteCarlo(object):
         self.P43_interp = dict()
         self.P44_interp = dict()
         
+        wvl0_exists = False
         sorted_wvls = np.sort(wvls)
         last_wvl = None
         for wvl in sorted_wvls:
+            if wvl == self.wvl0 and not wvl0_exists:
+                wvl0_exists = True
             if wvl != last_wvl:
                 last_wvl = wvl
                 self.P11_interp[wvl] = interpolate.interp1d(self.theta_P11, self.P11[wvl])
@@ -776,9 +779,28 @@ class MonteCarlo(object):
                 self.P44_interp[wvl] = interpolate.interp1d(self.theta_P44, self.P44[wvl])
                 
         # setup cutoff parameters for rejection method
-        self.theta_cutoff = np.deg2rad(1)
+        if wvl0_exists:
+            # use center wavelength if it exists
+            wvl = self.wvl0
+            # else, use the last wvl looped above
+        P11 = self.P11[wvl]
         self.theta_max = self.theta_P11[-1]
-        self.cutoff_idx = np.where(self.theta_P11==self.theta_cutoff)[0]
+        percent_area1_list = list()
+        for i, theta in enumerate(self.theta_P11):
+            if i>0 and i<320:
+                max_val1 = P11[:i+1].max()
+                max_val2 = P11[i:].max()
+                
+                area1 = theta*max_val1
+                area2 = (self.theta_max - theta)*max_val2
+                
+                percent_area1_list.append(area1/area2)
+            else:
+                percent_area1_list.append(1e5)
+        
+        percent_area1_array = np.array(percent_area1_list)
+        self.cutoff_idx = np.argsort(np.absolute(0.5 - percent_area1_list))[0]
+        self.theta_cutoff = self.theta_P11[self.cutoff_idx]
     
     def populate_pdfs(self, g, wvl, RANDOM_NUMBERS=1):
         """ 1. Populate PDF of cos(scattering phase angle) with random numbers
@@ -820,8 +842,8 @@ class MonteCarlo(object):
                 P12_interp = self.P12_interp[val]
                 
                 # find max val in area 1
-                A = np.absolute(I) * np.absolute(self.P11[val][:self.cutoff_idx]).max()
-                B = np.absolute(self.P12[val][:self.cutoff_idx]).max()
+                A = np.absolute(I) * np.absolute(self.P11[val][:self.cutoff_idx+1]).max()
+                B = np.absolute(self.P12[val][:self.cutoff_idx+1]).max()
                 C = np.absolute(Q * np.cos(2*beta) + U * np.sin(2*beta))
                 
                 max_val1 = A + B * C
