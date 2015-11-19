@@ -136,8 +136,6 @@ class MonteCarlo(object):
                                                      n_photon, theta0_deg, appendix, i)
             output_file = os.path.join(save_dir, run_name)
         
-        import ipdb
-        ipdb.set_trace()    
         return output_file
     
     #@timefunc
@@ -1462,8 +1460,6 @@ class MonteCarlo(object):
             all_answers = par_wvls.answer_and_reduce(answer,
                                                      MonteCarlo.flatten_list)
             
-            import ipdb
-            ipdb.set_trace()
             if all_answers is not None:
                 # this is the root processor
                 output_file = self.setup_output(n_photon, wvl0, half_width)
