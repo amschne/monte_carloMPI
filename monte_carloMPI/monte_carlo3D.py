@@ -124,7 +124,7 @@ class MonteCarlo(object):
             U = self.initial_stokes_params[2]
             V = self.initial_stokes_params[3]
             
-            appendix = '%d%d%d%d' % (I, Q, U, V)
+            appendix = 'I%d%d%d%d' % (I, Q, U, V)
         
         run_name = '%s_%s_%s_%s_%s_%s.txt' % (wvl0, half_width, rds_snw, n_photon,
                                                theta0_deg, appendix)
@@ -1324,8 +1324,8 @@ class MonteCarlo(object):
                 if ext_state==1:
                     condition = 4
                 elif ext_state==2:
-                    condition = 5
-
+                    condition = 5            
+        
         wvn = 1. / wvl
         theta_n = np.arccos(muz_0)
         if i==1:
@@ -1468,12 +1468,31 @@ class MonteCarlo(object):
                 # this is the root processor
                 output_file = self.setup_output(n_photon, wvl0, half_width)
                 txt_file = open(output_file, 'w')
-                txt_file.write('condition wvn[um^-1] theta_n phi_n n_scat '
-                               'path_length[m]\n')
-                for i, answer in enumerate(all_answers):
-                    txt_file.write('%d %r %r %r %d %r\n' % (answer[0], answer[1],
-                                                            answer[2], answer[3],
-                                                            answer[4], answer[5]))
+                
+                if self.shape=='sphere' or self.HG:
+                    txt_file.write('condition wvn[um^-1] theta_n phi_n n_scat '
+                                   'path_length[m], snow_depth[m]\n')
+                    for i, answer in enumerate(all_answers):
+                        txt_file.write('%d %r %r %r %d %r %r\n' % (answer[0], answer[1],
+                                                                answer[2], answer[3],
+                                                                answer[4], answer[5],
+                                                                answer[6]))                   
+                else:
+                    txt_file.write('condition wvn[um^-1] theta_n phi_n n_scat '
+                                   'path_length[m], snow_depth[m], I_n, Q_n, U_n, V_n\n')
+                    for i, answer in enumerate(all_answers):
+                        txt_file.write('%d %r %r %r %d %r %r %r %r %r %r\n' %
+                                                                           (answer[0],
+                                                                            answer[1],
+                                                                            answer[2],
+                                                                            answer[3],
+                                                                            answer[4],
+                                                                            answer[5],
+                                                                            answer[6],
+                                                                            answer[7][0],
+                                                                            answer[7][1],
+                                                                            answer[7][2],
+                                                                            answer[7][3]))
                 txt_file.close()
                 print('%s' % output_file) # for easy post processing
         
