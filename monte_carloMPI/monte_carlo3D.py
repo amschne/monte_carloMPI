@@ -100,19 +100,44 @@ class MonteCarlo(object):
         self.output_dir
         if not os.path.isdir(self.output_dir):
             os.mkdir(self.output_dir)
-            
-        import ipdb
-        ipdb.set_trace()
         
-        run_name = '%s_%s_%s_%s.txt' % (wvl0, half_width, rds_snw, n_photon)
-        output_file = os.path.join(self.output_dir, run_name)
+        if self.shape=='sphere':
+            shape_dir_path = os.path.join(self.output_dir, 'sphere')
+            save_dir = shape_dir_path
+        else:
+            shape_dir_path = os.path.join(self.output_dir, self.shape_dir)
+            roughness_dir_path = os.path.join(shape_dir_path, self.roughness_dir)
+            save_dir = roughness_dir_path
+        if not os.path.isdir(shape_dir_path):
+            os.mkdir(shape_dir_path)
+        if not os.path.isdir(roughness_dir_path):
+            os.mkdir(roughness_dir_path)
+        
+        rds_snw = self.snow_effective_radius
+        theta0_deg = np.rad2deg(self.theta_0)
+        
+        if shape=='sphere' or self.HG:
+            appendix = 'HG'
+        else:
+            I = self.initial_stokes_params[0]
+            Q = self.initial_stokes_params[1]
+            U = self.initial_stokes_params[2]
+            V = self.initial_stokes_params[3]
+            
+            appendix = '%d%d%d%d' % (I, Q, U, V)
+        
+        run_name = '%s_%s_%s_%s_%s_%s.txt' % (wvl0, half_width, rds_snw, n_photon,
+                                               theta0_deg, appendix)
+        output_file = os.path.join(save_dir, run_name)
         i = 0
         while os.path.isfile(output_file):
             i += 1
-            run_name = '%s_%s_%s_%s_%d.txt' % (wvl0, half_width, rds_snw,
-                                               n_photon, i)
-            output_file = os.path.join(self.output_dir, run_name)
-            
+            run_name = '%s_%s_%s_%s_%s_%s_%d.txt' % (wvl0, half_width, rds_snw,
+                                                     n_photon, theta0_deg, appendix, i)
+            output_file = os.path.join(save_dir, run_name)
+        
+        import ipdb
+        ipdb.set_trace()    
         return output_file
     
     #@timefunc
@@ -147,12 +172,16 @@ class MonteCarlo(object):
         elif self.shape =='10-element plate aggregate':
             shape_dir = 'plate_10elements'
             
+        self.shape_dir = shape_dir
+        
         if self.roughness == 'smooth':
             roughness_dir = 'Rough000'
         elif self.roughness == 'moderatley rough':
             roughness_dir = 'Rough003'
         elif self.roughness == 'severely rough':
             roughness_dir = 'Rough050'
+            
+        self.roughness_dir = roughness_dir
             
         fi_name = 'isca.dat'
         aspherical_particle_dir = os.path.join(self.optics_dir, 'ice_optics', 
@@ -1430,10 +1459,11 @@ class MonteCarlo(object):
                 self.photon = i
                 answer.append(self.monte_carlo3D(wvl))
                 
-            import ipdb
-            ipdb.set_trace()
             all_answers = par_wvls.answer_and_reduce(answer,
                                                      MonteCarlo.flatten_list)
+            
+            import ipdb
+            ipdb.set_trace()
             if all_answers is not None:
                 # this is the root processor
                 output_file = self.setup_output(n_photon, wvl0, half_width)
