@@ -431,7 +431,7 @@ class MonteCarlo(object):
                     P44[key] = P44_norm[key] * P11[key]
 
         if not self.HG:
-            assert wvl0_exists
+            #assert wvl0_exists
             # convert theta from degrees to radians
             self.theta_P11 = (theta_P11_deg * np.pi) / 180.
             self.theta_P12 = (theta_P12_deg * np.pi) / 180.
