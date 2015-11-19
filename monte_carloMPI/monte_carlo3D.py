@@ -1152,13 +1152,16 @@ class MonteCarlo(object):
                     V_sca = U_sp * P43 + V_sp * P44
                     
                     # step 3 - Return the reference frame to a new meridian plane
-                    num = muz_n * np.cos(theta_sca) - muz_0
-                    if phi_sca >= np.pi:
-                        den = np.sqrt((1 - costheta**2)*(1 - muz_n**2))
-                    elif phi_sca < np.pi:
-                        den = -np.sqrt((1 - costheta**2)*(1 - muz_n**2))
+                    if costheta==1:
+                        gama = phi_sca
+                    else:
+                        num = muz_n * costheta - muz_0
+                        if phi_sca >= np.pi:
+                            den = np.sqrt((1 - costheta**2)*(1 - muz_n**2))
+                        elif phi_sca < np.pi:
+                            den = -np.sqrt((1 - costheta**2)*(1 - muz_n**2))
                         
-                    gama = np.arccos(num / den)
+                        gama = np.arccos(num / den)
                     
                     stokes_sca = (I_sca, Q_sca, U_sca, V_sca)
                     
@@ -1421,7 +1424,7 @@ class MonteCarlo(object):
             #self.i2 = 1
             #self.i_sensor = 0
             
-            self.snow_depth = self.tau_tot / (self.ext_cff_mss * self.rho_snow)
+            self.snow_depth = self.tau_tot / (self.ext_cff_mss * self.rho_snw)
             answer = list()
             for i, wvl in enumerate(par_wvls.working_set):
                 self.photon = i
