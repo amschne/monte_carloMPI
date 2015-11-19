@@ -116,7 +116,7 @@ class MonteCarlo(object):
         rds_snw = self.snow_effective_radius
         theta0_deg = np.rad2deg(self.theta_0)
         
-        if shape=='sphere' or self.HG:
+        if self.shape=='sphere' or self.HG:
             appendix = 'HG'
         else:
             I = self.initial_stokes_params[0]
