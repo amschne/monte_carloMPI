@@ -103,7 +103,8 @@ def single_grain_size(n_photon, wvl, half_width, rds_snw, theta_0=0.,
                         Lambertian_reflectance=LAMBERTIAN_REFLECTANCE)
     
 def multiple_grain_sizes(n_photon, wvl, half_width, rds_snw, theta_0=0.,
-                         stokes_params=np.array([1,0,0,0]), shape='sphere',                              roughness='smooth'):
+                         stokes_params=np.array([1,0,0,0]), shape='sphere',
+                         roughness='smooth'):
     monte_carlo_run = monte_carlo3D.MonteCarlo()
     for i, rds in enumerate(rds_snw):
         monte_carlo_run.run(n_photon, wvl, half_width, rds, theta_0=theta_0,
