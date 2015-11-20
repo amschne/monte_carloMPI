@@ -822,20 +822,7 @@ class MonteCarlo(object):
                 wvl0_exists = True
             if wvl != last_wvl:
                 last_wvl = wvl
-                """
-                self.P11_interp[wvl] = interpolate.interp1d(self.theta_P11, 
-                                                            self.P11[wvl])
-                self.P12_interp[wvl] = interpolate.interp1d(self.theta_P12,
-                                                            self.P12[wvl])
-                self.P22_interp[wvl] = interpolate.interp1d(self.theta_P22,
-                                                            self.P22[wvl])
-                self.P33_interp[wvl] = interpolate.interp1d(self.theta_P33,
-                                                            self.P33[wvl])
-                self.P43_interp[wvl] = interpolate.interp1d(self.theta_P43,
-                                                            self.P43[wvl])
-                self.P44_interp[wvl] = interpolate.interp1d(self.theta_P44,
-                                                            self.P44[wvl])
-                """
+                
                 self.P11_interp[wvl] = interpolate.interp1d(cos_theta_P11, 
                                                             self.P11[wvl])
                 self.P12_interp[wvl] = interpolate.interp1d(cos_theta_P12,
@@ -1566,14 +1553,16 @@ class MonteCarlo(object):
                 self.interpolate_phase_matrix(par_wvls.working_set)
             
             self.initial_pdfs(par_wvls.working_set)
-            """ Deprecated, only use for testing     
-            self.stokes_params = stokes_params
-            (self.p_rand,
-             self.tau_rand,
-             self.phi_rand,
-             self.ssa_rand,
-             self.ext_spc_rand) = self.populate_pdfs(g, par_wvls.working_set)
-            """ 
+            if False:
+                """ Deprecated, only use for testing
+                """
+                self.stokes_params = stokes_params
+                (self.p_rand,
+                 self.tau_rand,
+                 self.phi_rand,
+                 self.ssa_rand,
+                 self.ext_spc_rand) = self.populate_pdfs(g, 
+                                                         par_wvls.working_set)
             # counters for saving coordinates of absorption events and exit_top 
             # events
             #self.i1 = 1
