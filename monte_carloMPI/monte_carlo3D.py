@@ -1562,7 +1562,8 @@ class MonteCarlo(object):
                  self.phi_rand,
                  self.ssa_rand,
                  self.ext_spc_rand) = self.populate_pdfs(g, 
-                                                         par_wvls.working_set)
+                                                         par_wvls.working_set,
+                                                         RANDOM_NUMBERS=100)
             # counters for saving coordinates of absorption events and exit_top 
             # events
             #self.i1 = 1
