@@ -948,7 +948,7 @@ class MonteCarlo(object):
                     #print(i,j)
                     two_phi = two_phi_rand[j]
                     area_rand_j = area_rand[j]
-                    if area_rand_j <= percent_area1:
+                    if area_rand_j < percent_area1:
                         area = 1
                         cos_theta = cos_theta * (
                                  self.cos_theta_max - 
@@ -968,10 +968,10 @@ class MonteCarlo(object):
                         """
                         if k > 0:
                             area_rand_j = np.random.rand()
-                            if area_rand_j <= percent_area1:
+                            if area_rand_j < percent_area1:
                                 area = 1
                                 
-                                cos_theta = np.random.rand * (
+                                cos_theta = np.random.rand() * (
                                  self.cos_theta_max - 
                                  self.cos_theta_cutoff) + self.cos_theta_cutoff
                             else:
@@ -980,10 +980,12 @@ class MonteCarlo(object):
                                  self.cos_theta_cutoff -
                                  self.cos_theta_min) + self.cos_theta_cutoff
                             two_phi = np.random.rand() * FOUR_PIE
+                        
+                        r3 = 1.001 * np.random.rand()
                         if area == 1:
-                            r3 = np.random.rand() * max_val1
+                            r3 = r3 * max_val1
                         if area == 2:
-                            r3 = np.random.rand() * max_val2
+                            r3 = r3 * max_val2
                         
                         S11 = P11_interp(cos_theta)
                         S12 = P12_interp(cos_theta)
@@ -1272,7 +1274,7 @@ class MonteCarlo(object):
                 
                 elif self.shape != 'sphere' and not self.HG:
                     # update stokes paramters via scattering phase matrix
-                    theta_sca = np.arccos(costheta)
+                    cos2theta = costheta**2
                     phi_sca = np.arccos(cosphi)
                     
                     # step 1 - Rotation of the reference frame into the 
@@ -1285,12 +1287,12 @@ class MonteCarlo(object):
                     
                     # step 2 - Scattering of the photon at an angle theta_sca
                     #          in the scattering plane
-                    P11 = P11_interp(theta_sca)
-                    P12 = P12_interp(theta_sca)
-                    P22 = P22_interp(theta_sca)
-                    P33 = P33_interp(theta_sca)
-                    P43 = P43_interp(theta_sca)
-                    P44 = P44_interp(theta_sca)
+                    P11 = P11_interp(costheta)
+                    P12 = P12_interp(costheta)
+                    P22 = P22_interp(costheta)
+                    P33 = P33_interp(costheta)
+                    P43 = P43_interp(costheta)
+                    P44 = P44_interp(costheta)
                     
                     I_sca = I_sp * P11 + Q_sp * P12
                     Q_sca = I_sp * P12 + Q_sp * P22
@@ -1299,28 +1301,30 @@ class MonteCarlo(object):
                     
                     # step 3 - Return the reference frame to a new meridian
                     #          plane
-                    if costheta==1:
-                        gama = phi_sca
+                    den = np.sqrt((1 - cos2theta) * (1 - muz_n**2))
+                    if den == 0:
+                        cos_i = 0
                     else:
                         num = muz_n * costheta - muz_0
                         if phi_sca >= np.pi:
-                            den = np.sqrt((1 - costheta**2)*(1 - muz_n**2))
-                        elif phi_sca < np.pi:
-                            den = -np.sqrt((1 - costheta**2)*(1 - muz_n**2))
-                        
-                        if num / den > 1:
-                            gama = 0
-                        elif num / den < -1:
-                            gama = np.pi
+                            sign = 1
                         else:
-                            gama = np.arccos(num / den)
+                            sign = -1
+                        cos_i = num / (sign * den)
+                        
+                        if cos_i < -1:
+                            cos_i = -1
+                        elif cos_i > 1:
+                            cos_i = 1
+                            
+                    i_2 = np.arccos(cos_i)
                     
                     stokes_sca = (I_sca, Q_sca, U_sca, V_sca)
                     
                     (I_merd,
                      Q_merd, 
                      U_merd,
-                     V_merd) = self.rotate_stokes_vector(-gama, stokes_sca)
+                     V_merd) = self.rotate_stokes_vector(-i_2, stokes_sca)
                      
                     self.stokes_params = np.array(
                                      [I_merd, Q_merd, U_merd, V_merd]) / I_merd
