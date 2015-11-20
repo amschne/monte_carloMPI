@@ -971,7 +971,7 @@ class MonteCarlo(object):
                             if area_rand_j <= percent_area1:
                                 area = 1
                                 
-                                cos_theta = np.random.rand() * (
+                                cos_theta = np.random.rand * (
                                  self.cos_theta_max - 
                                  self.cos_theta_cutoff) + self.cos_theta_cutoff
                             else:
@@ -1272,45 +1272,25 @@ class MonteCarlo(object):
                 
                 elif self.shape != 'sphere' and not self.HG:
                     # update stokes paramters via scattering phase matrix
-                    cos2theta = costheta**2
+                    theta_sca = np.arccos(costheta)
                     phi_sca = np.arccos(cosphi)
-                    if phi_sca >= np.pi:
-                        sign = 1.
-                    elif phi_sca < np.pi:
-                        sign = -1
                     
                     # step 1 - Rotation of the reference frame into the 
                     #          scattering plane
-                    if np.absolute(costheta)==1:
-                        i_1 = 0
-                    elif muz_0==1:
-                        i_1 = phi_sca
-                    elif muz_0==-1:
-                        i_1 = -phi_sca
-                    else:
-                        num = muz_n - muz_0 * costheta
-                        den = sign * np.sqrt((1 - cos2theta) * (1 - muz_0**2))
-                        
-                        if num / den > 1:
-                            i_1 = 0
-                        elif num / den < -1:
-                            i_1 = np.pi
-                        else:
-                            i_1 = np.arccos(num / den)
                     (I_sp,
                      Q_sp,
                      U_sp,
-                     V_sp) = self.rotate_stokes_vector(-i_1,
+                     V_sp) = self.rotate_stokes_vector(phi_sca,
                                                        self.stokes_params)
                     
                     # step 2 - Scattering of the photon at an angle theta_sca
                     #          in the scattering plane
-                    P11 = P11_interp(costheta)
-                    P12 = P12_interp(costheta)
-                    P22 = P22_interp(costheta)
-                    P33 = P33_interp(costheta)
-                    P43 = P43_interp(costheta)
-                    P44 = P44_interp(costheta)
+                    P11 = P11_interp(theta_sca)
+                    P12 = P12_interp(theta_sca)
+                    P22 = P22_interp(theta_sca)
+                    P33 = P33_interp(theta_sca)
+                    P43 = P43_interp(theta_sca)
+                    P44 = P44_interp(theta_sca)
                     
                     I_sca = I_sp * P11 + Q_sp * P12
                     Q_sca = I_sp * P12 + Q_sp * P22
@@ -1319,26 +1299,28 @@ class MonteCarlo(object):
                     
                     # step 3 - Return the reference frame to a new meridian
                     #          plane
-                    if np.absolute(costheta)==1:
-                        i_2 = 0
+                    if costheta==1:
+                        gama = phi_sca
                     else:
-                        num = muz_0 - muz_n * costheta
-                        den = sign * np.sqrt((1 - cos2theta) * (1 - muz_n**2))
+                        num = muz_n * costheta - muz_0
+                        if phi_sca >= np.pi:
+                            den = np.sqrt((1 - costheta**2)*(1 - muz_n**2))
+                        elif phi_sca < np.pi:
+                            den = -np.sqrt((1 - costheta**2)*(1 - muz_n**2))
                         
                         if num / den > 1:
-                            i_2 = 0
+                            gama = 0
                         elif num / den < -1:
-                            i_2 = np.pi
+                            gama = np.pi
                         else:
-                            i_2 = np.arccos(num / den)
+                            gama = np.arccos(num / den)
                     
                     stokes_sca = (I_sca, Q_sca, U_sca, V_sca)
                     
                     (I_merd,
                      Q_merd, 
                      U_merd,
-                     V_merd) = self.rotate_stokes_vector(np.pi - i_2,
-                                                         stokes_sca)
+                     V_merd) = self.rotate_stokes_vector(-gama, stokes_sca)
                      
                     self.stokes_params = np.array(
                                      [I_merd, Q_merd, U_merd, V_merd]) / I_merd
@@ -1580,16 +1562,14 @@ class MonteCarlo(object):
                 self.interpolate_phase_matrix(par_wvls.working_set)
             
             self.initial_pdfs(par_wvls.working_set)
-            if False:
-                """ Deprecated, only use for testing
-                """
-                self.stokes_params = stokes_params
-                (self.p_rand,
-                 self.tau_rand,
-                 self.phi_rand,
-                 self.ssa_rand,
-                 self.ext_spc_rand) = self.populate_pdfs(g,
-                                                         par_wvls.working_set)
+            """ Deprecated, only use for testing     
+            self.stokes_params = stokes_params
+            (self.p_rand,
+             self.tau_rand,
+             self.phi_rand,
+             self.ssa_rand,
+             self.ext_spc_rand) = self.populate_pdfs(g, par_wvls.working_set)
+            """ 
             # counters for saving coordinates of absorption events and exit_top 
             # events
             #self.i1 = 1
