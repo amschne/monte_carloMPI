@@ -968,7 +968,7 @@ class MonteCarlo(object):
                                  self.cos_theta_min) + self.cos_theta_cutoff
                             two_phi = np.random.rand() * FOUR_PIE
                         
-                        r3 = 1.001 * np.random.rand()
+                        r3 = 1.000001 * np.random.rand()
                         if area == 1:
                             r3 = r3 * max_val1
                         if area == 2:
@@ -1597,13 +1597,13 @@ class MonteCarlo(object):
                                                                    answer[6]))
                 else:
                     txt_file.write('condition wvn[um^-1] theta_n phi_n n_scat '
-                                   'path_length[m], snow_depth[m], I_n, Q_n, '
+                                   'path_length[m], snow_depth[m], Q_n, '
                                    'U_n, V_n\n')
                     for i, answer in enumerate(all_answers):
-                        txt_file.write('%d %r %r %r %d %r %r %r %r %r %r\n'
+                        txt_file.write('%d %r %r %r %d %r %r %r %r %r\n'
                                        % (answer[0], answer[1], answer[2],
                                           answer[3], answer[4], answer[5],
-                                          answer[6], answer[7][0], answer[7][1],
+                                          answer[6], answer[7][1],
                                           answer[7][2], answer[7][3]))
                 txt_file.close()
                 print('%s' % output_file) # for easy post processing
