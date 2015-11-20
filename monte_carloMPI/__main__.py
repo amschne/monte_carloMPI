@@ -65,7 +65,7 @@ def run():
                 single_grain_size(n_photon, wvl, half_width, rds_snw,
                                   theta_0=theta_0, stokes_params=stokes_params,
                                   shape=shape, roughness=roughness)
-    
+            
             if True: # multiple grain sizes
                 #rds_snw = np.arange(10., 1000., 100.)
                 rds_snw = np.array([50, 100, 200, 500, 1000])
