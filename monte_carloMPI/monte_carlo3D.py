@@ -773,7 +773,7 @@ class MonteCarlo(object):
             parameter g
         """
         if g==0:
-            p_HG = 1 - 2*costheta_p
+            p_HG = 1 - 2 * costheta_p
         else:
             p_HG = (1./(2.*g)) * (1 + g**2 - 
                                        ((1 - g**2)/(1 - g + 2*g*costheta_p))**2)
@@ -800,6 +800,13 @@ class MonteCarlo(object):
     def interpolate_phase_matrix(self, wvls):
         """
         """
+        cos_theta_P11 = np.cos(self.theta_P11)
+        cos_theta_P12 = np.cos(self.theta_P12)
+        cos_theta_P22 = np.cos(self.theta_P22)
+        cos_theta_P33 = np.cos(self.theta_P33)
+        cos_theta_P43 = np.cos(self.theta_P43)
+        cos_theta_P44 = np.cos(self.theta_P44)
+        
         self.P11_interp = dict()
         self.P12_interp = dict()
         self.P22_interp = dict()
@@ -815,6 +822,7 @@ class MonteCarlo(object):
                 wvl0_exists = True
             if wvl != last_wvl:
                 last_wvl = wvl
+                """
                 self.P11_interp[wvl] = interpolate.interp1d(self.theta_P11, 
                                                             self.P11[wvl])
                 self.P12_interp[wvl] = interpolate.interp1d(self.theta_P12,
@@ -827,23 +835,37 @@ class MonteCarlo(object):
                                                             self.P43[wvl])
                 self.P44_interp[wvl] = interpolate.interp1d(self.theta_P44,
                                                             self.P44[wvl])
-        
+                """
+                self.P11_interp[wvl] = interpolate.interp1d(cos_theta_P11, 
+                                                            self.P11[wvl])
+                self.P12_interp[wvl] = interpolate.interp1d(cos_theta_P12,
+                                                            self.P12[wvl])
+                self.P22_interp[wvl] = interpolate.interp1d(cos_theta_P22,
+                                                            self.P22[wvl])
+                self.P33_interp[wvl] = interpolate.interp1d(cos_theta_P33,
+                                                            self.P33[wvl])
+                self.P43_interp[wvl] = interpolate.interp1d(cos_theta_P43,
+                                                            self.P43[wvl])
+                self.P44_interp[wvl] = interpolate.interp1d(cos_theta_P44,
+                                                            self.P44[wvl])
         # setup cutoff parameters for rejection method
-        desired_percent_area1 = 0.9
+        desired_percent_area1 = 0.5
         if wvl0_exists:
             # use center wavelength if it exists
             wvl = self.wvl0
             # else, use the last wvl looped above
         P11 = self.P11[wvl]
-        self.theta_max = self.theta_P11[-1]
+        self.cos_theta_max = cos_theta_P11[0]
+        self.cos_theta_min = cos_theta_P11[-1]
         percent_area1_list = list()
-        for i, theta in enumerate(self.theta_P11):
-            if i>0 and i<320:
+        n = len(cos_theta_P11)
+        for i, cos_theta in enumerate(cos_theta_P11):
+            if i>0 and i < n-1:
                 max_val1 = P11[:i+1].max()
                 max_val2 = P11[i:].max()
                 
-                area1 = theta*max_val1
-                area2 = (self.theta_max - theta)*max_val2
+                area1 = (self.cos_theta_max - cos_theta) * max_val1
+                area2 = (cos_theta - self.cos_theta_min) * max_val2
                 
                 percent_area1_list.append(area1/(area1+area2))
             else:
@@ -852,7 +874,7 @@ class MonteCarlo(object):
         percent_area1_array = np.array(percent_area1_list)
         self.cutoff_idx = np.argsort(np.absolute(desired_percent_area1 -
                                                  percent_area1_array))[0]
-        self.theta_cutoff = self.theta_P11[self.cutoff_idx]
+        self.cos_theta_cutoff = cos_theta_P11[self.cutoff_idx]
     
     def populate_pdfs(self, g, wvl, RANDOM_NUMBERS=1):
         """ 1. Populate PDF of cos(scattering phase angle) with random numbers
@@ -912,28 +934,31 @@ class MonteCarlo(object):
                 
                 max_val2 = A + B * C
 
-                area1 = max_val1 * self.theta_cutoff
-                area2 = max_val2 * (self.theta_max - self.theta_cutoff)
+                area1 = (self.cos_theta_max - self.cos_theta_cutoff) * max_val1
+                area2 = (self.cos_theta_cutoff - self.cos_theta_min) * max_val2
                 percent_area1 = area1 / (area1 + area2)
                 
                 area_rand = np.random.rand(RANDOM_NUMBERS)
                 
-                theta_rand = np.random.rand(RANDOM_NUMBERS) # 0 -> 1
+                cos_theta_rand = np.random.rand(RANDOM_NUMBERS) # 0 -> 1
                 # 0 -> 2pi
                 phi_rand[i, :] = np.random.rand(RANDOM_NUMBERS) * TWO_PIE
                 two_phi_rand = 2 * phi_rand[i, :]
-                for j, theta in enumerate(theta_rand):
+                for j, cos_theta in enumerate(cos_theta_rand):
                     #print(i,j)
                     two_phi = two_phi_rand[j]
                     area_rand_j = area_rand[j]
                     if area_rand_j <= percent_area1:
                         area = 1
-                        theta = theta * self.theta_cutoff # 0 -> theta_cutoff
+                        cos_theta = cos_theta * (
+                                 self.cos_theta_max - 
+                                 self.cos_theta_cutoff) + self.cos_theta_cutoff
                     else:
                         area = 2
-                        theta = theta * (self.theta_max -
-                                         self.theta_cutoff) + self.theta_cutoff
-
+                        cos_theta = -cos_theta * (
+                                 self.cos_theta_cutoff -
+                                 self.cos_theta_min) + self.cos_theta_cutoff
+                    
                     # rejection method
                     r3 = 1
                     phase_func_val = 0
@@ -945,28 +970,30 @@ class MonteCarlo(object):
                             area_rand_j = np.random.rand()
                             if area_rand_j <= percent_area1:
                                 area = 1
-                                # 0 -> theta_cutoff
-                                theta = np.random.rand() * self.theta_cutoff
+                                
+                                cos_theta = np.random.rand * (
+                                 self.cos_theta_max - 
+                                 self.cos_theta_cutoff) + self.cos_theta_cutoff
                             else:
                                 area = 2
-                                theta = (np.random.rand() * 
-                                         (self.theta_max - self.theta_cutoff) + 
-                                         self.theta_cutoff)
+                                cos_theta = -np.random.rand() * (
+                                 self.cos_theta_cutoff -
+                                 self.cos_theta_min) + self.cos_theta_cutoff
                             two_phi = np.random.rand() * FOUR_PIE
                         if area == 1:
                             r3 = np.random.rand() * max_val1
                         if area == 2:
                             r3 = np.random.rand() * max_val2
                         
-                        S11 = P11_interp(theta)
-                        S12 = P12_interp(theta)
+                        S11 = P11_interp(cos_theta)
+                        S12 = P12_interp(cos_theta)
                         phase_func_val = I*S11 + S12 * (Q*np.cos(two_phi) +
                                                         U*np.sin(two_phi))
                         
                         k += 1
-                    theta_rand[j] = theta
+                    cos_theta_rand[j] = cos_theta
                     phi_rand[i,j] = two_phi / 2.
-                p_rand[i,:] = np.cos(theta_rand)
+                p_rand[i,:] = cos_theta_rand
 
             # SANITY CHECK:  mean of the random distribution (should equal g)
             #p_mean = np.mean(p_rand[i,:])
