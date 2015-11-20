@@ -13,8 +13,8 @@ import argparse
 import numpy as np
 from scipy import interpolate
 from scipy.io import netcdf
-from matplotlib import pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
+#from matplotlib import pyplot as plt
+#from mpl_toolkits.mplot3d import Axes3D
 
 from parallelize import Parallel
 
@@ -823,18 +823,18 @@ class MonteCarlo(object):
             if wvl != last_wvl:
                 last_wvl = wvl
                 
-                self.P11_interp[wvl] = interpolate.interp1d(cos_theta_P11, 
-                                                            self.P11[wvl])
-                self.P12_interp[wvl] = interpolate.interp1d(cos_theta_P12,
-                                                            self.P12[wvl])
-                self.P22_interp[wvl] = interpolate.interp1d(cos_theta_P22,
-                                                            self.P22[wvl])
-                self.P33_interp[wvl] = interpolate.interp1d(cos_theta_P33,
-                                                            self.P33[wvl])
-                self.P43_interp[wvl] = interpolate.interp1d(cos_theta_P43,
-                                                            self.P43[wvl])
-                self.P44_interp[wvl] = interpolate.interp1d(cos_theta_P44,
-                                                            self.P44[wvl])
+                self.P11_interp[wvl] = interpolate.interp1d(cos_theta_P11[::-1],
+                                                            self.P11[wvl][::-1])
+                self.P12_interp[wvl] = interpolate.interp1d(cos_theta_P12[::-1],
+                                                            self.P12[wvl][::-1])
+                self.P22_interp[wvl] = interpolate.interp1d(cos_theta_P22[::-1],
+                                                            self.P22[wvl][::-1])
+                self.P33_interp[wvl] = interpolate.interp1d(cos_theta_P33[::-1],
+                                                            self.P33[wvl][::-1])
+                self.P43_interp[wvl] = interpolate.interp1d(cos_theta_P43[::-1],
+                                                            self.P43[wvl][::-1])
+                self.P44_interp[wvl] = interpolate.interp1d(cos_theta_P44[::-1],
+                                                            self.P44[wvl][::-1])
         # setup cutoff parameters for rejection method
         desired_percent_area1 = 0.5
         if wvl0_exists:
