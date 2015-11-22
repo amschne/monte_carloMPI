@@ -161,13 +161,11 @@ class MonteCarlo(object):
     
         P_line0 = P_dat.readline().split()
         P_lines = P_dat.readlines()
-    
-        theta_deg = np.empty(len(P_line0))
         P_lines = np.array(P_lines)[valid_idxs]
     
         P_dat.close()
     
-        return theta_deg, P_lines
+        return P_line0, P_lines
     
     #@timefunc
     def get_aspherical_SSPs(self, wvls, rds_snw):
@@ -257,21 +255,21 @@ class MonteCarlo(object):
             """
             self.aspherical_particle_dir = aspherical_particle_dir
             phase_matrix_elements = ['P11', 'P12', 'P22', 'P33', 'P43', 'P44']
-            theta_P_dict = dict()
+            P_line0_dict = dict()
             P_lines_dict = dict()
             for i, element in enumerate(phase_matrix_elements):
-                (theta_P_dict[element],
+                (P_line0_dict[element],
                  P_lines_dict[element]) = self.read_phase_matrix_elements(
                                                                      element,
                                                                      valid_idxs)
             
-            theta_P11_deg = theta_P_dict['P11']
-            theta_P12_deg = theta_P_dict['P12']
-            theta_P22_deg = theta_P_dict['P22']
-            theta_P33_deg = theta_P_dict['P33']
-            theta_P43_deg = theta_P_dict['P43']
-            theta_P44_deg = theta_P_dict['P44']
-            
+            P11_line0 = P_line0_dict['P11']
+            P12_line0 = P_line0_dict['P12']
+            P22_line0 = P_line0_dict['P22']
+            P33_line0 = P_line0_dict['P33']
+            P43_line0 = P_line0_dict['P43']
+            P44_line0 = P_line0_dict['P44']            
+                        
             P11_lines = P_lines_dict['P11']
             P12_lines = P_lines_dict['P12']
             P22_lines = P_lines_dict['P22']
@@ -291,6 +289,13 @@ class MonteCarlo(object):
             P33_norm = dict()
             P43_norm = dict()
             P44_norm = dict()
+            
+            theta_P11_deg = np.empty(len(P11_line0))
+            theta_P12_deg = np.empty(len(P12_line0))
+            theta_P22_deg = np.empty(len(P22_line0))
+            theta_P33_deg = np.empty(len(P33_line0))
+            theta_P43_deg = np.empty(len(P43_line0))
+            theta_P44_deg = np.empty(len(P44_line0))
             
             # set up container for appropriate wvls
             self.wvls = np.empty(wvls.shape)
