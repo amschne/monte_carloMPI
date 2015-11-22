@@ -885,9 +885,9 @@ class MonteCarlo(object):
             V = self.stokes_params[3]
             
             if Q == 0:
-                beta = 0.5 * np.arctan(U / 1e-15)
+                two_beta = np.arctan(U / 1e-15)
             else:
-                beta = 0.5 * np.arctan(U / Q)
+                two_beta = np.arctan(U / Q)
         
         for i, val in enumerate(wvl):
             if self.shape == 'sphere' or self.HG:
@@ -908,7 +908,7 @@ class MonteCarlo(object):
                 A = np.absolute(I) * np.absolute(
                                         self.P11[val][:self.cutoff_idx+1]).max()
                 B = np.absolute(self.P12[val][:self.cutoff_idx+1]).max()
-                C = np.absolute(Q * np.cos(2*beta) + U * np.sin(2*beta))
+                C = np.absolute(Q * np.cos(two_beta) + U * np.sin(two_beta))
                 
                 max_val1 = A + B * C
                 
@@ -1102,6 +1102,7 @@ class MonteCarlo(object):
         mux_0 = np.sin(self.theta_0)
         muy_0 = 0
         muz_0 = -np.cos(self.theta_0)
+        muz2_0 = muz_0**2
             
         x_crt = np.array([0])
         y_crt = np.array([0])
@@ -1229,6 +1230,7 @@ class MonteCarlo(object):
                 sintheta = np.sqrt(1 - costheta**2)
                 
             if i > 1:
+                cos2theta = costheta**2
                 # scattering azimuth angle:
                 cosphi = np.cos(self.phi_rand[self.photon, i_rand-1])
                 sinphi = np.sin(self.phi_rand[self.photon, i_rand-1])
@@ -1248,11 +1250,11 @@ class MonteCarlo(object):
                     """
                     mux_n = ((sintheta * (mux_0 * muz_0 * cosphi -
                                           muy_0 * sinphi)) /
-                             (np.sqrt(1 - muz_0**2)) + mux_0 * costheta)
+                             (np.sqrt(1 - muz2_0)) + mux_0 * costheta)
                     muy_n = ((sintheta * (muy_0 * muz_0 * cosphi +
                                           mux_0 * sinphi)) /
-                             (np.sqrt(1 - muz_0**2)) + muy_0 * costheta)
-                    muz_n = -(np.sqrt(1 - muz_0**2) * sintheta * cosphi + 
+                             (np.sqrt(1 - muz2_0)) + muy_0 * costheta)
+                    muz_n = -(np.sqrt(1 - muz2_0) * sintheta * cosphi + 
                               muz_0 * costheta)
                 
                 if bottom_reflection:
@@ -1341,6 +1343,7 @@ class MonteCarlo(object):
                 mux_0 = mux_n
                 muy_0 = muy_n
                 muz_0 = muz_n
+                muz2_0 = muz_0**2
             
             # update path length
             path_length += dtau_current / ext_cff
