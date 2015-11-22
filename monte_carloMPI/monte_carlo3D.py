@@ -140,6 +140,35 @@ class MonteCarlo(object):
         
         return output_file
     
+    def read_phase_matrix_elements(self, element, valid_idxs):
+        """
+        """
+        if element=='P11':
+            filename = 'P11.dat'
+        elif element=='P12':
+            filename = 'P12.dat'
+        elif element=='P22':
+            filename = 'P22.dat'
+        elif element=='P33':
+            filename = 'P33.dat'
+        elif element=='P43':
+            filename = 'P43.dat'
+        elif element=='P44':
+            filename = 'P44.dat'
+        
+        P_fi = os.path.join(self.aspherical_particle_dir, filename)
+        P_dat = open(P_fi, 'r')
+    
+        P_line0 = P_dat.readline().split()
+        P_lines = P_dat.readlines()
+    
+        theta_deg = np.empty(len(P_line0))
+        P_lines = np.array(P_lines)[valid_idxs]
+    
+        P_dat.close()
+    
+        return theta_deg, P_lines
+    
     #@timefunc
     def get_aspherical_SSPs(self, wvls, rds_snw):
         """ Retrieve single scattering properties (SSPs) for aspherical ice
@@ -205,42 +234,6 @@ class MonteCarlo(object):
             Q_ext_in.append(float(line.split()[4]))
             ssa_in.append(float(line.split()[5]))
             asm_in.append(float(line.split()[6]))
-        
-        # Scattering phase matrix elements    
-        if not self.HG:
-            P11_filename = 'P11.dat'
-            P12_filename = 'P12.dat'
-            P22_filename = 'P22.dat'
-            P33_filename = 'P33.dat'
-            P43_filename = 'P43.dat'
-            P44_filename = 'P44.dat'
-            
-            P11_fi = os.path.join(aspherical_particle_dir, P11_filename)
-            P12_fi = os.path.join(aspherical_particle_dir, P12_filename)
-            P22_fi = os.path.join(aspherical_particle_dir, P22_filename)
-            P33_fi = os.path.join(aspherical_particle_dir, P33_filename)
-            P43_fi = os.path.join(aspherical_particle_dir, P43_filename)
-            P44_fi = os.path.join(aspherical_particle_dir, P44_filename)
-            
-            P11_dat = open(P11_fi, 'r')
-            P12_dat = open(P12_fi, 'r')
-            P22_dat = open(P22_fi, 'r')
-            P33_dat = open(P33_fi, 'r')
-            P43_dat = open(P43_fi, 'r')
-            P44_dat = open(P44_fi, 'r')
-            
-            P11_line0 = P11_dat.readline().split()
-            P11_lines = P11_dat.readlines()
-            P12_line0 = P12_dat.readline().split()
-            P12_lines = P12_dat.readlines()
-            P22_line0 = P22_dat.readline().split()
-            P22_lines = P22_dat.readlines()
-            P33_line0 = P33_dat.readline().split()
-            P33_lines = P33_dat.readlines()
-            P43_line0 = P43_dat.readline().split()
-            P43_lines = P43_dat.readlines()
-            P44_line0 = P44_dat.readline().split()
-            P44_lines = P44_dat.readlines()
             
         # Calculate effective radius
         RE = (3./4.) * (np.array(particle_volume_in) / np.array(G_in)) # um
@@ -260,12 +253,31 @@ class MonteCarlo(object):
         asm_in = np.array(asm_in)[valid_idxs]
         
         if not self.HG:
-            P11_lines = np.array(P11_lines)[valid_idxs]
-            P12_lines = np.array(P12_lines)[valid_idxs]
-            P22_lines = np.array(P22_lines)[valid_idxs]
-            P33_lines = np.array(P33_lines)[valid_idxs]
-            P43_lines = np.array(P43_lines)[valid_idxs]
-            P44_lines = np.array(P44_lines)[valid_idxs]
+            """ Scattering phase matrix elements
+            """
+            self.aspherical_particle_dir = aspherical_particle_dir
+            phase_matrix_elements = ['P11', 'P12', 'P22', 'P33', 'P43', 'P44']
+            theta_P_dict = dict()
+            P_lines_dict = dict()
+            for i, element in enumerate(phase_matrix_elements):
+                (theta_P_dict[element],
+                 P_lines_dict[element]) = self.read_phase_matrix_elements(
+                                                                     element,
+                                                                     valid_idxs)
+            
+            theta_P11_deg = theta_P_dict['P11']
+            theta_P12_deg = theta_P_dict['P12']
+            theta_P22_deg = theta_P_dict['P22']
+            theta_P33_deg = theta_P_dict['P33']
+            theta_P43_deg = theta_P_dict['P43']
+            theta_P44_deg = theta_P_dict['P44']
+            
+            P11_lines = P_lines_dict['P11']
+            P12_lines = P_lines_dict['P12']
+            P22_lines = P_lines_dict['P22']
+            P33_lines = P_lines_dict['P33']
+            P43_lines = P_lines_dict['P43']
+            P44_lines = P_lines_dict['P44']
             
             P11 = dict()
             P12 = dict()
@@ -279,13 +291,6 @@ class MonteCarlo(object):
             P33_norm = dict()
             P43_norm = dict()
             P44_norm = dict()
-            
-            theta_P11_deg = np.empty(len(P11_line0))
-            theta_P12_deg = np.empty(len(P12_line0))
-            theta_P22_deg = np.empty(len(P22_line0))
-            theta_P33_deg = np.empty(len(P33_line0))
-            theta_P43_deg = np.empty(len(P43_line0))
-            theta_P44_deg = np.empty(len(P44_line0))
             
             # set up container for appropriate wvls
             self.wvls = np.empty(wvls.shape)
