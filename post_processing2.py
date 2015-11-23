@@ -52,6 +52,7 @@ class MonteCarloData(object):
         """
         colors = ['b', 'g', 'r', 'c', 'm']
         hist_range = (0., np.pi/2)
+        n_bins = calculate_bins(self.args.active_area, self.args.d_dome)
         
         if self.args.r_step is None:
             r_step = (self.args.r_max / 10) - 0.01
@@ -74,7 +75,7 @@ class MonteCarloData(object):
             Q_down = data['wvn[um^-1]'].sum()
             weights = data[data.condition==1]['wvn[um^-1]']
             theta_exit = data[data.condition==1]['theta_n']
-            h = np.histogram(theta_exit, bins=self.args.bins, range=hist_range,
+            h = np.histogram(theta_exit, bins=n_bins, range=hist_range,
                              weights=weights)
             midpoints = (np.diff(h[1]) / 2.) + h[1][:-1]
             brf_weights = (np.sin(midpoints)*np.cos(midpoints) / 
@@ -328,6 +329,10 @@ def get_args():
                         help='directory containing data')
     parser.add_argument('--bins', type=int, default=90,
                         help='number of theta bins to compute histogram over')
+    parser.add_argument('--active_area', type=float, default=1.,
+                        help='Active area of photodiode (mm)')
+    parser.add_argument('--d_dome', type=float, default=175.,
+                        help='Diameter of dome (mm)')
     parser.add_argument('--path_length_bins', type=int, default=1000,
                         help='number of x bins to compute histogram over')
     parser.add_argument('--n_scat_bins', type=int, default=200,
