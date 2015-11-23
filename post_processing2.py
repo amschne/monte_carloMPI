@@ -439,8 +439,9 @@ def calculate_bins(active_area, d_dome):
 
         Returns number of bins n_bins
     """
-    n_bins = (np.pi * d_dome) / (4.*active_area)
-
+    n_bins =  int((np.pi * d_dome) / (4.*active_area))
+    print('BRF computing over %d bins' % n_bins)
+    
     return n_bins
 
 def process():
