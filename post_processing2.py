@@ -74,7 +74,6 @@ class MonteCarloData(object):
             Q_down = data['wvn[um^-1]'].sum()
             weights = data[data.condition==1]['wvn[um^-1]']
             theta_exit = data[data.condition==1]['theta_n']
-            
             h = np.histogram(theta_exit, bins=self.args.bins, range=hist_range,
                              weights=weights)
             midpoints = (np.diff(h[1]) / 2.) + h[1][:-1]
@@ -429,6 +428,16 @@ def read_data(args, file_list):
     
     return data_dict
 
+def calculate_bins(active_area, d_dome):
+    """ Calculate number of bins to simulate photodiode with given active area
+        mounted in dome with given diameter
+
+        Returns number of bins n_bins
+    """
+    n_bins = (np.pi * d_dome) / (4.*active_area)
+
+    return n_bins
+
 def process():
     args = get_args()    
     file_list = args.file_list
@@ -438,7 +447,7 @@ def process():
     # Create bi-directional reflectance factor polar plots for each grain size
     monte_carlo_data = MonteCarloData(args, file_list)
     monte_carlo_data.spectral_albedo()
-    #monte_carlo_data.brf()
+    monte_carlo_data.brf()
     
     #monte_carlo_data.bi_directional_reflectance_factor()
     #data_dict = read_data(args, file_list)
