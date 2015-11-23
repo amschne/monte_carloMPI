@@ -111,8 +111,9 @@ class MonteCarlo(object):
             save_dir = roughness_dir_path
         if not os.path.isdir(shape_dir_path):
             os.mkdir(shape_dir_path)
-        if not os.path.isdir(roughness_dir_path):
-            os.mkdir(roughness_dir_path)
+        if self.shape!='sphere':
+            if not os.path.isdir(roughness_dir_path):
+                os.mkdir(roughness_dir_path)
         
         rds_snw = self.snow_effective_radius
         theta0_deg = np.rad2deg(self.theta_0)
