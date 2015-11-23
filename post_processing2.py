@@ -264,7 +264,7 @@ class MonteCarloData(object):
             for j, wvl0 in enumerate(wvl0_list):
                 data = self.data_dict[rds_snw][wvl0]
                 actual_wvl0.append((data['wvn[um^-1]']**(-1)).mean())
-                print('wavelength = %r um' % actual_wvl0[i])           
+                print('wavelength = %r um' % actual_wvl0[j])           
                 Q_down = data['wvn[um^-1]'].sum()
                 Q_up = data[data.condition==1]['wvn[um^-1]'].sum()
                 
