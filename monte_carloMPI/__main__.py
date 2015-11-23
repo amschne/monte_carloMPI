@@ -8,14 +8,14 @@ LAMBERTIAN_SURFACE = False # True will simply simulate a
                            # Lambertian surface
 LAMBERTIAN_BOTTOM = True # True will add Lambertian bottom boundary with reflectance
                          # set below
-LAMBERTIAN_REFLECTANCE = 1. # Set reflectance of Lambertian surface OR
-                            # reflectance of underlying surface beneath snow 
+LAMBERTIAN_REFLECTANCE = 1e-9 # Set reflectance of Lambertian surface OR
+                              # reflectance of underlying surface beneath snow 
 
 def run():    
     """ USER INPUT
     """
     # set number of photons
-    n_photon = 1000
+    n_photon = 1000000
     
     # set initial incidence zenith angle (degrees)
     theta_0 = 0.
@@ -29,8 +29,8 @@ def run():
     stokes_params = np.array([I, Q, U, V])
     
     # select one of the following snow grain shape habits:
-    shape = 'sphere' # default
-    #shape = 'solid hexagonal column'
+    #shape = 'sphere' # default
+    shape = 'solid hexagonal column'
     #shape = 'hexagonal plate'
     #shape = 'hollow hexagonal column'
     #shape = 'droxtal'
@@ -41,24 +41,26 @@ def run():
     #shape = '10-element plate aggregate'
     
     # select degree of surface roughness:
-    roughness = 'smooth' # default
+    #roughness = 'smooth' # default
     #roughness = 'moderatley rough'
-    #roughness = 'severely rough'
+    roughness = 'severely rough'
     
     # wavelength [um]
-    wvl = 1.3
+    #wvl = 1.3
     #wvl = 1.55
     #wvl = 0.5
     
     # half width [um]
-    half_width = 0.085
+    #half_width = 0.085
     #half_width = 0.3
     
-    if False:  # use for runs of multiple wavelengths
-        wvls = np.arange(0.305, 3., 0.1)
-        half_width = 1e-15
+    if True:  # use for runs of multiple wavelengths
+        #wvls = np.arange(0.305, 3., 0.1)
+        wvls = [1.3, 1.55]
+        half_widths = [0.085, 0.130]
         
         for i, wvl in enumerate(wvls):
+            half_width = half_widths[i]
             # snow effective grain size [um]
             if False: # single grain size
                 rds_snw = 10.
@@ -68,13 +70,13 @@ def run():
             
             if True: # multiple grain sizes
                 #rds_snw = np.arange(10., 1000., 100.)
-                rds_snw = np.array([50, 100, 200, 500, 1000])
+                rds_snw = np.array([50, 100, 250, 500, 1000])
                 multiple_grain_sizes(n_photon, wvl, half_width, rds_snw,
                                      theta_0=theta_0,
                                      stokes_params=stokes_params,
                                      shape=shape, roughness=roughness)
     
-    if True:  # use for run of single wavelength
+    if False:  # use for run of single wavelength
         # snow effective grain size [um]
         if True: # single grain size
             rds_snw = 100.
