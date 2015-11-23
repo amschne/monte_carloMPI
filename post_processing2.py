@@ -123,8 +123,7 @@ class MonteCarloData(object):
             albedo_dict[rds_snw] = dict()
             wvl0_list = sorted(self.data_dict[rds_snw].keys())
             for j, wvl0 in enumerate(wvl0_list):
-                data = self.data_dict[rds_snw][wvl0]
-            
+                data = self.data_dict[rds_snw][wvl0]                
                 Q_down = data['wvn[um^-1]'].sum()
                 Q_up = data[data.condition==1]['wvn[um^-1]'].sum()
             
@@ -261,10 +260,11 @@ class MonteCarloData(object):
             albedo_dict[rds_snw] = dict()
             albedo_dict2[rds_snw] = dict()
             wvl0_list = sorted(self.data_dict[rds_snw].keys())
+            actual_wvl0 = list()
             for j, wvl0 in enumerate(wvl0_list):
-                print('wavelength = %r um' % wvl0)
                 data = self.data_dict[rds_snw][wvl0]
-            
+                actual_wvl0.append((data['wvn[um^-1]']**(-1)).mean())
+                print('wavelength = %r um' % actual_wvl0[i])           
                 Q_down = data['wvn[um^-1]'].sum()
                 Q_up = data[data.condition==1]['wvn[um^-1]'].sum()
                 
@@ -285,11 +285,12 @@ class MonteCarloData(object):
                 albedo[j] = albedo_dict[rds_snw][wvl0]
                 albedo2[j] = albedo_dict2[rds_snw][wvl0]
                 
-                print('albedo(%s, %s) = %r' % (wvl0, rds_snw, albedo[j]))
+                print('albedo(%s, %s) = %r' % (actual_wvl0[j], rds_snw,
+                                               albedo[j]))
             
-            plt.plot(wvl0_list, albedo,
+            plt.plot(actual_wvl0, albedo,
                      label='%s ' % (rds_snw) + r'$\mathrm{\mu m}$', color=colors[i])
-            plt.plot(wvl0_list, albedo2, color=colors[i])
+            plt.plot(actual_wvl0, albedo2, color=colors[i])
         plt.legend(title='Snow grain effective radius')
         plt.grid()
         plt.xlim((self.args.wvl_min, self.args.wvl_max))
