@@ -10,6 +10,7 @@ import sys
 import ConfigParser
 import argparse
 
+import math
 import numpy as np
 from scipy import interpolate
 from scipy.io import netcdf
@@ -888,7 +889,7 @@ class MonteCarlo(object):
             U = self.stokes_params[2]
             V = self.stokes_params[3]
             
-            if Q == 0:
+            if Q == 0: 
                 two_beta = np.arctan(U / 1e-15)
             else:
                 two_beta = np.arctan(U / Q)
@@ -975,13 +976,13 @@ class MonteCarlo(object):
                         r3 = 1.000001 * np.random.rand()
                         if area == 1:
                             r3 = r3 * max_val1
-                        if area == 2:
+                        elif area == 2:
                             r3 = r3 * max_val2
                         
                         S11 = P11_interp(cos_theta)
                         S12 = P12_interp(cos_theta)
-                        phase_func_val = I*S11 + S12 * (Q*np.cos(two_phi) +
-                                                        U*np.sin(two_phi))
+                        phase_func_val = I*S11 + S12 * (Q*math.cos(two_phi) +
+                                                        U*math.sin(two_phi))
                         
                         k += 1
                     cos_theta_rand[j] = cos_theta
