@@ -81,6 +81,7 @@ class Subplots(object):
         for row, roughness in enumerate(self.roughnesses):
             for col, shape in enumerate(self.shapes):
                 for i, rds_snw in enumerate(rds_snw_list):
+                    print('Working on %d micron %s %s...' % (rds_snw, roughness, shape))
                     phase_function.roughness = roughness
                     phase_function.shape = shape
                     
@@ -100,8 +101,9 @@ class Subplots(object):
                                                                   
                     self.Theta_P11 = phase_function.theta_P11
                     self.Theta_P12 = phase_function.theta_P12
-                    self.P11 = phase_function.P11[wvl]
-                    self.P12 = phase_function.P12[wvl]
+                    self.P11 = phase_function.P11[wvl[0]]
+                    self.P12 = phase_function.P12[wvl[0]]
+                    self.full_scattering_phase_function()
                     
 def main():
     wvl = 1.3
