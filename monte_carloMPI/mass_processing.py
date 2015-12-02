@@ -22,7 +22,7 @@ class Subplots(object):
                          '10-element plate aggreaget'],
                  roughnesses=['smooth',
                               'moderatley rough',
-                              'severely rough'])
+                              'severely rough']):
         nrows = len(roughnesses)
         ncols = len(shapes)
         fig, axarr = plt.subplots(nrows, ncols,sharex='col', sharey='row')
@@ -35,10 +35,10 @@ class Subplots(object):
                     axarr[row,col].set_ylabel('%s' % roughness, 
                                               fontsize=fontsize)
                 
-        plt.show()
+        #plt.show()
         
         self.nrows = nrows
-        self.ncols ncols
+        self.ncols = ncols
         self.fig = fig
         self.axarr = axarr
         self.shapes = shapes
@@ -48,17 +48,21 @@ class Subplots(object):
                              stokes_params=np.array([1,0,0,0])):
         """
         """
+        phase_function = monte_carlo3D.MonteCarlo()
+        phase_function.wvl0 = wvl
+        wvl = np.array([wvl])
         for row, roughness in enumerate(self.roughnesses):
             for col, shape in enumerate(self.shapes):
                 for i, rds_snw in enumerate(rds_snw_list):
-                    phase_function = monte_carlo3D.MonteCarlo()
+                    phase_function.roughness = roughness
+                    phase_function.shape = shape
                     
                     # get ice optical data
                     if wvl >= 0.2 and wvl <= 15.25:
                         phase_function.far_IR = False
                         (ssa_ice,
                          ext_cff_mss_ice,
-                         g) = phase_function.get_aspherical_SSPs([wvl], rds_snw)
+                         g) = phase_function.get_aspherical_SSPs(wvl, rds_snw)
                          
                     elif wvl >= 16.4 and wvl <= 99.0:
                          phase_function.far_IR = True
@@ -68,8 +72,10 @@ class Subplots(object):
                                                                   rds_snw)
                     ipdb.set_trace()
 def main():
+    wvl = 1.3
+    rds_snw_list = [50,100,250,500,1000]
     subplots = Subplots()
-    subplots.plot_phase_functions()
+    subplots.plot_phase_functions(wvl, rds_snw_list)
 
 if __name__=='__main__':
     main()
