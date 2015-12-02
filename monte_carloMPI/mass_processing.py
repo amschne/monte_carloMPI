@@ -3,11 +3,15 @@
 """
 
 import numpy as np
+from scipy import interpolate
 from matplotlib import pyplot as plt
 
 import monte_carlo3D
 
 import ipdb
+
+PI = np.pi
+TWO_PI = 2*np.pi
 
 class Subplots(object):
     def __init__(self, 
@@ -44,10 +48,33 @@ class Subplots(object):
         self.shapes = shapes
         self.roughnesses = roughnesses
         
+    def full_scattering_phase_function(self):
+        """ Calculate the scattering phase function for arbitrarly polarized 
+            light
+        """
+        # unpack stokes parameters
+        I = self.stokes_params[0]
+        Q = self.stokes_params[1]
+        U = self.stokes_params[2]
+        V = self.stokes_params[3]
+        
+        two_len_Theta = 2 * self.Theta_P11.size
+        Phi = np.linspace(0, TWO_PI, two_len_Theta)
+        Phi.shape = (1, two_len_Theta)
+        Phi = Phi.T
+        
+        P_Theta_Phi = I * self.P11 + self.P12 * (Q * np.cos(2*Phi) +
+                                                 U * np.sin(2*Phi))
+                                                 
+        ipdb.set_trace()
+        
+        
+    
     def plot_phase_functions(self, wvl, rds_snw_list,
                              stokes_params=np.array([1,0,0,0])):
         """
         """
+        self.stokes_params = stokes_params
         phase_function = monte_carlo3D.MonteCarlo()
         phase_function.wvl0 = wvl
         wvl = np.array([wvl])
@@ -70,7 +97,12 @@ class Subplots(object):
                           ext_cff_mss_ice,
                           g) = phase_function.get_aspherical_SSPs([wvl],
                                                                   rds_snw)
-                    ipdb.set_trace()
+                                                                  
+                    self.Theta_P11 = phase_function.theta_P11
+                    self.Theta_P12 = phase_function.theta_P12
+                    self.P11 = phase_function.P11[wvl]
+                    self.P12 = phase_function.P12[wvl]
+                    
 def main():
     wvl = 1.3
     rds_snw_list = [50,100,250,500,1000]
