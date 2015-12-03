@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """
 """
+import os
 
 import numpy as np
 from scipy import interpolate
@@ -104,7 +105,7 @@ class Subplots(object):
         Theta_HG = np.arccos(self.cos_Theta_HG)
         Theta_HG_deg = np.rad2deg(Theta_HG)
         
-        legend_font_size = 6
+        legend_font_size = 8
         colors = ['b','g','r','c','m','y','k']
         counter = 0
         for row, roughness in enumerate(self.roughnesses):
@@ -169,10 +170,15 @@ class Subplots(object):
                 if row == self.nrows - 1:
                     # last row
                     ax.set_xlabel(r'$\Theta$')
-        #plt.show()
         
-        wvl_nm = np.around(wvl * 1000)
-        plt.savefig('%dnm_scattering_phase_functions.pdf' % wvl_nm)
+        if True:
+            wvl_nm = np.around(wvl * 1000)
+            fig_dir = '/home/amaschne/Figures/agu15'
+            fig_name = '%dnm_scattering_phase_functions.pdf' % wvl_nm
+            fig_path = os.path.join(fig_dir, fig_name)
+            plt.savefig(fig_path)
+        else:
+            plt.show()
         plt.close()
      
 def subsample():
@@ -192,14 +198,22 @@ def subsample():
     subplots.plot_phase_functions(wvl, rds_snw_list)
                                    
 def multiple_wvls():
-    wvls = [0.4, 0.5, 0.88, 1.3, 1.55]
-    rds_snw_list = [50,100,250,500,1000]
+    wvls = [0.4, 0.5, 0.55, 0.88, 1.3, 1.55]
+    rds_snw_list = [50,100,1000]
+    shapes = ['solid hexagonal column',
+              'hollow hexagonal column',
+              'hexagonal plate',
+              'droxtal',
+              '8-element column aggregate',
+              '5-element plate aggregate',
+              '10-element plate aggregate']
     for i, wvl in enumerate(wvls):
-        subplots = Subplots()
+        subplots = Subplots(shapes=shapes)
         subplots.plot_phase_functions(wvl, rds_snw_list)
 
 def all_phase_funcs():
-    wvl = 1.3
+    #wvl = 1.3
+    wvl = 0.550
     rds_snw_list = [50,100,250,500,1000]
     subplots = Subplots()
     subplots.plot_phase_functions(wvl, rds_snw_list)
