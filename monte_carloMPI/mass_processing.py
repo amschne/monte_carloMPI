@@ -48,6 +48,11 @@ class Subplots(object):
         self.shapes = shapes
         self.roughnesses = roughnesses
         
+    def Henyey_Greenstein_phase_function(self, g):
+        """
+        """
+        pass
+    
     def full_scattering_phase_function(self):
         """ Calculate the scattering phase function for arbitrarly polarized 
             light
@@ -67,19 +72,8 @@ class Subplots(object):
                                                  U * np.sin(2*Phi))
                                                  
         P_Theta = np.mean(P_Theta_Phi, axis=0)
-        cos_Theta = np.cos(self.Theta_P11)
         
-        P_interp = interpolate.interp1d(cos_Theta, P_Theta)
-        
-        d_dummy = (2*0.01) / (100*180)
-        dummy = np.arange(-1 , 1 + d_dummy , d_dummy)
-        total = 0
-        for i, val in enumerate(dummy):
-            total += P_interp(val)
-        total = (total * d_dummy) / 2.
-        
-        print total
-        #ipdb.set_trace()
+        return P_Theta
         
     def plot_phase_functions(self, wvl, rds_snw_list,
                              stokes_params=np.array([1,0,0,0])):
@@ -92,7 +86,9 @@ class Subplots(object):
         for row, roughness in enumerate(self.roughnesses):
             for col, shape in enumerate(self.shapes):
                 for i, rds_snw in enumerate(rds_snw_list):
-                    print('Working on %d micron %s %s...' % (rds_snw, roughness, shape))
+                    print('Working on %d micron %s %s...' % (rds_snw,
+                                                             roughness,
+                                                             shape))
                     phase_function.roughness = roughness
                     phase_function.shape = shape
                     
@@ -120,7 +116,9 @@ class Subplots(object):
                         data_exists = False
                     
                     if data_exists:
-                        self.full_scattering_phase_function()
+                        P_Theta = self.full_scattering_phase_function()
+                        ipdb.set_trace()
+                        
                     
 def main():
     wvl = 1.3
