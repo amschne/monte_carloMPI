@@ -96,17 +96,19 @@ class Subplots(object):
         
         self.cos_Theta_HG = np.linspace(-1, 1, 18000)
         Theta_HG = np.arccos(self.cos_Theta_HG)
+        Theta_HG_deg = np.rad2deg(Theta_HG)
         
+        plt.xticks(np.arange(3), (0, 90, 180))
         colors = ['b','g','r','c','m','y','k']
         for row, roughness in enumerate(self.roughnesses):
             for col, shape in enumerate(self.shapes):
                 ax = self.axarr[row, col]
+                phase_function.roughness = roughness
+                phase_function.shape = shape
                 for i, rds_snw in enumerate(rds_snw_list):
                     print('Working on %d micron %s %s...' % (rds_snw,
                                                              roughness,
                                                              shape))
-                    phase_function.roughness = roughness
-                    phase_function.shape = shape
                     
                     # get ice optical data
                     if wvl >= 0.2 and wvl <= 15.25:
@@ -131,6 +133,7 @@ class Subplots(object):
                     
                     if data_exists:
                         Theta_P11 = phase_function.theta_P11
+                        Theta_P11_deg = np.rad2deg(Theta_P11)
                         #self.Theta_P12 = phase_function.theta_P12
                 
                         P_Theta = self.full_scattering_phase_function()
@@ -138,21 +141,25 @@ class Subplots(object):
                         
                         RE = np.around(phase_function.snow_effective_radius)
                         color = colors[i]
-                        ax.semilogy(Theta_P11, P_Theta, color=color,
-                                    label='%d' % RE)
+                        ax.semilogy(Theta_P11_deg, P_Theta * ssa_ice,
+                                    color=color, label='%d' % RE)
                                     
-                        ax.semilogy(Theta_HG, P_HG, color=color,
+                        ax.semilogy(Theta_HG_deg, P_HG * ssa_ice, color=color,
                                     linestyle='dashed')
                         ax.grid()
-                        ax.legend(title='Snow effective radius '
-                                         r'($\mathrm{\mu m}$)',
+                        ax.legend(title='RE ($\mathrm{\mu m}$)',
                                    fontsize = self.fontsize )
+                        
+                        ax.set_xticks(np.arange(3), (0, 90, 180))
+                        if row = self.nrows - 1:
+                            # last row
+                            ax.set_xlabel(r'$\Theta')
 
 def subsample():
     wvl = 1.3
     rds_snw_list = [50, 250, 1000]
     
-    shapes = ['solid hexagonal column', 'hollow bullet_rosette', '10-element plate aggregate']
+    shapes = ['solid hexagonal column', 'hollow bullet rosette', '10-element plate aggregate']
     roughnesses = ['smooth', 'severely rough']
     subplots = Subplots(shapes=shapes, roughnesses=roughnesses)
     subplots.plot_phase_functions(wvl, rds_snw_list)
