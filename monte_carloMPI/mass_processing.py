@@ -8,6 +8,7 @@ from matplotlib import pyplot as plt
 
 import monte_carlo3D
 
+import line_profiler
 import ipdb
 
 PI = np.pi
@@ -72,6 +73,7 @@ class Subplots(object):
         
         return P_Theta
         
+    @profile
     def plot_phase_functions(self, wvl, rds_snw_list,
                              stokes_params=np.array([1,0,0,0])):
         """
@@ -169,18 +171,24 @@ def subsample():
     wvl = 1.3
     rds_snw_list = [50, 250, 1000]
     
-    shapes = ['solid hexagonal column', 'hollow bullet rosette', '10-element plate aggregate']
+    shapes = ['solid hexagonal column',
+              'hollow bullet rosette',
+              '10-element plate aggregate']
     roughnesses = ['smooth', 'severely rough']
     subplots = Subplots(shapes=shapes, roughnesses=roughnesses)
     subplots.plot_phase_functions(wvl, rds_snw_list)
     plt.show()
                                    
-def main():
+def all_phase_funcs():
     wvl = 1.3
     rds_snw_list = [50,100,250,500,1000]
     subplots = Subplots()
     subplots.plot_phase_functions(wvl, rds_snw_list)
     plt.show()
-
+    
+def main():
+    #all_phase_funcs()
+    subsample()
+    
 if __name__=='__main__':
     main()

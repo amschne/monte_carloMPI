@@ -1809,7 +1809,7 @@ class MonteCarlo(object):
         return args
 
     @classmethod
-    def flatten_list(klass, l):            
+    def flatten_list(klass, l):
         return [item for sublist in l for item in sublist]
 
 def test(n_photon=50000, wvl=0.5, half_width=0.085, rds_snw=100):
