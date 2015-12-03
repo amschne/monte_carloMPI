@@ -41,6 +41,7 @@ class Subplots(object):
                 
         #plt.show()
         
+        self.fontsize = fontsize
         self.nrows = nrows
         self.ncols = ncols
         self.fig = fig
@@ -51,25 +52,21 @@ class Subplots(object):
     def Henyey_Greenstein_phase_function(self, g):
         """
         """
-        pass
+        g2 = g**2
+        
+        num = 1 - g2
+        den = (1 + g2 - 2 * g * self.cos_Theta)**(3./2.)
+        
+        P_HG = num / den
+        
+        return P_HG
     
     def full_scattering_phase_function(self):
         """ Calculate the scattering phase function for arbitrarly polarized 
             light
         """
-        # unpack stokes parameters
-        I = self.stokes_params[0]
-        Q = self.stokes_params[1]
-        U = self.stokes_params[2]
-        V = self.stokes_params[3]
-        
-        two_len_Theta = 2 * self.Theta_P11.size
-        Phi = np.linspace(0, TWO_PI, two_len_Theta)
-        Phi.shape = (1, two_len_Theta)
-        Phi = Phi.T
-        
-        P_Theta_Phi = I * self.P11 + self.P12 * (Q * np.cos(2*Phi) +
-                                                 U * np.sin(2*Phi))
+        P_Theta_Phi = self.I * self.P11 + self.P12 * (self.Q * self.cos_2Phi +
+                                                      self.U * self.sin_2Phi)
                                                  
         P_Theta = np.mean(P_Theta_Phi, axis=0)
         
@@ -83,8 +80,27 @@ class Subplots(object):
         phase_function = monte_carlo3D.MonteCarlo()
         phase_function.wvl0 = wvl
         wvl = np.array([wvl])
+        
+        # unpack stokes parameters
+        self.I = stokes_params[0]
+        self.Q = stokes_params[1]
+        self.U = stokes_params[2]
+        self.V = stokes_params[3]        
+        
+        Phi = np.linspace(0, TWO_PI, 36000)
+        Phi.shape = (1, 36000)
+        Phi = Phi.T
+        
+        self.cos_2Phi = np.cos(2*Phi)
+        self.sin_2Phi = np.sin(2*Phi)
+        
+        self.cos_Theta_HG = np.linspace(-1, 1, 18000)
+        Theta_HG = np.arccos(self.cos_Theta_HG)
+        
+        colors = ['b','g','r','c','m','y','k']
         for row, roughness in enumerate(self.roughnesses):
             for col, shape in enumerate(self.shapes):
+                ax = self.axarr[row, col]
                 for i, rds_snw in enumerate(rds_snw_list):
                     print('Working on %d micron %s %s...' % (rds_snw,
                                                              roughness,
@@ -106,8 +122,6 @@ class Subplots(object):
                           g) = phase_function.get_aspherical_SSPs([wvl],
                                                                   rds_snw)
                                                                   
-                    self.Theta_P11 = phase_function.theta_P11
-                    self.Theta_P12 = phase_function.theta_P12
                     try:
                         self.P11 = phase_function.P11[wvl[0]]
                         self.P12 = phase_function.P12[wvl[0]]
@@ -116,15 +130,30 @@ class Subplots(object):
                         data_exists = False
                     
                     if data_exists:
+                        Theta_P11 = phase_function.theta_P11
+                        #self.Theta_P12 = phase_function.theta_P12
+                
                         P_Theta = self.full_scattering_phase_function()
-                        ipdb.set_trace()
+                        P_HG = self.Henyey_Greenstein_phase_function(self, g[0])
                         
-                    
+                        RE = np.around(phase_function.snow_effective_radius)
+                        color = colors[i]
+                        ax.semilogy(Theta_P11, P_Theta, color=color,
+                                    label='%d' % RE)
+                                    
+                        ax.semilogy(Theta_HG, P_HG, color=color,
+                                    linestyle='dashed')
+                        plt.grid(True)
+                        plt.legend(title='Snow effective radius '
+                                         r'($\mathrm{\mu m}$)',
+                                   fontsize = self.fontsize )
+                                   
 def main():
     wvl = 1.3
     rds_snw_list = [50,100,250,500,1000]
     subplots = Subplots()
     subplots.plot_phase_functions(wvl, rds_snw_list)
+    plt.show()
 
 if __name__=='__main__':
     main()
