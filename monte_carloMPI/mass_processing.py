@@ -23,7 +23,7 @@ class Subplots(object):
                          'solid bullet rosette',
                          '8-element column aggregate',
                          '5-element plate aggregate',
-                         '10-element plate aggreaget'],
+                         '10-element plate aggregate'],
                  roughnesses=['smooth',
                               'moderatley rough',
                               'severely rough']):
@@ -55,7 +55,7 @@ class Subplots(object):
         g2 = g**2
         
         num = 1 - g2
-        den = (1 + g2 - 2 * g * self.cos_Theta)**(3./2.)
+        den = (1 + g2 - 2 * g * self.cos_Theta_HG)**(3./2.)
         
         P_HG = num / den
         
@@ -134,7 +134,7 @@ class Subplots(object):
                         #self.Theta_P12 = phase_function.theta_P12
                 
                         P_Theta = self.full_scattering_phase_function()
-                        P_HG = self.Henyey_Greenstein_phase_function(self, g[0])
+                        P_HG = self.Henyey_Greenstein_phase_function(g[0])
                         
                         RE = np.around(phase_function.snow_effective_radius)
                         color = colors[i]
@@ -147,6 +147,16 @@ class Subplots(object):
                         plt.legend(title='Snow effective radius '
                                          r'($\mathrm{\mu m}$)',
                                    fontsize = self.fontsize )
+
+def subsample():
+    wvl = 1.3
+    rds_snw_list = [50, 250, 1000]
+    
+    shapes = ['solid hexagonal column', 'hollow bullet_rosette', '10-element plate aggregate']
+    roughnesses = ['smooth', 'severely rough']
+    subplots = Subplots(shapes=shapes, roughnesses=roughnesses)
+    subplots.plot_phase_functions(wvl, rds_snw_list)
+    plt.show()
                                    
 def main():
     wvl = 1.3
