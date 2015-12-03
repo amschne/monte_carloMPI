@@ -143,8 +143,8 @@ class Subplots(object):
                                     
                         ax.semilogy(Theta_HG, P_HG, color=color,
                                     linestyle='dashed')
-                        plt.grid(True)
-                        plt.legend(title='Snow effective radius '
+                        ax.grid()
+                        ax.legend(title='Snow effective radius '
                                          r'($\mathrm{\mu m}$)',
                                    fontsize = self.fontsize )
 
