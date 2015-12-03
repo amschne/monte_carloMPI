@@ -112,11 +112,10 @@ class Subplots(object):
                 for i, rds_snw in enumerate(rds_snw_list):
                     comp_perc = np.around(100. * (counter / num_curves))
                     counter += 1
-                    print('Working on %d micron %s %s...%d' % (rds_snw,
-                                                               roughness,
-                                                               shape,
-                                                               comp_perc)
-                          r'%')
+                    print('Working on %d micron %s %s...%d\%' % (rds_snw,
+                                                                 roughness,
+                                                                 shape,
+                                                                 comp_perc))
                     # get ice optical data
                     if wvl >= 0.2 and wvl <= 15.25:
                         phase_function.far_IR = False
