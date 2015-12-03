@@ -110,9 +110,9 @@ class Subplots(object):
                 phase_function.roughness = roughness
                 phase_function.shape = shape
                 for i, rds_snw in enumerate(rds_snw_list):
-                    comp_perc = np.around(100. * (counter / num_curves))
+                    comp_perc = np.around((100. * counter) / num_curves)
                     counter += 1
-                    print('Working on %d micron %s %s...%d\%' % (rds_snw,
+                    print('Working on %d micron %s %s...%d%%' % (rds_snw,
                                                                  roughness,
                                                                  shape,
                                                                  comp_perc))
@@ -156,7 +156,7 @@ class Subplots(object):
                                    fontsize = self.fontsize)
                         
                     ax.set_xticks([0,90,180])
-                    ax.set_xlim((-1,181))
+                    ax.set_xlim((-9,189))
                     ax.set_xticklabels([0, 90, 180])
                     
                     if row == self.nrows - 1:
