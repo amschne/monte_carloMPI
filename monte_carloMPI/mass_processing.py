@@ -76,14 +76,10 @@ class Subplots(object):
         total = 0
         for i, val in enumerate(dummy):
             total += P_interp(val)
-        total = d_dummy / 2.
+        total = (total * d_dummy) / 2.
         
-        print total
+        ipdb.set_trace()
         
-        
-        
-        
-    
     def plot_phase_functions(self, wvl, rds_snw_list,
                              stokes_params=np.array([1,0,0,0])):
         """
@@ -115,9 +111,15 @@ class Subplots(object):
                                                                   
                     self.Theta_P11 = phase_function.theta_P11
                     self.Theta_P12 = phase_function.theta_P12
-                    self.P11 = phase_function.P11[wvl[0]]
-                    self.P12 = phase_function.P12[wvl[0]]
-                    self.full_scattering_phase_function()
+                    try:
+                        self.P11 = phase_function.P11[wvl[0]]
+                        self.P12 = phase_function.P12[wvl[0]]
+                        data_exists = True
+                    except KeyError:
+                        data_exists = False
+                    
+                    if data_exists:
+                        self.full_scattering_phase_function()
                     
 def main():
     wvl = 1.3
