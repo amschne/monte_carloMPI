@@ -42,7 +42,7 @@ class Subplots(object):
                     axarr[row,col].set_ylabel('%s' % roughness, 
                                               fontsize=fontsize)
                 row_col_list.append((row,col))
-                self.par_row_cols = Parallel(row_col_list)
+        self.par_row_cols = Parallel(row_col_list)
         #plt.show()
         
         self.fontsize = fontsize
