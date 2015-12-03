@@ -66,7 +66,21 @@ class Subplots(object):
         P_Theta_Phi = I * self.P11 + self.P12 * (Q * np.cos(2*Phi) +
                                                  U * np.sin(2*Phi))
                                                  
-        ipdb.set_trace()
+        P_Theta = np.mean(P_Theta_Phi, axis=0)
+        cos_Theta = np.cos(self.Theta_P11)
+        
+        P_interp = interpolate.inerp1d(cos_Theta, P_Theta)
+        
+        d_dummy = 2. / (two_len_Theta * 5)
+        dummy = np.linspace(-1,1,d_dummy)
+        total = 0
+        for i, val in enumerate(dummy):
+            total += P_interp(val)
+        total = d_dummy / 2.
+        
+        print total
+        
+        
         
         
     
