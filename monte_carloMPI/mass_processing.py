@@ -146,14 +146,19 @@ class Subplots(object):
                                     
                         ax.semilogy(Theta_HG_deg, P_HG * ssa_ice, color=color,
                                     linestyle='dashed')
-                        ax.grid()
-                        ax.legend(title='RE ($\mathrm{\mu m}$)',
-                                   fontsize = self.fontsize )
+                        ax.legend(title='RE ($\mathrm{\mu m}$)', loc=1
+                                   fontsize = self.fontsize)
                         
-                        ax.set_xticks(np.arange(3), (0, 90, 180))
-                        if row = self.nrows - 1:
-                            # last row
-                            ax.set_xlabel(r'$\Theta')
+                    ax.set_xticks(np.arange(3))
+                    ax.set_xlim((0,180))
+                    ax.set_xmargin(0.01)
+                    ax.set_xticklabels([0, 90, 180])
+                    
+                    if row == self.nrows - 1:
+                        # last row
+                        ax.set_xlabel(r'$\Theta$')
+                    
+                    ax.grid()
 
 def subsample():
     wvl = 1.3
