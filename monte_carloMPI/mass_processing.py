@@ -69,16 +69,17 @@ class Subplots(object):
         P_Theta = np.mean(P_Theta_Phi, axis=0)
         cos_Theta = np.cos(self.Theta_P11)
         
-        P_interp = interpolate.inerp1d(cos_Theta, P_Theta)
+        P_interp = interpolate.interp1d(cos_Theta, P_Theta)
         
-        d_dummy = 2. / (two_len_Theta * 5)
-        dummy = np.linspace(-1,1,d_dummy)
+        d_dummy = (2*0.01) / (100*180)
+        dummy = np.arange(-1 , 1 + d_dummy , d_dummy)
         total = 0
         for i, val in enumerate(dummy):
             total += P_interp(val)
         total = (total * d_dummy) / 2.
         
-        ipdb.set_trace()
+        print total
+        #ipdb.set_trace()
         
     def plot_phase_functions(self, wvl, rds_snw_list,
                              stokes_params=np.array([1,0,0,0])):
