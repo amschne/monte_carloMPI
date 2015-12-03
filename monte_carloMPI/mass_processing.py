@@ -76,6 +76,9 @@ class Subplots(object):
                              stokes_params=np.array([1,0,0,0])):
         """
         """
+        len_rds_snw_list = len(rds_snw_list)
+        num_curves = len_rds_snw_list * self.ncols * self.nrows
+        
         self.stokes_params = stokes_params
         phase_function = monte_carlo3D.MonteCarlo()
         phase_function.wvl0 = wvl
@@ -100,16 +103,20 @@ class Subplots(object):
         
         plt.xticks(np.arange(3), (0, 90, 180))
         colors = ['b','g','r','c','m','y','k']
+        counter = 0
         for row, roughness in enumerate(self.roughnesses):
             for col, shape in enumerate(self.shapes):
                 ax = self.axarr[row, col]
                 phase_function.roughness = roughness
                 phase_function.shape = shape
                 for i, rds_snw in enumerate(rds_snw_list):
-                    print('Working on %d micron %s %s...' % (rds_snw,
-                                                             roughness,
-                                                             shape))
-                    
+                    comp_perc = np.around(100. * (counter / num_curves))
+                    counter += 1
+                    print('Working on %d micron %s %s...%d' % (rds_snw,
+                                                               roughness,
+                                                               shape,
+                                                               comp_perc)
+                          r'%')
                     # get ice optical data
                     if wvl >= 0.2 and wvl <= 15.25:
                         phase_function.far_IR = False
@@ -146,12 +153,11 @@ class Subplots(object):
                                     
                         ax.semilogy(Theta_HG_deg, P_HG * ssa_ice, color=color,
                                     linestyle='dashed')
-                        ax.legend(title='RE ($\mathrm{\mu m}$)', loc=1
+                        ax.legend(title='RE ($\mathrm{\mu m}$)', loc=1,
                                    fontsize = self.fontsize)
                         
-                    ax.set_xticks(np.arange(3))
-                    ax.set_xlim((0,180))
-                    ax.set_xmargin(0.01)
+                    ax.set_xticks([0,90,180])
+                    ax.set_xlim((-1,181))
                     ax.set_xticklabels([0, 90, 180])
                     
                     if row == self.nrows - 1:
