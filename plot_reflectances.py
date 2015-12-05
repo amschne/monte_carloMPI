@@ -171,105 +171,104 @@ class MonteCarloDataSet(object):
                 
         return(files_I, files_HG)
         
-        def plot_directional_hemispherical_reflectance(self):
-            """ Plot directional-hemispherical reflectance as a function of
-                particle effective radius
-            """
-            fig = plt.figure()
-            wvl_nm = np.around(float(self.args['wvl']) * 10**3)
+    def plot_directional_hemispherical_reflectance(self):
+        """ Plot directional-hemispherical reflectance as a function of
+            particle effective radius
+        """
+        fig = plt.figure()
+        wvl_nm = np.around(float(self.args['wvl']) * 10**3)
+        
+        num_shapes = len(self.args['shapes'])
+        num_colors = num_shapes
+        for i, shape in self.args['shapes']:
+            if shape == 'sphere':
+                num_colors = num_colors - 1
+        
+        color_list = plt.cm.Dark2(np.linspace(0, 1, num_colors))
+        for i, shape in self.args['shapes']:
+            print('Calculating and plotting albedo for %ss...' % shape)
             
-            num_shapes = len(self.args['shapes'])
-            num_colors = num_shapes
-            for i, shape in self.args['shapes']:
-                if shape == 'sphere':
-                    num_colors = num_colors - 1
+            label = re.sub(r'[\W_]', ' ', shape)
             
-            color_list = plt.cm.Dark2(np.linspace(0, 1, num_colors))
-            for i, shape in self.args['shapes']:
-                print('Calculating and plotting albedo for %ss...' % shape)
+            if shape == 'sphere':
+                # Full scattering phase functions
+                particle_radii = list()
+                albedo = list()
+                for RE, file_path in self.data_I[shape].items():
+                    particle_radii.append(float(RE))
+                    albedo.append(self.directional_hemispherical_reflectance(
+                                                                     file_path))
                 
-                label = re.sub(r'[\W_]', ' ', shape)
+                plt.plot(particle_radii, albedo, color='k', marker='o')
                 
-                if shape == 'sphere':
+                # Henyey Greenstein scattering phase functions
+                particle_radii = list()
+                albedo = list()
+                for RE, file_path in self.data_HG[shape].items():
+                    particle_radii.append(float(RE))
+                    albedo.append(self.directional_hemispherical_reflectance(
+                                                                     file_path))
+                
+                plt.plot(particle_radii, albedo, color='k', marker='o',
+                         linestyle='dashed', label=label)
+            else:
+                for j, roughness in self.args['roughness']:
+                    if roughness == 'smooth':
+                        marker = 'o'
+                    elif roughness == 'moderately rough':
+                        marker = 'd'
+                    elif roughness == 'severely rough':
+                        marker = '*'
+                    
                     # Full scattering phase functions
                     particle_radii = list()
                     albedo = list()
-                    for RE, file_path in self.data_I[shape].items()
+                    for RE, file_path in self.data_I[shape].items():
                         particle_radii.append(float(RE))
                         albedo.append(
-                          self.directional_hemispherical_reflectance(file_path))
-                    
-                    plt.plot(particle_radii, albedo, color='k', marker='o')
-                    
+                                     self.directional_hemispherical_reflectance(
+                                                                     file_path))
+                    plt.plot(particle_radii, albedo, color=color_list[i],
+                             marker=marker)
+                
                     # Henyey Greenstein scattering phase functions
                     particle_radii = list()
                     albedo = list()
-                    for RE, file_path in self.data_HG[shape].items()
+                    for RE, file_path in self.data_HG[shape][roughness].items():
                         particle_radii.append(float(RE))
                         albedo.append(
-                          self.directional_hemispherical_reflectance(file_path))
-                    
-                    plt.plot(particle_radii, albedo, color='k', marker='o',
-                             linestyle='dashed', label=label)
-                else:
-                    for j, roughness in self.args['roughness']:
-                        if roughness == 'smooth':
-                            marker = 'o'
-                        elif roughness == 'moderately rough':
-                            marker = 'd'
-                        elif roughness == 'severely rough':
-                            marker = '*'
-                        
-                        # Full scattering phase functions
-                        particle_radii = list()
-                        albedo = list()
-                        for RE, file_path in self.data_I[shape].items()
-                            particle_radii.append(float(RE))
-                            albedo.append(
                                      self.directional_hemispherical_reflectance(
                                                                      file_path))
-                        plt.plot(particle_radii, albedo, color=color_list[i],
-                                 marker=marker)
-                    
-                        # Henyey Greenstein scattering phase functions
-                        particle_radii = list()
-                        albedo = list()
-                        for RE, file_path in self.data_HG[shape][
-                                                              roughness].items()
-                            particle_radii.append(float(RE))
-                            albedo.append(
-                                     self.directional_hemispherical_reflectance(
-                                                                     file_path))
-                    
-                        plt.plot(particle_radii, albedo, color=color_list[i],                                    marker=marker, linestyle='dashed', 
-                                 label=label)
-            
-            plt.xlabel('Ice particle effective radius ($\mu m$)')
-            plt.ylabel('Reflectance')
-            plt.title('Nadir directional-hemispherical reflectance for ' 
-                      '$\lambda_0$ = %snm' % wvl_nm)
-            plt.legend()
-            plt.grid()
-            
-            plt.show()
-            
-        def directional_hemispherical_reflectance(self, file_path):
-            """ Read in data and calculate directional-hemispherical 
-                reflectance, a.k.a. black sky albedo
-            """
-            data_file = pd.read_csv(file_path, delim_whitespace=True)
-            mean_wvls = 1. / data['wvn[um^-1]'].mean()
-            wvl0 = float(self.args['wvl'])
-            
-            if np.absolute(wvl0 - mean_wvls) > 0.1:
-                albedo = None
-            else:
-                Q_down = data['wvn[um^-1]'].sum()
-                Q_up = data[data.condition==1]['wvn[um^-1]'].sum()
-            
-            albedo = Q_up / Q_down
-            
-            return albedo
+                
+                    plt.plot(particle_radii, albedo, color=color_list[i],                                    marker=marker, linestyle='dashed', 
+                             label=label)
+        
+        plt.xlabel('Ice particle effective radius ($\mu m$)')
+        plt.ylabel('Reflectance')
+        plt.title('Nadir directional-hemispherical reflectance for $\lambda_0$ '
+                  '= %snm' % wvl_nm)
+        plt.legend()
+        plt.grid()
+        
+        plt.show()
+        
+    def directional_hemispherical_reflectance(self, file_path):
+        """ Read in data and calculate directional-hemispherical 
+            reflectance, a.k.a. black sky albedo
+        """
+        data_file = pd.read_csv(file_path, delim_whitespace=True)
+        mean_wvls = 1. / data['wvn[um^-1]'].mean()
+        wvl0 = float(self.args['wvl'])
+        
+        if np.absolute(wvl0 - mean_wvls) > 0.1:
+            albedo = None
+        else:
+            Q_down = data['wvn[um^-1]'].sum()
+            Q_up = data[data.condition==1]['wvn[um^-1]'].sum()
+        
+        albedo = Q_up / Q_down
+        
+        return albedo
             
             
             
