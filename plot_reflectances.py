@@ -182,6 +182,7 @@ class MonteCarloDataSet(object):
         
         num_shapes = len(self.args['shapes'])
         num_colors = num_shapes
+        color_idxs = np.arange(num_colors)
         for i, shape in enumerate(self.args['shapes']):
             if shape == 'sphere':
                 num_colors = num_colors - 1
@@ -189,8 +190,11 @@ class MonteCarloDataSet(object):
         color_list = plt.cm.Dark2(np.linspace(0, 1, num_colors))
         for i, shape in enumerate(self.args['shapes']):
             label = re.sub(r'[\W_]', ' ', shape)
-            print('Calculating and plotting albedo for %ss...' % label)            
+            print('Calculating and plotting albedo for %ss...' % label)         
+            
             if shape == 'sphere':
+                color_idxs = color_idxs - 1
+                
                 # Full scattering phase functions
                 particle_radii = list()
                 albedo = list()
@@ -199,7 +203,13 @@ class MonteCarloDataSet(object):
                     albedo.append(self.directional_hemispherical_reflectance(
                                                                      file_path))
                 
-                plt.plot(particle_radii, albedo, color='k', marker='o')
+                particle_radii = np.array(particle_radii)
+                albedo = np.array(albedo)
+                
+                idxs = np.argsort(particle_radii)
+                
+                plt.plot(particle_radii[idxs], albedo[idxs], color='k',
+                         marker='o')
                 
                 # Henyey Greenstein scattering phase functions
                 particle_radii = list()
@@ -209,17 +219,23 @@ class MonteCarloDataSet(object):
                     albedo.append(self.directional_hemispherical_reflectance(
                                                                      file_path))
                 
-                plt.plot(particle_radii, albedo, color='k', marker='o',
-                         linestyle='dashed', label=label)
+                particle_radii = np.array(particle_radii)
+                albedo = np.array(albedo)
+                
+                idxs = np.argsort(particle_radii)                
+                
+                plt.plot(particle_radii[idxs], albedo[idxs], color='k',
+                         marker='o', linestyle='dashed', label=label)
             else:
+                color = color_list[color_idxs[i]]
                 for roughness, RE_data_I in self.data_I[shape].items():
                     """ Full scattering phase function
                     """
                     if roughness == 'smooth':
                         marker = 'o'
-                    elif roughness == 'moderately rough':
+                    elif roughness == 'moderately_rough':
                         marker = 'd'
-                    elif roughness == 'severely rough':
+                    elif roughness == 'severely_rough':
                         marker = '*'
                     
                     particle_radii = list()
@@ -229,17 +245,23 @@ class MonteCarloDataSet(object):
                         albedo.append(
                                      self.directional_hemispherical_reflectance(
                                                                      file_path))
-                    plt.plot(particle_radii, albedo, color=color_list[i],
-                             marker=marker)
+                
+                    particle_radii = np.array(particle_radii)
+                    albedo = np.array(albedo)
+                
+                    idxs = np.argsort(particle_radii)                    
+                    
+                    plt.plot(particle_radii[idxs], albedo[idxs],
+                             color=color, marker=marker)
                 
                 for roughness, RE_data_HG in self.data_HG[shape].items():
                     """ Henyey Greenstein scattering phase function
                     """
                     if roughness == 'smooth':
                         marker = 'o'
-                    elif roughness == 'moderately rough':
+                    elif roughness == 'moderately_rough':
                         marker = 'd'
-                    elif roughness == 'severely rough':
+                    elif roughness == 'severely_rough':
                         marker = '*'
                     
                     particle_radii = list()
@@ -250,8 +272,14 @@ class MonteCarloDataSet(object):
                                      self.directional_hemispherical_reflectance(
                                                                      file_path))
                 
-                    plt.plot(particle_radii, albedo, color=color_list[i],                                    marker=marker, linestyle='dashed', 
-                             label=label)
+                    particle_radii = np.array(particle_radii)
+                    albedo = np.array(albedo)
+                
+                    idxs = np.argsort(particle_radii)                    
+                    
+                    plt.plot(particle_radii[idxs], albedo[idxs],
+                             color=color, marker=marker, 
+                             linestyle='dashed', label=label)
         
         plt.xlabel('Ice particle effective radius ($\mu m$)')
         plt.ylabel('Reflectance')
