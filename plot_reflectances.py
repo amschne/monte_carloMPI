@@ -188,10 +188,8 @@ class MonteCarloDataSet(object):
         
         color_list = plt.cm.Dark2(np.linspace(0, 1, num_colors))
         for i, shape in enumerate(self.args['shapes']):
-            print('Calculating and plotting albedo for %ss...' % shape)
-            
             label = re.sub(r'[\W_]', ' ', shape)
-            
+            print('Calculating and plotting albedo for %ss...' % label)            
             if shape == 'sphere':
                 # Full scattering phase functions
                 particle_radii = list()
@@ -268,7 +266,7 @@ class MonteCarloDataSet(object):
             Q_down = data_file['wvn[um^-1]'].sum()
             Q_up = data_file[data_file.condition==1]['wvn[um^-1]'].sum()
         
-        albedo = Q_up / Q_down
+            albedo = Q_up / Q_down
         
         return albedo
         
