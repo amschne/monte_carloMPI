@@ -7,6 +7,7 @@ import fnmatch
 
 import numpy as np
 import pandas as pd
+from matplotlib import pyplot as plt
 
 def get_args():
     """ User input
@@ -269,10 +270,7 @@ class MonteCarloDataSet(object):
         albedo = Q_up / Q_down
         
         return albedo
-            
-            
-            
-
+        
 def main():
     data = MonteCarloDataSet()
     data.plot_directional_hemispherical_reflectance()
