@@ -212,7 +212,9 @@ class MonteCarloDataSet(object):
                 plt.plot(particle_radii, albedo, color='k', marker='o',
                          linestyle='dashed', label=label)
             else:
-                for j, roughness in enumerate(self.args['roughnesses']):
+                for roughness, RE_data_I in self.data_I[shape].items():
+                    """ Full scattering phase function
+                    """
                     if roughness == 'smooth':
                         marker = 'o'
                     elif roughness == 'moderately rough':
@@ -220,10 +222,9 @@ class MonteCarloDataSet(object):
                     elif roughness == 'severely rough':
                         marker = '*'
                     
-                    # Full scattering phase functions
                     particle_radii = list()
                     albedo = list()
-                    for RE, file_path in self.data_I[shape][roughness].items():
+                    for RE, file_path in RE_data_I.items():
                         particle_radii.append(float(RE))
                         albedo.append(
                                      self.directional_hemispherical_reflectance(
@@ -231,10 +232,19 @@ class MonteCarloDataSet(object):
                     plt.plot(particle_radii, albedo, color=color_list[i],
                              marker=marker)
                 
-                    # Henyey Greenstein scattering phase functions
+                for roughness, RE_data_HG in self.data_HG[shape].items():
+                    """ Henyey Greenstein scattering phase function
+                    """
+                    if roughness == 'smooth':
+                        marker = 'o'
+                    elif roughness == 'moderately rough':
+                        marker = 'd'
+                    elif roughness == 'severely rough':
+                        marker = '*'
+                    
                     particle_radii = list()
                     albedo = list()
-                    for RE, file_path in self.data_HG[shape][roughness].items():
+                    for RE, file_path in RE_data_HG.items():
                         particle_radii.append(float(RE))
                         albedo.append(
                                      self.directional_hemispherical_reflectance(
