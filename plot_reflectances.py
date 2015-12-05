@@ -2,7 +2,7 @@
 """
 """
 import os
-import agrparse
+import argparse
 import fnmatch
 
 def get_args():
@@ -63,7 +63,7 @@ class MonteCarloDataSet(object):
     def get_data(self):    
         self.data_I = dict()
         self.data_HG = dict()
-        for i, shape in enumerate(self.args[shapes]): 
+        for i, shape in enumerate(self.args['shapes']): 
             self.data_I[shape] = dict()
             self.data_HG[shape] = dict()
             
@@ -89,7 +89,7 @@ class MonteCarloDataSet(object):
                 shape_dir = 'plate_10elements'
 
             if shape == 'sphere':
-                data_dir = os.path.join(self.args[top_data_dir], shape_dir)
+                data_dir = os.path.join(self.args['top_data_dir'], shape_dir)
                 files_I, files_HG = self.get_files(data_dir)
                 
                 for k, file_tuple in enumerate(files_I):
@@ -103,7 +103,7 @@ class MonteCarloDataSet(object):
                     self.data_HG[shape][RE] = os.path.join(data_dir, file_name)
             
             else:    
-                for j, roughness in enumerate(self.args[roughnesses]):
+                for j, roughness in enumerate(self.args['roughnesses']):
                     self.data_I[shape][roughness] = dict()
                     self.data_HG[shape][roughness] = dict()
                     
@@ -114,7 +114,8 @@ class MonteCarloDataSet(object):
                     elif roughness == 'severely_rough':
                         roughness_dir = 'Rough050'
                     
-                    data_dir = os.path.join(self.args[top_data_dir], shape_dir,
+                    data_dir = os.path.join(self.args['top_data_dir'],
+                                            shape_dir,
                                             roughness_dir)
                     files_I, files_HG = self.get_files(data_dir)
                     
@@ -138,18 +139,19 @@ class MonteCarloDataSet(object):
             Returns lists of file names containing particle effective
             radii
         """
-        expression_I = '%s_%s_*_%s_%s_I%s%s%s%s.txt' % (self.args[wvl],
-                                                        self.args[half_width],
-                                                        self.args[n_photon],
-                                                        self.args[theta_0],
-                                                        self.args[Stokes_0][0],
-                                                        self.args[Stokes_0][1],
-                                                        self.args[Stokes_0][2],
-                                                        self.args[Stokes_0][3])
-        expression_HG = '%s_%s_*_%s_%s_HG.txt' % (self.args[wvl],
-                                                  self.args[half_width],
-                                                  self.args[n_photon],
-                                                  self.args[theta_0])
+        expression_I = '%s_%s_*_%s_%s_I%s%s%s%s.txt' % (
+                                                       self.args['wvl'],
+                                                       self.args['half_width'],
+                                                       self.args['n_photon'],
+                                                       self.args['theta_0'],
+                                                       self.args['Stokes_0'][0],
+                                                       self.args['Stokes_0'][1],
+                                                       self.args['Stokes_0'][2],
+                                                       self.args['Stokes_0'][3])
+        expression_HG = '%s_%s_*_%s_%s_HG.txt' % (self.args['wvl'],
+                                                  self.args['half_width'],
+                                                  self.args['n_photon'],
+                                                  self.args['theta_0'])
         files_I = list()
         files_HG = list()
         for i, file in enumerate(os.listdir(data_dir)):
