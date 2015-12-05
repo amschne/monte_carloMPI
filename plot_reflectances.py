@@ -181,12 +181,12 @@ class MonteCarloDataSet(object):
         
         num_shapes = len(self.args['shapes'])
         num_colors = num_shapes
-        for i, shape in self.args['shapes']:
+        for i, shape in enumerate(self.args['shapes']):
             if shape == 'sphere':
                 num_colors = num_colors - 1
         
         color_list = plt.cm.Dark2(np.linspace(0, 1, num_colors))
-        for i, shape in self.args['shapes']:
+        for i, shape in enumerate(self.args['shapes']):
             print('Calculating and plotting albedo for %ss...' % shape)
             
             label = re.sub(r'[\W_]', ' ', shape)
@@ -213,7 +213,7 @@ class MonteCarloDataSet(object):
                 plt.plot(particle_radii, albedo, color='k', marker='o',
                          linestyle='dashed', label=label)
             else:
-                for j, roughness in self.args['roughness']:
+                for j, roughness in enumerate(self.args['roughness']):
                     if roughness == 'smooth':
                         marker = 'o'
                     elif roughness == 'moderately rough':
