@@ -214,7 +214,7 @@ class MonteCarloDataSet(object):
                 plt.plot(particle_radii, albedo, color='k', marker='o',
                          linestyle='dashed', label=label)
             else:
-                for j, roughness in enumerate(self.args['roughness']):
+                for j, roughness in enumerate(self.args['roughnesses']):
                     if roughness == 'smooth':
                         marker = 'o'
                     elif roughness == 'moderately rough':
@@ -225,7 +225,7 @@ class MonteCarloDataSet(object):
                     # Full scattering phase functions
                     particle_radii = list()
                     albedo = list()
-                    for RE, file_path in self.data_I[shape].items():
+                    for RE, file_path in self.data_I[shape][roughness].items():
                         particle_radii.append(float(RE))
                         albedo.append(
                                      self.directional_hemispherical_reflectance(
@@ -259,14 +259,14 @@ class MonteCarloDataSet(object):
             reflectance, a.k.a. black sky albedo
         """
         data_file = pd.read_csv(file_path, delim_whitespace=True)
-        mean_wvls = 1. / data['wvn[um^-1]'].mean()
+        mean_wvls = 1. / data_file['wvn[um^-1]'].mean()
         wvl0 = float(self.args['wvl'])
         
         if np.absolute(wvl0 - mean_wvls) > 0.1:
             albedo = None
         else:
-            Q_down = data['wvn[um^-1]'].sum()
-            Q_up = data[data.condition==1]['wvn[um^-1]'].sum()
+            Q_down = data_file['wvn[um^-1]'].sum()
+            Q_up = data_file[data_file.condition==1]['wvn[um^-1]'].sum()
         
         albedo = Q_up / Q_down
         
