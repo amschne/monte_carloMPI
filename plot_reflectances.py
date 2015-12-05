@@ -90,23 +90,23 @@ class MonteCarloDataSet(object):
 
             if shape == 'sphere':
                 data_dir = os.path.join(self.args['top_data_dir'], shape_dir)
-                files_I, files_HG = self.get_files(data_dir)
+                if os.path.isdir(data_dir):
+                    files_I, files_HG = self.get_files(data_dir)
                 
-                for k, file_tuple in enumerate(files_I):
-                    file_name = file_tuple[0]
-                    RE = file_tuple[1]
-                    self.data_I[shape][RE] = os.path.join(data_dir, file_name)
+                    for k, file_tuple in enumerate(files_I):
+                        file_name = file_tuple[0]
+                        RE = file_tuple[1]
+                        self.data_I[shape][RE] = os.path.join(data_dir,
+                                                              file_name)
                 
-                for k, file_tuple in enumerate(files_HG):
-                    file_name = file_tuple[0]
-                    RE = file_tuple[1]
-                    self.data_HG[shape][RE] = os.path.join(data_dir, file_name)
+                    for k, file_tuple in enumerate(files_HG):
+                        file_name = file_tuple[0]
+                        RE = file_tuple[1]
+                        self.data_HG[shape][RE] = os.path.join(data_dir,
+                                                               file_name)
             
             else:    
                 for j, roughness in enumerate(self.args['roughnesses']):
-                    self.data_I[shape][roughness] = dict()
-                    self.data_HG[shape][roughness] = dict()
-                    
                     if roughness == 'smooth':
                         roughness_dir = 'Rough000'
                     elif roughness == 'moderatley_rough':
@@ -117,19 +117,23 @@ class MonteCarloDataSet(object):
                     data_dir = os.path.join(self.args['top_data_dir'],
                                             shape_dir,
                                             roughness_dir)
-                    files_I, files_HG = self.get_files(data_dir)
+                    if os.path.isdir(data_dir):
+                        self.data_I[shape][roughness] = dict()
+                        self.data_HG[shape][roughness] = dict()
                     
-                    for k, file_tuple in enumerate(files_I):
-                        file_name = file_tuple[0]
-                        RE = file_tuple[1]
-                        self.data_I[shape][roughness][RE] = os.path.join(
+                        files_I, files_HG = self.get_files(data_dir)
+                    
+                        for k, file_tuple in enumerate(files_I):
+                            file_name = file_tuple[0]
+                            RE = file_tuple[1]
+                            self.data_I[shape][roughness][RE] = os.path.join(
                                                                       data_dir,
                                                                       file_name)
                     
-                    for k, file_tuple in enumerate(files_HG):
-                        file_name = file_tuple[0]
-                        RE = file_tuple[1]
-                        self.data_HG[shape][roughness][RE] = os.path.join(
+                        for k, file_tuple in enumerate(files_HG):
+                            file_name = file_tuple[0]
+                            RE = file_tuple[1]
+                            self.data_HG[shape][roughness][RE] = os.path.join(
                                                                       data_dir,
                                                                       file_name)
 
@@ -155,7 +159,7 @@ class MonteCarloDataSet(object):
         files_I = list()
         files_HG = list()
         for i, file in enumerate(os.listdir(data_dir)):
-            if fnmatch.fnmatch(file, expression):
+            if fnmatch.fnmatch(file, expression_I):
                 RE = file.split('_')[2]
                 files_I.append((file, RE))
             elif fnmatch.fnmatch(file, expression_HG):
