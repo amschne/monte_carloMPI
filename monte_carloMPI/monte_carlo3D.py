@@ -1259,8 +1259,8 @@ class MonteCarlo(object):
                     muy_n = ((sintheta * (muy_0 * muz_0 * cosphi +
                                           mux_0 * sinphi)) /
                              (np.sqrt(1 - muz2_0)) + muy_0 * costheta)
-                    muz_n = -(np.sqrt(1 - muz2_0) * sintheta * cosphi + 
-                              muz_0 * costheta)
+                    muz_n = (-np.sqrt(1 - muz2_0) * sintheta * cosphi + 
+                             muz_0 * costheta)
                 
                 if bottom_reflection:
                     self.stokes_params = np.array([1,0,0,0])
