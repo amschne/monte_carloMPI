@@ -42,7 +42,7 @@ def run():
     
     # select degree of surface roughness:
     #roughness = 'smooth' # default
-    #roughness = 'moderatley rough'
+    #roughness = 'moderately rough'
     roughness = 'severely rough'
     
     # wavelength [um]

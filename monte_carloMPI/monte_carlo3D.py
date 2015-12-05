@@ -205,7 +205,7 @@ class MonteCarlo(object):
         
         if self.roughness == 'smooth':
             roughness_dir = 'Rough000'
-        elif self.roughness == 'moderatley rough':
+        elif self.roughness == 'moderately rough':
             roughness_dir = 'Rough003'
         elif self.roughness == 'severely rough':
             roughness_dir = 'Rough050'
