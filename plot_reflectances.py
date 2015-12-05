@@ -19,8 +19,6 @@ def get_args():
               'hollow_hexagonal_column',
               'hexagonal_plate',
               'droxtal',
-              'hollow_bullet_rosette',
-              'solid_bullet_rosette',
               '8-element_column_aggregate',
               '5-element_plate_aggregate',
               '10-element_plate_aggregate']
@@ -277,15 +275,20 @@ class MonteCarloDataSet(object):
                 
                     idxs = np.argsort(particle_radii)                    
                     
-                    plt.plot(particle_radii[idxs], albedo[idxs],
-                             color=color, marker=marker, 
-                             linestyle='dashed', label=label)
+                    if roughness == 'smooth':
+                        plt.plot(particle_radii[idxs], albedo[idxs],
+                                 color=color, marker=marker, 
+                                 linestyle='dashed', label=label)
+                    else:
+                        plt.plot(particle_radii[idxs], albedo[idxs],
+                                 color=color, marker=marker,
+                                 linestyle='dashed')
         
         plt.xlabel('Ice particle effective radius ($\mu m$)')
         plt.ylabel('Reflectance')
         plt.title('Nadir directional-hemispherical reflectance for $\lambda_0$ '
-                  '= %snm' % wvl_nm)
-        plt.legend()
+                  '= %dnm' % wvl_nm)
+        plt.legend(loc=1)
         plt.grid()
         
         plt.show()
