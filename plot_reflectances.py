@@ -5,6 +5,7 @@ import os
 import argparse
 import fnmatch
 import re
+import math
 
 import numpy as np
 import pandas as pd
@@ -284,11 +285,11 @@ class MonteCarloDataSet(object):
                                  color=color, marker=marker,
                                  linestyle='dashed')
         
-        plt.xlabel('Ice particle effective radius ($\mu m$)')
+        plt.xlabel('Ice particle effective radius ($\mathrm{\mu m}$)')
         plt.ylabel('Reflectance')
         plt.title('Nadir directional-hemispherical reflectance for $\lambda_0$ '
                   '= %dnm' % wvl_nm)
-        plt.legend(loc=1)
+        plt.legend(loc=1, fontsize=8)
         plt.grid()
         
         plt.show()
@@ -304,10 +305,14 @@ class MonteCarloDataSet(object):
         if np.absolute(wvl0 - mean_wvls) > 0.1:
             albedo = None
         else:
-            Q_down = data_file['wvn[um^-1]'].sum()
-            Q_up = data_file[data_file.condition==1]['wvn[um^-1]'].sum()
+            Q_i = data_file['wvn[um^-1]'].sum()
+            
+            reflected_wvns = data_file[data_file.condition==1]['wvn[um^-1]']
+            cosine_weights = np.cos(
+                                   data_file[data_file.condition==1]['theta_n'])
+            Q_r = (reflected_wvns * cosine_weights).sum()
         
-            albedo = Q_up / Q_down
+            albedo = Q_r / Q_i
         
         return albedo
         
