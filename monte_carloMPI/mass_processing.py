@@ -33,7 +33,9 @@ class Subplots(object):
         ncols = len(shapes)
         fig, axarr = plt.subplots(nrows, ncols,sharex='col', sharey='row',
                                   figsize=(ncols*4, nrows*3))
-        if nrows==1 or ncols==1:
+        if nrows==1 and ncols==1:
+            axarr = np.array([axarr])
+        if nrows==1 or ncols==1:    
             axarr.shape = (nrows, ncols)
         
         fontsize = 12#40./ncols
