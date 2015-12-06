@@ -27,7 +27,7 @@ class Subplots(object):
                          '5-element plate aggregate',
                          '10-element plate aggregate'],
                  roughnesses=['smooth',
-                              'moderatley rough',
+                              'moderately rough',
                               'severely rough']):
         nrows = len(roughnesses)
         ncols = len(shapes)
