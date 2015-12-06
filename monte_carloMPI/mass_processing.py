@@ -111,7 +111,7 @@ class Subplots(object):
         Theta_HG = np.arccos(self.cos_Theta_HG)
         Theta_HG_deg = np.rad2deg(Theta_HG)
         
-        #legend_font_size = 12
+        legend_font_size = 10
         colors = ['b','g','r','c','m','y','k']
         counter = 0
         for row, roughness in enumerate(self.roughnesses):
@@ -166,7 +166,8 @@ class Subplots(object):
                         ax.semilogy(Theta_HG_deg, P_HG * ssa_ice, color=color,
                                     linestyle='dashed',
                                     label='HG(g=%s)' % g)
-                ax.legend(loc=1)
+                
+                ax.legend(loc=1, fontsize=legend_font_size)
                         
                 ax.set_xticks([0,90,180])
                 ax.set_xlim((-9,189))
