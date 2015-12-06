@@ -111,7 +111,7 @@ class Subplots(object):
         Theta_HG = np.arccos(self.cos_Theta_HG)
         Theta_HG_deg = np.rad2deg(Theta_HG)
         
-        legend_font_size = 10
+        legend_font_size = 11
         colors = ['b','g','r','c','m','y','k']
         counter = 0
         for row, roughness in enumerate(self.roughnesses):
