@@ -32,13 +32,13 @@ class Subplots(object):
         nrows = len(roughnesses)
         ncols = len(shapes)
         fig, axarr = plt.subplots(nrows, ncols,sharex='col', sharey='row',
-                                  figsize=(ncols*4, nrows*3))
+                                  figsize=(ncols*8, nrows*6))
         if nrows==1 and ncols==1:
             axarr = np.array([axarr])
         if nrows==1 or ncols==1:    
             axarr.shape = (nrows, ncols)
         
-        fontsize = 12#40./ncols
+        fontsize = 24
         
         for row, roughness in enumerate(roughnesses):
             for col, shape in enumerate(shapes):
@@ -111,7 +111,7 @@ class Subplots(object):
         Theta_HG = np.arccos(self.cos_Theta_HG)
         Theta_HG_deg = np.rad2deg(Theta_HG)
         
-        legend_font_size = 8
+        #legend_font_size = 12
         colors = ['b','g','r','c','m','y','k']
         counter = 0
         for row, roughness in enumerate(self.roughnesses):
@@ -166,7 +166,7 @@ class Subplots(object):
                         ax.semilogy(Theta_HG_deg, P_HG * ssa_ice, color=color,
                                     linestyle='dashed',
                                     label='HG(g=%s)' % g)
-                ax.legend(loc=1, fontsize = legend_font_size)
+                ax.legend(loc=1)
                         
                 ax.set_xticks([0,90,180])
                 ax.set_xlim((-9,189))
@@ -175,9 +175,9 @@ class Subplots(object):
                     
                 if row == self.nrows - 1:
                     # last row
-                    ax.set_xlabel(r'$\Theta$')
+                    ax.set_xlabel('$\Theta$', fontsize=self.fontsize)
         
-        if True:
+        if False:
             wvl_nm = np.around(wvl * 1000)
             fig_dir = '/home/amaschne/Figures/agu15'
             fig_name = '%dnm_scattering_phase_functions.pdf' % wvl_nm
