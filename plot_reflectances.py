@@ -10,6 +10,8 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
+import ipdb
+
 def get_args():
     """ User input
     """
@@ -177,6 +179,7 @@ class MonteCarloDataSet(object):
         """
         fig = plt.figure()
         wvl_nm = np.around(float(self.args['wvl']) * 10**3)
+        zenith = np.around(float(self.args['theta_0']))
         
         num_shapes = len(self.args['shapes'])
         num_colors = num_shapes
@@ -286,8 +289,8 @@ class MonteCarloDataSet(object):
         
         plt.xlabel('Ice particle effective radius ($\mathrm{\mu m}$)')
         plt.ylabel('Reflectance')
-        plt.title('Nadir directional-hemispherical reflectance for $\lambda_0$ '
-                  '= %dnm' % wvl_nm)
+        plt.title('%d deg. directional-hemispherical reflectance for '
+                  '$\lambda_0$ = %dnm' % (zenith, self.wvl_nm))
         plt.legend(loc=1)
         plt.grid()
         
@@ -311,6 +314,39 @@ class MonteCarloDataSet(object):
         
         return albedo
         
+def plot_spectral_albedo(self,
+                         top_data_dir='/data3/amaschne/AGU2015_60zenith',
+                         shape='sphere'
+                         roughness='smooth'
+                         wvls=np.arange(0.305, 3.005, 0.02),
+                         half_width=1e-12,
+                         n_photon=1000000,
+                         theta_0=60.0,
+                         Stokes_0=[1,0,0,0] 
+                         Henyey_Greenstein=True):
+    """ Plot spectral directional-hemispherical reflectance for a given
+        shape habit and roughness.
+    """
+    
+    data_wvls = list()
+    for i, wvl in enumerate(wvls):
+        data_set = MonteCarloDataSet(top_data_dir=top_data_dir, shapes=[shape],
+                                     roughnesses=[roughness], wvl=wvl, 
+                                     half_width=half_width, n_photon=n_photon, 
+                                     theta_0=theta_0, Stokes_0=Stokes_0)
+        if Henyey_Greenstein:
+            if shape=='sphere':
+                data_wvls.append(data_set.data_HG[shape])
+            else:
+                data_wvls.append(data_set.data_HG[shape][roughness])
+        else:
+            if shape=='sphere':
+                data_wvls.append(data_set.data_I[shape])
+            else:
+                data_wvls.append(data_set.data_I[shape][roughness])
+                
+    ipdb.set_trace()
+
 def main():
     data = MonteCarloDataSet()
     data.plot_directional_hemispherical_reflectance()
