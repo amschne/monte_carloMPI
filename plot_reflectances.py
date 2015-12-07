@@ -292,7 +292,7 @@ class MonteCarloDataSet(object):
         plt.xlabel('Ice particle effective radius ($\mathrm{\mu m}$)')
         plt.ylabel('Reflectance')
         plt.title('%d deg. directional-hemispherical reflectance for '
-                  '$\lambda_0$ = %dnm' % (zenith, self.wvl_nm))
+                  '$\lambda_0$ = %dnm' % (zenith, wvl_nm))
         plt.legend(loc=1)
         plt.grid()
         
