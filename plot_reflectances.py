@@ -6,6 +6,8 @@ import argparse
 import fnmatch
 import re
 
+import natsort
+
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
@@ -202,7 +204,7 @@ class MonteCarloDataSet(object):
                 for RE, file_path in self.data_I[shape].items():
                     particle_radii.append(float(RE))
                     albedo.append(self.directional_hemispherical_reflectance(
-                                                                     file_path))
+                                                                  file_path)[0])
                 
                 particle_radii = np.array(particle_radii)
                 albedo = np.array(albedo)
@@ -218,7 +220,7 @@ class MonteCarloDataSet(object):
                 for RE, file_path in self.data_HG[shape].items():
                     particle_radii.append(float(RE))
                     albedo.append(self.directional_hemispherical_reflectance(
-                                                                     file_path))
+                                                                  file_path)[0])
                 
                 particle_radii = np.array(particle_radii)
                 albedo = np.array(albedo)
@@ -245,7 +247,7 @@ class MonteCarloDataSet(object):
                         particle_radii.append(float(RE))
                         albedo.append(
                                      self.directional_hemispherical_reflectance(
-                                                                     file_path))
+                                                                  file_path)[0])
                 
                     particle_radii = np.array(particle_radii)
                     albedo = np.array(albedo)
@@ -271,7 +273,7 @@ class MonteCarloDataSet(object):
                         particle_radii.append(float(RE))
                         albedo.append(
                                      self.directional_hemispherical_reflectance(
-                                                                     file_path))
+                                                                  file_path)[0])
                 
                     particle_radii = np.array(particle_radii)
                     albedo = np.array(albedo)
@@ -312,12 +314,17 @@ class MonteCarloDataSet(object):
         
             albedo = Q_up / Q_down
         
-        return albedo
+        return(albedo, mean_wvls)
         
-def plot_spectral_albedo(top_data_dir='/data3/amaschne/AGU2015_60zenith',
+    def mean_wvl(self, file_path):
+        """ Calculate mean wavelength in output
+        """
+        data_file = pd.read_csv(file_path, delim_whitespace=True)
+        
+def plot_spectral_albedo(top_data_dir='/data1/amaschne/AGU2015_60zenith',
                          shape='sphere',
                          roughness='smooth',
-                         wvls=np.arange(0.305, 3.005, 0.02),
+                         wvls=np.arange(0.305, 3.005, 0.01),
                          half_width=1e-12,
                          n_photon=1000000,
                          theta_0=60.0,
@@ -327,7 +334,9 @@ def plot_spectral_albedo(top_data_dir='/data3/amaschne/AGU2015_60zenith',
         shape habit and roughness.
     """
     
-    data_wvls = list()
+    rds_snw_list = list()
+    albedo = dict()
+    valid_wvls = dict()
     for i, wvl in enumerate(wvls):
         data_set = MonteCarloDataSet(top_data_dir=top_data_dir, shapes=[shape],
                                      roughnesses=[roughness], wvl=wvl, 
@@ -335,17 +344,46 @@ def plot_spectral_albedo(top_data_dir='/data3/amaschne/AGU2015_60zenith',
                                      theta_0=theta_0, Stokes_0=Stokes_0)
         if Henyey_Greenstein:
             if shape=='sphere':
-                data_wvls.append(data_set.data_HG[shape])
+                data = data_set.data_HG[shape]
             else:
-                data_wvls.append(data_set.data_HG[shape][roughness])
+                data = data_set.data_HG[shape][roughness]
         else:
             if shape=='sphere':
-                data_wvls.append(data_set.data_I[shape])
+                data = data_set.data_I[shape]
             else:
-                data_wvls.append(data_set.data_I[shape][roughness])
-                
-    ipdb.set_trace()
-
+                data = data_set.data_I[shape][roughness]
+        
+        if len(data.keys()) > 0:
+            for RE, file_path in data.items():
+                 if not RE in rds_snw_list:
+                     rds_snw_list.append(RE)
+                     valid_wvls[RE] = list()
+                     albedo[RE] = list()
+                     
+                 rho, wvl = data_set.directional_hemispherical_reflectance(
+                                                                      file_path)
+                 valid_wvls[RE].append(wvl)
+                 albedo[RE].append(rho)
+                 
+                 print('rho(%sum, %sum) = %s' % (wvl, RE, rho))
+    
+    fig = plt.figure()
+    
+    zenith = np.around(theta_0)
+    radii = natsort.natsorted(rds_snw_list)
+    for i, RE in enumerate(radii):
+        label = np.around(float(RE))
+        plt.plot(valid_wvls[RE], albedo[RE], label=label)
+    
+    plt.legend(title='Particle effective radius ($\mathrm{\mu m}$)', loc=1)
+    plt.grid()
+    plt.xlabel('Wavelength ($\mathrm{\mu m}$)')
+    plt.ylabel('Reflectance')
+    plt.title('Spectral %d deg. directional-hemispherical reflectance for '
+              'ice %ss'% (zenith, )))
+              
+    plt.show()
+    
 def main():
     data = MonteCarloDataSet()
     data.plot_directional_hemispherical_reflectance()
