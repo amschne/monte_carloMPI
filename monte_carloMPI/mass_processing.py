@@ -12,6 +12,8 @@ import monte_carlo3D
 import line_profiler
 import ipdb
 
+SAVE_FIGS = False
+
 PI = np.pi
 TWO_PI = 2*np.pi
 
@@ -178,7 +180,7 @@ class Subplots(object):
                     # last row
                     ax.set_xlabel('$\Theta$', fontsize=self.fontsize)
         
-        if False:
+        if SAVE_FIGS:
             wvl_nm = np.around(wvl * 1000)
             fig_dir = '/home/amaschne/Figures/agu15'
             fig_name = '%dnm_scattering_phase_functions.pdf' % wvl_nm
