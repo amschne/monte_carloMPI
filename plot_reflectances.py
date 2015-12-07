@@ -380,7 +380,7 @@ def plot_spectral_albedo(top_data_dir='/data1/amaschne/AGU2015_60zenith',
     plt.xlabel('Wavelength ($\mathrm{\mu m}$)')
     plt.ylabel('Reflectance')
     plt.title('Spectral %d deg. directional-hemispherical reflectance for '
-              'ice %ss'% (zenith, )))
+              'ice %ss'% (zenith, shape))
               
     plt.show()
     
