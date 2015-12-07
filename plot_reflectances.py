@@ -314,8 +314,7 @@ class MonteCarloDataSet(object):
         
         return albedo
         
-def plot_spectral_albedo(self,
-                         top_data_dir='/data3/amaschne/AGU2015_60zenith',
+def plot_spectral_albedo(top_data_dir='/data3/amaschne/AGU2015_60zenith',
                          shape='sphere',
                          roughness='smooth',
                          wvls=np.arange(0.305, 3.005, 0.02),
