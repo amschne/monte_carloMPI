@@ -204,24 +204,22 @@ def subsample():
     subplots = Subplots(shapes=shapes)
     subplots.plot_phase_functions(wvl, rds_snw_list)
                                    
-def multiple_wvls():
-    wvls = [0.4, 0.5, 0.55, 0.88, 1.3, 1.55]
-    rds_snw_list = [50,100,1000]
-    shapes = ['solid hexagonal column',
-              'hollow hexagonal column',
-              'hexagonal plate',
-              'droxtal',
-              '8-element column aggregate',
-              '5-element plate aggregate',
-              '10-element plate aggregate']
+def multiple_wvls(wvls=[0.4, 0.5, 0.55, 0.88, 1.3, 1.55],
+                  rds_snw_list=[50,100,1000],
+                  shapes=['solid hexagonal column',
+                          'hollow hexagonal column',
+                          'hexagonal plate',
+                          'droxtal',
+                          '8-element column aggregate',
+                          '5-element plate aggregate',
+                          '10-element plate aggregate'],
+                  roughnesses=['smooth', 'moderately rough', 'severely rough']):
     for i, wvl in enumerate(wvls):
-        subplots = Subplots(shapes=shapes)
+        subplots = Subplots(shapes=shapes, roughnesses=roughnesses)
         subplots.plot_phase_functions(wvl, rds_snw_list)
 
-def all_phase_funcs():
-    #wvl = 1.3
-    wvl = 0.550
-    rds_snw_list = [50,100,250,500,1000]
+def all_phase_funcs(wvl=1.3,
+                    rds_snw_list=[50,100,250,500,1000]):
     subplots = Subplots()
     subplots.plot_phase_functions(wvl, rds_snw_list)
     
