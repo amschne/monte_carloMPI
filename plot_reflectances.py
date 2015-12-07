@@ -316,13 +316,13 @@ class MonteCarloDataSet(object):
         
 def plot_spectral_albedo(self,
                          top_data_dir='/data3/amaschne/AGU2015_60zenith',
-                         shape='sphere'
-                         roughness='smooth'
+                         shape='sphere',
+                         roughness='smooth',
                          wvls=np.arange(0.305, 3.005, 0.02),
                          half_width=1e-12,
                          n_photon=1000000,
                          theta_0=60.0,
-                         Stokes_0=[1,0,0,0] 
+                         Stokes_0=[1,0,0,0] ,
                          Henyey_Greenstein=True):
     """ Plot spectral directional-hemispherical reflectance for a given
         shape habit and roughness.
