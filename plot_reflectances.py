@@ -330,7 +330,7 @@ def plot_spectral_albedo(top_data_dir='/data1/amaschne/AGU2015_60zenith',
                          theta_0=60.0,
                          Stokes_0=[1,0,0,0] ,
                          Henyey_Greenstein=True,
-                         xmin=0.2
+                         xmin=0.2,
                          xmax=3.0):
     """ Plot spectral directional-hemispherical reflectance for a given
         shape habit and roughness.
