@@ -329,7 +329,9 @@ def plot_spectral_albedo(top_data_dir='/data1/amaschne/AGU2015_60zenith',
                          n_photon=1000000,
                          theta_0=60.0,
                          Stokes_0=[1,0,0,0] ,
-                         Henyey_Greenstein=True):
+                         Henyey_Greenstein=True,
+                         xmin=0.2
+                         xmax=3.0):
     """ Plot spectral directional-hemispherical reflectance for a given
         shape habit and roughness.
     """
@@ -376,13 +378,18 @@ def plot_spectral_albedo(top_data_dir='/data1/amaschne/AGU2015_60zenith',
     radii = natsort.natsorted(rds_snw_list)
     for i, RE in enumerate(radii):
         label = np.around(float(RE))
-        plt.plot(valid_wvls[RE], albedo[RE], label=label)
+        plt.plot(valid_wvls[RE], albedo[RE], label='%d' % label)
     
     plt.legend(title='Particle effective radius ($\mathrm{\mu m}$)', loc=1)
     plt.grid()
+    plt.xlim((0.2, 3.0))
+    plt.xticks(np.arange(xmin, xmax + 0.1, 0.2))
+    plt.ylim((0.0,1.0))
+    plt.yticks(np.arange(0, 1.1, 0.1))
+    
     plt.xlabel('Wavelength ($\mathrm{\mu m}$)')
     plt.ylabel('Reflectance')
-    plt.title('Spectral %d deg. directional-hemispherical reflectance for '
+    plt.title('%d deg. directional-hemispherical reflectance for '
               'ice %ss'% (zenith, shape))
               
     plt.show()
