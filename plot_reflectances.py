@@ -365,7 +365,10 @@ def plot_spectral_albedo(top_data_dir='/data1/amaschne/AGU2015_60zenith',
                  valid_wvls[RE].append(wvl)
                  albedo[RE].append(rho)
                  
-                 print('rho(%sum, %sum) = %s' % (wvl, RE, rho))
+                 wvl_nm = np.around(wvl*1000)
+                 RE_um = np.around(RE)
+                 rho = np.around(rho, decimals=3)
+                 print('rho(wvl=%dnm, RE=%dum) = %s' % (wvl_nm, RE_um, rho))
     
     fig = plt.figure()
     
