@@ -178,8 +178,8 @@ class MonteCarloDataSet(object):
         return(files_I, files_HG)
     
     def plot_brf_all_angles(self,
-                            shapes=self.shapes,
-                            roughnesses=self.roughnesses,
+                            shapes=list(),
+                            roughnesses=list(),
                             active_area=1.,
                             d_dome=175.,
                             r_max=1.,
@@ -193,6 +193,11 @@ class MonteCarloDataSet(object):
         colors = ['b','g','r','c','m']
         hist_range = (0., np.pi/2)
         n_bins = calculate_bins(active_area, d_dome)
+        
+        if len(shapes)==0:
+            shapes=self.shapes
+        if len(roughnesses)==0:
+            roughnesses=self.roughnesses
         
         if r_step is None:
             r_step = (r_max / 10.) - 0.01
