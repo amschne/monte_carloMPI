@@ -195,9 +195,9 @@ class MonteCarloDataSet(object):
         n_bins = calculate_bins(active_area, d_dome)
         
         if len(shapes)==0:
-            shapes=self.shapes
+            shapes=self.args['shapes']
         if len(roughnesses)==0:
-            roughnesses=self.roughnesses
+            roughnesses=self.args['roughnesses']
         
         if r_step is None:
             r_step = (r_max / 10.) - 0.01
