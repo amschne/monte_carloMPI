@@ -174,6 +174,163 @@ class MonteCarloDataSet(object):
                 files_HG.append((file, RE))
                 
         return(files_I, files_HG)
+    
+    def plot_bidirectional_reflectance_factor(self, theta_r, active_area=1.,
+                                              d_dome=175.):
+        """ Plot bi-directional theta_r (deg.) reflectance factor as a function
+            of particle effective radius with:
+            
+            active_area = active area of photodiode (mm)
+            d_dome = diameter of hemisphere    
+        """
+        n_bins = calculate_bins(active_area, d_dome)
+        theta_r_rad = np.deg2rad(theta_r)
+        
+        fig = plt.figure()
+        wvl_nm = np.around(float(self.args['wvl']) * 10**3)
+        zenith = np.around(float(self.args['theta_0']))
+        theta_r_display = np.around(theta_r)
+        
+        num_shapes = len(self.args['shapes'])
+        num_colors = num_shapes
+        color_idxs = np.arange(num_colors)
+        for i, shape in enumerate(self.args['shapes']):
+            if shape == 'sphere':
+                num_colors = num_colors - 1
+        
+        color_list = plt.cm.Dark2(np.linspace(0, 1, num_colors))
+        for i, shape in enumerate(self.args['shapes']):
+            label = re.sub(r'[\W_]', ' ', shape)
+            print('Calculating and plotting reflectance factors for %ss...' % 
+                                                                         label)         
+            if shape == 'sphere':
+                color_idxs = color_idxs - 1
+                
+                # Full scattering phase functions
+                particle_radii = list()
+                brf = list()
+                for RE, file_path in self.data_I[shape].items():
+                    particle_radii.append(float(RE))
+                    (brf_all,
+                     theta_rad,
+                     mean_wvls) = self.bi_directional_reflectance_factor(
+                                                                     self,
+                                                                     file_path, 
+                                                                     n_bins)
+                    # Find nearest theta_r
+                    idx = (np.absolute(theta_rad - theta_r_rad)).argmin()
+                    brf.append(brf_all[idx])
+                
+                particle_radii = np.array(particle_radii)
+                brf = np.array(brf)
+                
+                idxs = np.argsort(particle_radii)
+                
+                plt.plot(particle_radii[idxs], brf[idxs], color='k',
+                         marker='o')
+                
+                # Henyey Greenstein scattering phase functions
+                particle_radii = list()
+                brf = list()
+                for RE, file_path in self.data_HG[shape].items():
+                    particle_radii.append(float(RE))
+                    (brf_all,
+                     theta_rad,
+                     mean_wvls) = self.bi_directional_reflectance_factor(
+                                                                     self,
+                                                                     file_path, 
+                                                                     n_bins)
+                    # Find nearest theta_r
+                    idx = (np.absolute(theta_rad - theta_r_rad)).argmin()
+                    brf.append(brf_all[idx])
+                
+                particle_radii = np.array(particle_radii)
+                brf = np.array(brf)
+                
+                idxs = np.argsort(particle_radii)                
+                
+                plt.plot(particle_radii[idxs], brf[idxs], color='k',
+                         marker='o', linestyle='dashed', label=label)
+            else:
+                color = color_list[color_idxs[i]]
+                for roughness, RE_data_I in self.data_I[shape].items():
+                    """ Full scattering phase function
+                    """
+                    if roughness == 'smooth':
+                        marker = 'o'
+                    elif roughness == 'moderately_rough':
+                        marker = 'd'
+                    elif roughness == 'severely_rough':
+                        marker = '*'
+                    
+                    particle_radii = list()
+                    brf = list()
+                    for RE, file_path in RE_data_I.items():
+                        particle_radii.append(float(RE))
+                        (brf_all,
+                         theta_rad,
+                         mean_wvls) = self.bi_directional_reflectance_factor(
+                                                                    self,
+                                                                    file_path, 
+                                                                    n_bins)
+                        # Find nearest theta_r
+                        idx = (np.absolute(theta_rad - theta_r_rad)).argmin()
+                        brf.append(brf_all[idx])
+                
+                    particle_radii = np.array(particle_radii)
+                    brf = np.array(brf)
+                
+                    idxs = np.argsort(particle_radii)                    
+                    
+                    plt.plot(particle_radii[idxs], brf[idxs],
+                             color=color, marker=marker)
+                
+                for roughness, RE_data_HG in self.data_HG[shape].items():
+                    """ Henyey Greenstein scattering phase function
+                    """
+                    if roughness == 'smooth':
+                        marker = 'o'
+                    elif roughness == 'moderately_rough':
+                        marker = 'd'
+                    elif roughness == 'severely_rough':
+                        marker = '*'
+                    
+                    particle_radii = list()
+                    brf = list()
+                    for RE, file_path in RE_data_HG.items():
+                        particle_radii.append(float(RE))
+                        (brf_all,
+                         theta_rad,
+                         mean_wvls) = self.bi_directional_reflectance_factor(
+                                                                    self,
+                                                                    file_path, 
+                                                                    n_bins)
+                        # Find nearest theta_r
+                        idx = (np.absolute(theta_rad - theta_r_rad)).argmin()
+                        brf.append(brf_all[idx])
+                
+                    particle_radii = np.array(particle_radii)
+                    brf = np.array(brf)
+                
+                    idxs = np.argsort(particle_radii)                    
+                    
+                    if roughness == 'smooth':
+                        plt.plot(particle_radii[idxs], brf[idxs],
+                                 color=color, marker=marker, 
+                                 linestyle='dashed', label=label)
+                    else:
+                        plt.plot(particle_radii[idxs], brf[idxs],
+                                 color=color, marker=marker,
+                                 linestyle='dashed')
+        
+        plt.xlabel('Ice particle effective radius ($\mathrm{\mu m}$)')
+        plt.ylabel('Reflectance factor')
+        plt.title('%d;%d deg. bi-directional reflectance factors for '
+                  '$\lambda_0$ = %dnm' % (zenith, theta_r_display, wvl_nm))
+        plt.legend(loc=1)
+        plt.grid()
+        
+        plt.show()
         
     def plot_directional_hemispherical_reflectance(self):
         """ Plot directional-hemispherical reflectance as a function of
@@ -297,7 +454,36 @@ class MonteCarloDataSet(object):
         plt.grid()
         
         plt.show()
+    
+    def bi_directional_reflectance_factor(self, file_path, n_bins):
+        """ Read in data and calculate bi-directional reflectance factors
+        """
+        data_file = pd.read_csv(file_path, delim_whitespace=True)
+        mean_wvls = 1. / data_file['wvn[um^-1]'].mean()
+        wvl0 = float(self.args['wvl'])
         
+        if np.absolute(wvl0 - mean_wvls) > 0.1:
+            brf = None
+            midpoints = None
+        else:
+            hist_range = (0., np.pi/2)
+            
+            
+            Q_down = data_file['wvn[um^-1]'].sum()
+            weights = data_file[data.condition==1]['wvn[um^-1]']
+            theta_exit = data_file[data.condition==1]['theta_n']
+            
+            h = np.histogram(theta_exit, bins=n_bins, range=hist_range,
+                             weights=weights)
+            
+            midpoints = (np.diff(h[1]) / 2.) + h[1][:-1]
+            brf_weights = (np.sin(midpoints) * np.cos(midpoints) / 
+                           np.sum(np.sin(midpoints) * np.cos(midpoints)))
+            
+            brf = h[0] / (Q_down * brf_weights)
+            
+        return(brf, midpoints, mean_wvls)
+    
     def directional_hemispherical_reflectance(self, file_path):
         """ Read in data and calculate directional-hemispherical 
             reflectance, a.k.a. black sky albedo
@@ -394,6 +580,17 @@ def plot_spectral_albedo(top_data_dir='/data1/amaschne/AGU2015_60zenith',
               
     plt.show()
     
+def calculate_bins(active_area, d_dome):
+    """ Calculate number of bins to simulate photodiode with given active area
+        mounted in dome with given diameter
+
+        Returns number of bins n_bins
+    """
+    n_bins =  int((np.pi * d_dome) / (4.*active_area))
+    print('BRF computing over %d bins' % n_bins)
+    
+    return n_bins
+
 def main():
     data = MonteCarloDataSet()
     data.plot_directional_hemispherical_reflectance()
