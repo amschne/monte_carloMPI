@@ -228,9 +228,9 @@ class MonteCarloDataSet(object):
                 
                 idxs = np.argsort(particle_radii)
                 
-                for idx in idxs:
+                for k, idx in enumerate(idxs):
                     auxa.plot(theta_deg[idx][::-1], brfs[idx],
-                              color=colors[idx])
+                              color=colors[k])
                 
                 # Henyey Greenstein scattering phase functions
                 particle_radii = list()
@@ -248,18 +248,19 @@ class MonteCarloDataSet(object):
                 
                 idxs = np.argsort(particle_radii)
                 
-                for idx in idxs:
+                for k, idx in enumerate(idxs):
                     auxa.plot(theta_deg[idx][::-1], brfs[idx],
                               label='%d' % particle_radii[idx], 
-                              color=colors[idx], linestyle='dashed')
+                              color=colors[k], linestyle='dashed')
                               
-                plt.title('%dnm %d$^{\circ}$ BRFs of ice %ss' % (wvl_nm,
-                                                                 zenith,
-                                                                 shape_label))
-                plt.legend(bbox_to_anchor=(1, 1),
+                #plt.title('%dnm %d$^{\circ}$ BRFs of ice %ss' % (wvl_nm,
+                 #                                                zenith,
+                  #                                               shape_label))
+                plt.title('%ss' % (shape_label))
+                plt.legend(bbox_to_anchor=(1, 3),
                            bbox_transform=plt.gcf().transFigure,
                            title='RE ($\mathrm{\mu}$m)',
-                           fontsize='x-small')
+                           fontsize='small')
                            
                 plt.show()
                 
@@ -314,15 +315,16 @@ class MonteCarloDataSet(object):
                                   label='%d' % particle_radii[idx], 
                                   color=colors[idx], linestyle='dashed')
                               
-                    plt.title('%dnm %d$^{\circ}$ BRFs of ice %s %ss' % (
-                                                                wvl_nm,
-                                                                zenith,
-                                                                roughness_label,
-                                                                shape_label))
-                    plt.legend(bbox_to_anchor=(1, 1),
+                    #plt.title('%dnm %d$^{\circ}$ BRFs of ice %s %ss' % (
+                     #                                          wvl_nm,
+                      #                                         zenith,
+                       #                                        roughness_label,
+                        #                                       shape_label))
+                    plt.title('%s %ss' % (roughness_label, shape_label))
+                    plt.legend(bbox_to_anchor=(1, 2),
                                bbox_transform=plt.gcf().transFigure,
                                title='RE ($\mathrm{\mu}$m)',
-                               fontsize='x-small')
+                               fontsize='small')
                                
                     plt.show()
     
