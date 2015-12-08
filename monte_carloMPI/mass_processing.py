@@ -33,7 +33,7 @@ class Subplots(object):
                               'severely rough']):
         nrows = len(roughnesses)
         ncols = len(shapes)
-        fig, axarr = plt.subplots(nrows, ncols,sharex='col', sharey='row',
+        fig, axarr = plt.subplots(nrows, ncols, sharex='col', sharey='row',
                                   figsize=(ncols*8, nrows*6))
         if nrows==1 and ncols==1:
             axarr = np.array([axarr])

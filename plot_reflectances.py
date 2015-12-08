@@ -14,6 +14,8 @@ from matplotlib import pyplot as plt
 
 import ipdb
 
+import polar_demo
+
 def get_args():
     """ User input
     """
@@ -175,8 +177,152 @@ class MonteCarloDataSet(object):
                 
         return(files_I, files_HG)
     
+    def plot_brf_all_angles(self,
+                            shapes=self.shapes,
+                            roughnesses=self.roughnesses,
+                            active_area=1.,
+                            d_dome=175.,
+                            r_max=1.
+                            r_step=None):
+        """ Plot BRFs for different grain sizes on one plot for a list of given
+            shapes and roughnesses.
+        """
+        wvl_nm = np.around(float(self.args['wvl']) * 10**3)
+        zenith = np.around(float(self.args['theta_0']))
+        
+        colors = ['b','g','r','c','m']
+        hist_range = (0., np.pi/2)
+        n_bins = calculate_bins(active_area, d_dome)
+        
+        if r_step is None:
+            r_step = (r_max / 10.) - 0.01
+        
+        for i, shape in enumerate(shapes):
+            shape_label = re.sub(r'[\W_]', ' ', shape)
+            
+            if shape=='sphere':
+                fig = plt.figure()
+                auxa = polar_demo.fractional_polar_axes(
+                            fig, thlim=(0,90), rlim=(0,r_max), step=(15,r_step),
+                            thlabel='Elevation angle',
+                            rlabel='Reflectance factor')
+                
+                # Full scattering phase functions
+                particle_radii = list()
+                theta_deg = list()
+                brfs = list()
+                for RE, file_path in self.data_I[shape].items():
+                    particle_radii.append(np.around(float(RE)))
+                    (brf,
+                     theta_rad,
+                     mean_wvls) = self.bi_directional_reflectance_factor(
+                                                                     file_path, 
+                                                                     n_bins)
+                    theta_deg.append(np.rad2deg(theta_rad))
+                    brfs.append(brf)
+                
+                idxs = np.argsort(particle_radii)
+                
+                for idx in idxs:
+                    auxa.plot(theta_deg[idx][::-1], brfs[idx],
+                              color=colors[idx])
+                
+                # Henyey Greenstein scattering phase functions
+                particle_radii = list()
+                theta_deg = list()
+                brfs = list()
+                for RE, file_path in self.data_HG[shape].items():
+                    particle_radii.append(np.around(float(RE)))
+                    (brf,
+                     theta_rad,
+                     mean_wvls) = self.bi_directional_reflectance_factor(
+                                                                     file_path, 
+                                                                     n_bins)
+                    theta_deg.append(np.rad2deg(theta_rad))
+                    brfs.append(brf)
+                
+                idxs = np.argsort(particle_radii)
+                
+                for idx in idxs:
+                    auxa.plot(theta_deg[idx][::-1], brfs[idx],
+                              label='%d' % particle_radii[idx], 
+                              color=colors[idx], linestyle='dashed')
+                              
+                plt.title('%dnm %d$^{\circ}$ BRFs of ice %ss' % (wvl_nm,
+                                                                 zenith,
+                                                                 shape_label))
+                plt.legend(bbox_to_anchor=(1, 1),
+                           bbox_transform=plt.gcf().transFigure,
+                           title='RE ($\mathrm{\mu}$m)',
+                           fontsize='x-small')
+                           
+                plt.show()
+                
+            else:
+                for j, roughness in enumerate(roughnesses):
+                    roughness_label = re.sub(r'[\W_]', ' ', roughness)
+                    
+                    fig = plt.figure()
+                    auxa = polar_demo.fractional_polar_axes(
+                            fig, thlim=(0,90), rlim=(0,r_max), step=(15,r_step),
+                            thlabel='Elevation angle',
+                            rlabel='Reflectance factor')
+                    
+                    # Full scattering phase functions
+                    particle_radii = list()
+                    theta_deg = list()
+                    brfs = list()
+                    for RE, file_path in self.data_I[shape][roughness].items():
+                        particle_radii.append(np.around(float(RE)))
+                        (brf,
+                         theta_rad,
+                         mean_wvls) = self.bi_directional_reflectance_factor(
+                                                                     file_path, 
+                                                                     n_bins)
+                        theta_deg.append(np.rad2deg(theta_rad))
+                        brfs.append(brf)
+                
+                    idxs = np.argsort(particle_radii)
+                
+                    for idx in idxs:
+                        auxa.plot(theta_deg[idx][::-1], brfs[idx],
+                                  color=colors[idx])
+                                  
+                    # Henyey Greenstein scattering phase functions
+                    particle_radii = list()
+                    theta_deg = list()
+                    brfs = list()
+                    for RE, file_path in self.data_HG[shape][roughness].items():
+                        particle_radii.append(np.around(float(RE)))
+                        (brf,
+                         theta_rad,
+                         mean_wvls) = self.bi_directional_reflectance_factor(
+                                                                     file_path, 
+                                                                     n_bins)
+                        theta_deg.append(np.rad2deg(theta_rad))
+                        brfs.append(brf)
+                
+                    idxs = np.argsort(particle_radii)
+                
+                    for idx in idxs:
+                        auxa.plot(theta_deg[idx][::-1], brfs[idx],
+                                  label='%d' % particle_radii[idx], 
+                                  color=colors[idx], linestyle='dashed')
+                              
+                    plt.title('%dnm %d$^{\circ}$ BRFs of ice %s %ss' % (
+                                                                wvl_nm,
+                                                                zenith,
+                                                                roughness_label,
+                                                                shape_label))
+                    plt.legend(bbox_to_anchor=(1, 1),
+                               bbox_transform=plt.gcf().transFigure,
+                               title='RE ($\mathrm{\mu}$m)',
+                               fontsize='x-small')
+                               
+                    plt.show()
+    
     def plot_bidirectional_reflectance_factor(self, theta_r, active_area=1.,
-                                              d_dome=175., markersize=14):
+                                              d_dome=175., markersize=8):
         """ Plot bi-directional theta_r (deg.) reflectance factor as a function
             of particle effective radius with:
             
@@ -323,15 +469,14 @@ class MonteCarloDataSet(object):
         
         plt.xlabel('Ice particle effective radius ($\mathrm{\mu m}$)')
         plt.ylabel('Reflectance factor')
-        plt.title('%d$^{\circ}$; %d$^{\circ}$ bi-directional reflectance '
-                  'factors for $\lambda_0$ = %dnm' % (zenith, theta_r_display,
-                                                      wvl_nm))
+        plt.title('%dnm %d$^{\circ}$;%d$^{\circ}$ bi-directional reflectance '
+                  'factors' % (wvl_nm, zenith, theta_r_display))
         plt.legend(loc=1)
         plt.grid()
         
         plt.show()
         
-    def plot_directional_hemispherical_reflectance(self, markersize=14):
+    def plot_directional_hemispherical_reflectance(self, markersize=8):
         """ Plot directional-hemispherical reflectance as a function of
             particle effective radius
         """
@@ -449,8 +594,8 @@ class MonteCarloDataSet(object):
         
         plt.xlabel('Ice particle effective radius ($\mathrm{\mu m}$)')
         plt.ylabel('Reflectance')
-        plt.title('%d$^{\circ}$ directional-hemispherical reflectance for '
-                  '$\lambda_0$ = %dnm' % (zenith, wvl_nm))
+        plt.title('%dnm %d$^{\circ}$ directional-hemispherical reflectance'
+                  % (wvl_nm, zenith))
         plt.legend(loc=1)
         plt.grid()
         
