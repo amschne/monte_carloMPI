@@ -290,9 +290,9 @@ class MonteCarloDataSet(object):
                 
                     idxs = np.argsort(particle_radii)
                 
-                    for idx in idxs:
+                    for k, idx in enumerate(idxs):
                         auxa.plot(theta_deg[idx][::-1], brfs[idx],
-                                  color=colors[idx])
+                                  color=colors[k])
                                   
                     # Henyey Greenstein scattering phase functions
                     particle_radii = list()
@@ -310,10 +310,10 @@ class MonteCarloDataSet(object):
                 
                     idxs = np.argsort(particle_radii)
                 
-                    for idx in idxs:
+                    for k, idx in enumerate(idxs):
                         auxa.plot(theta_deg[idx][::-1], brfs[idx],
                                   label='%d' % particle_radii[idx], 
-                                  color=colors[idx], linestyle='dashed')
+                                  color=colors[k], linestyle='dashed')
                               
                     #plt.title('%dnm %d$^{\circ}$ BRFs of ice %s %ss' % (
                      #                                          wvl_nm,
