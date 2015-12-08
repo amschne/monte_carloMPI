@@ -182,7 +182,7 @@ class MonteCarloDataSet(object):
                             roughnesses=self.roughnesses,
                             active_area=1.,
                             d_dome=175.,
-                            r_max=1.
+                            r_max=1.,
                             r_step=None):
         """ Plot BRFs for different grain sizes on one plot for a list of given
             shapes and roughnesses.
