@@ -466,8 +466,8 @@ class MonteCarloDataSet(object):
             
             
             Q_down = data_file['wvn[um^-1]'].sum()
-            weights = data_file[data.condition==1]['wvn[um^-1]']
-            theta_exit = data_file[data.condition==1]['theta_n']
+            weights = data_file[data_file.condition==1]['wvn[um^-1]']
+            theta_exit = data_file[data_file.condition==1]['theta_n']
             
             h = np.histogram(theta_exit, bins=n_bins, range=hist_range,
                              weights=weights)
