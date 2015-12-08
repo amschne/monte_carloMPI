@@ -214,7 +214,6 @@ class MonteCarloDataSet(object):
                     (brf_all,
                      theta_rad,
                      mean_wvls) = self.bi_directional_reflectance_factor(
-                                                                     self,
                                                                      file_path, 
                                                                      n_bins)
                     # Find nearest theta_r
@@ -237,7 +236,6 @@ class MonteCarloDataSet(object):
                     (brf_all,
                      theta_rad,
                      mean_wvls) = self.bi_directional_reflectance_factor(
-                                                                     self,
                                                                      file_path, 
                                                                      n_bins)
                     # Find nearest theta_r
@@ -270,7 +268,6 @@ class MonteCarloDataSet(object):
                         (brf_all,
                          theta_rad,
                          mean_wvls) = self.bi_directional_reflectance_factor(
-                                                                    self,
                                                                     file_path, 
                                                                     n_bins)
                         # Find nearest theta_r
@@ -302,7 +299,6 @@ class MonteCarloDataSet(object):
                         (brf_all,
                          theta_rad,
                          mean_wvls) = self.bi_directional_reflectance_factor(
-                                                                    self,
                                                                     file_path, 
                                                                     n_bins)
                         # Find nearest theta_r
