@@ -257,7 +257,7 @@ class MonteCarloDataSet(object):
                  #                                                zenith,
                   #                                               shape_label))
                 plt.title('%ss' % (shape_label))
-                plt.legend(bbox_to_anchor=(1, 3),
+                plt.legend(bbox_to_anchor=(1, 1),
                            bbox_transform=plt.gcf().transFigure,
                            title='RE ($\mathrm{\mu}$m)',
                            fontsize='small')
@@ -321,7 +321,7 @@ class MonteCarloDataSet(object):
                        #                                        roughness_label,
                         #                                       shape_label))
                     plt.title('%s %ss' % (roughness_label, shape_label))
-                    plt.legend(bbox_to_anchor=(1, 2),
+                    plt.legend(bbox_to_anchor=(1, 1),
                                bbox_transform=plt.gcf().transFigure,
                                title='RE ($\mathrm{\mu}$m)',
                                fontsize='small')
