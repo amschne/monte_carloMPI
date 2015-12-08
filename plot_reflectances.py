@@ -176,7 +176,7 @@ class MonteCarloDataSet(object):
         return(files_I, files_HG)
     
     def plot_bidirectional_reflectance_factor(self, theta_r, active_area=1.,
-                                              d_dome=175.):
+                                              d_dome=175., markersize=14):
         """ Plot bi-directional theta_r (deg.) reflectance factor as a function
             of particle effective radius with:
             
@@ -226,7 +226,7 @@ class MonteCarloDataSet(object):
                 idxs = np.argsort(particle_radii)
                 
                 plt.plot(particle_radii[idxs], brf[idxs], color='k',
-                         marker='o')
+                         marker='o', markersize=markersize)
                 
                 # Henyey Greenstein scattering phase functions
                 particle_radii = list()
@@ -248,7 +248,8 @@ class MonteCarloDataSet(object):
                 idxs = np.argsort(particle_radii)                
                 
                 plt.plot(particle_radii[idxs], brf[idxs], color='k',
-                         marker='o', linestyle='dashed', label=label)
+                         marker='o', linestyle='dashed', label=label,
+                         markersize=markersize)
             else:
                 color = color_list[color_idxs[i]]
                 for roughness, RE_data_I in self.data_I[shape].items():
@@ -280,7 +281,7 @@ class MonteCarloDataSet(object):
                     idxs = np.argsort(particle_radii)                    
                     
                     plt.plot(particle_radii[idxs], brf[idxs],
-                             color=color, marker=marker)
+                             color=color, marker=marker, markersize=markersize)
                 
                 for roughness, RE_data_HG in self.data_HG[shape].items():
                     """ Henyey Greenstein scattering phase function
@@ -313,11 +314,12 @@ class MonteCarloDataSet(object):
                     if roughness == 'smooth':
                         plt.plot(particle_radii[idxs], brf[idxs],
                                  color=color, marker=marker, 
-                                 linestyle='dashed', label=label)
+                                 linestyle='dashed', label=label,
+                                 markersize=markersize)
                     else:
                         plt.plot(particle_radii[idxs], brf[idxs],
                                  color=color, marker=marker,
-                                 linestyle='dashed')
+                                 linestyle='dashed', markersize=markersize)
         
         plt.xlabel('Ice particle effective radius ($\mathrm{\mu m}$)')
         plt.ylabel('Reflectance factor')
@@ -328,7 +330,7 @@ class MonteCarloDataSet(object):
         
         plt.show()
         
-    def plot_directional_hemispherical_reflectance(self):
+    def plot_directional_hemispherical_reflectance(self, markersize=14):
         """ Plot directional-hemispherical reflectance as a function of
             particle effective radius
         """
@@ -365,7 +367,7 @@ class MonteCarloDataSet(object):
                 idxs = np.argsort(particle_radii)
                 
                 plt.plot(particle_radii[idxs], albedo[idxs], color='k',
-                         marker='o')
+                         marker='o', markersize=markersize)
                 
                 # Henyey Greenstein scattering phase functions
                 particle_radii = list()
@@ -381,7 +383,8 @@ class MonteCarloDataSet(object):
                 idxs = np.argsort(particle_radii)                
                 
                 plt.plot(particle_radii[idxs], albedo[idxs], color='k',
-                         marker='o', linestyle='dashed', label=label)
+                         marker='o', linestyle='dashed', label=label, 
+                         markersize=markersize)
             else:
                 color = color_list[color_idxs[i]]
                 for roughness, RE_data_I in self.data_I[shape].items():
@@ -408,7 +411,7 @@ class MonteCarloDataSet(object):
                     idxs = np.argsort(particle_radii)                    
                     
                     plt.plot(particle_radii[idxs], albedo[idxs],
-                             color=color, marker=marker)
+                             color=color, marker=marker, markersize=markersize)
                 
                 for roughness, RE_data_HG in self.data_HG[shape].items():
                     """ Henyey Greenstein scattering phase function
@@ -436,11 +439,12 @@ class MonteCarloDataSet(object):
                     if roughness == 'smooth':
                         plt.plot(particle_radii[idxs], albedo[idxs],
                                  color=color, marker=marker, 
-                                 linestyle='dashed', label=label)
+                                 linestyle='dashed', label=label,
+                                 markersize=markersize)
                     else:
                         plt.plot(particle_radii[idxs], albedo[idxs],
                                  color=color, marker=marker,
-                                 linestyle='dashed')
+                                 linestyle='dashed', markersize=markersize)
         
         plt.xlabel('Ice particle effective radius ($\mathrm{\mu m}$)')
         plt.ylabel('Reflectance')
