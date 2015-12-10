@@ -488,8 +488,8 @@ class MonteCarloDataSet(object):
                                  color=color, marker=marker,
                                  linestyle='dashed', markersize=markersize)
         
-        plt.xlim=xlim
-        plt.ylim=ylim
+        plt.xlim(xlim)
+        plt.ylim(ylim)
         
         plt.xlabel('Ice particle effective radius ($\mathrm{\mu m}$)')
         plt.ylabel('Reflectance factor')
@@ -624,8 +624,8 @@ class MonteCarloDataSet(object):
                                  color=color, marker=marker,
                                  linestyle='dashed', markersize=markersize)
         
-        plt.xlim = xlim
-        plt.ylim = ylim
+        plt.xlim(xlim)
+        plt.ylim(ylim)
         
         plt.xlabel('Ice particle effective radius ($\mathrm{\mu m}$)')
         plt.ylabel('Reflectance')
