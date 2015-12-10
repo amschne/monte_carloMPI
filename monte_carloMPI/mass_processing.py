@@ -187,7 +187,7 @@ class Subplots(object):
             self.fig.savefig(fig_name)
         else:
             plt.show()
-        self.fig.close()
+        plt.close()
      
 def subsample():
     wvl = 1.3
