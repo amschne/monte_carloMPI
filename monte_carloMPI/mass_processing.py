@@ -12,8 +12,6 @@ import monte_carlo3D
 import line_profiler
 import ipdb
 
-SAVE_FIGS = False
-
 PI = np.pi
 TWO_PI = 2*np.pi
 
@@ -85,7 +83,8 @@ class Subplots(object):
         
     #@profile
     def plot_phase_functions(self, wvl, rds_snw_list,
-                             stokes_params=np.array([1,0,0,0])):
+                             stokes_params=np.array([1,0,0,0]),
+                             save=False):
         """
         """
         len_rds_snw_list = len(rds_snw_list)
@@ -180,12 +179,12 @@ class Subplots(object):
                     # last row
                     ax.set_xlabel('$\Theta$', fontsize=self.fontsize)
         
-        if SAVE_FIGS:
+        if save:
             wvl_nm = np.around(wvl * 1000)
-            fig_dir = '/home/amaschne/Figures/agu15'
+            #fig_dir = '/home/amaschne/Figures/agu15'
             fig_name = '%dnm_scattering_phase_functions.pdf' % wvl_nm
-            fig_path = os.path.join(fig_dir, fig_name)
-            plt.savefig(fig_path)
+            #fig_path = os.path.join(fig_dir, fig_name)
+            plt.savefig(fig_name)
         else:
             plt.show()
         plt.close()
