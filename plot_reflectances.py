@@ -265,10 +265,10 @@ class MonteCarloDataSet(object):
                            
                 if savefigs:
                     figname = '%s_%dbrf.pdf' % (shape, zenith)
-                    fig.savefig(figname)
+                    plt.savefig(figname)
                 else:
                     plt.show()
-                plt.close()
+                #plt.close()
                 
             else:
                 for j, roughness in enumerate(roughnesses):
@@ -334,10 +334,10 @@ class MonteCarloDataSet(object):
                                
                     if savefigs:
                         figname = '%s_%s_%dbrf.pdf' % (roughness, shape, zenith)
-                        fig.savefig(figname)
+                        plt.savefig(figname)
                     else:
                         plt.show()
-                    plt.close()
+                    #plt.close()
     
     def plot_bidirectional_reflectance_factor(self, theta_r, active_area=1.,
                                               d_dome=175., markersize=8,
@@ -495,10 +495,10 @@ class MonteCarloDataSet(object):
         
         if savefig:
             figname = '%dnm_%d-%dbrfs.pdf' % (wvl_nm, zenith, theta_r_display)
-            fig.savefig(figname)
+            plt.savefig(figname)
         else:
             plt.show()
-        plt.close()
+        #plt.close()
         
     def plot_directional_hemispherical_reflectance(self, markersize=8,
                                                    savefig=False):
@@ -626,10 +626,10 @@ class MonteCarloDataSet(object):
         
         if savefig:
             figname = '%dnm_%dalbedo.pdf' % (wvl_nm, zenith)
-            fig.savefig(figname)
+            plt.savefig(figname)
         else:
             plt.show()
-        plt.close()
+        #plt.close()
     
     def bi_directional_reflectance_factor(self, file_path, n_bins):
         """ Read in data and calculate bi-directional reflectance factors
@@ -757,10 +757,10 @@ def plot_spectral_albedo(top_data_dir='/data3/amaschne/AGU2015_60zenith',
               
     if savefig:
         figname = 'spectral_%dalbedo_%s.pdf' % (zenith, shape)
-        fig.savefig(figname)
+        plt.savefig(figname)
     else:
         plt.show()
-    plt.close()
+    #plt.close()
     
 def calculate_bins(active_area, d_dome):
     """ Calculate number of bins to simulate photodiode with given active area
