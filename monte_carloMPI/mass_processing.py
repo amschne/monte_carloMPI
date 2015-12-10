@@ -184,10 +184,10 @@ class Subplots(object):
             #fig_dir = '/home/amaschne/Figures/agu15'
             fig_name = '%dnm_scattering_phase_functions.pdf' % wvl_nm
             #fig_path = os.path.join(fig_dir, fig_name)
-            plt.savefig(fig_name)
+            self.fig.savefig(fig_name)
         else:
             plt.show()
-        plt.close()
+        self.fig.close()
      
 def subsample():
     wvl = 1.3
