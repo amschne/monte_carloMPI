@@ -183,7 +183,8 @@ class MonteCarloDataSet(object):
                             active_area=1.,
                             d_dome=175.,
                             r_max=1.,
-                            r_step=None):
+                            r_step=None,
+                            savefigs=False):
         """ Plot BRFs for different grain sizes on one plot for a list of given
             shapes and roughnesses.
         """
@@ -262,7 +263,12 @@ class MonteCarloDataSet(object):
                            title='RE ($\mathrm{\mu m}$)',
                            fontsize='small')
                            
-                plt.show()
+                if savefigs:
+                    figname = '%s_%dbrf.pdf' % (shape, zenith)
+                    plt.savefig(figname)
+                else:
+                    plt.show()
+                plt.close()
                 
             else:
                 for j, roughness in enumerate(roughnesses):
@@ -326,10 +332,16 @@ class MonteCarloDataSet(object):
                                title='RE ($\mathrm{\mu m}$)',
                                fontsize='small')
                                
-                    plt.show()
+                    if savefigs:
+                        figname = '%s_%s_%dbrf.pdf' % (roughness, shape, zenith)
+                        plt.savefig(figname)
+                    else:
+                        plt.show()
+                    plt.close()
     
     def plot_bidirectional_reflectance_factor(self, theta_r, active_area=1.,
-                                              d_dome=175., markersize=8):
+                                              d_dome=175., markersize=8,
+                                              savefig=False):
         """ Plot bi-directional theta_r (deg.) reflectance factor as a function
             of particle effective radius with:
             
@@ -481,9 +493,15 @@ class MonteCarloDataSet(object):
         plt.legend(loc=1)
         plt.grid()
         
-        plt.show()
+        if savefig:
+            figname = '%dnm_%d-%dbrfs.pdf' % (wvl_nm, zenith, theta_r_display)
+            plt.savefig(figname)
+        else:
+            plt.show()
+        plt.close()
         
-    def plot_directional_hemispherical_reflectance(self, markersize=8):
+    def plot_directional_hemispherical_reflectance(self, markersize=8,
+                                                   savefig=False):
         """ Plot directional-hemispherical reflectance as a function of
             particle effective radius
         """
@@ -606,7 +624,11 @@ class MonteCarloDataSet(object):
         plt.legend(loc=1)
         plt.grid()
         
-        plt.show()
+        if savefig:
+            figname = '%dnm_%dalbedo.pdf' % (wvl_nm, zenith)
+        else:
+            plt.show()
+        plt.close()
     
     def bi_directional_reflectance_factor(self, file_path, n_bins):
         """ Read in data and calculate bi-directional reflectance factors
@@ -660,7 +682,7 @@ class MonteCarloDataSet(object):
         """
         data_file = pd.read_csv(file_path, delim_whitespace=True)
         
-def plot_spectral_albedo(top_data_dir='/data1/amaschne/AGU2015_60zenith',
+def plot_spectral_albedo(top_data_dir='/data3/amaschne/AGU2015_60zenith',
                          shape='sphere',
                          roughness='smooth',
                          wvls=np.arange(0.305, 3.005, 0.01),
@@ -670,7 +692,8 @@ def plot_spectral_albedo(top_data_dir='/data1/amaschne/AGU2015_60zenith',
                          Stokes_0=[1,0,0,0] ,
                          Henyey_Greenstein=True,
                          xmin=0.2,
-                         xmax=3.0):
+                         xmax=3.0
+                         savefig=False):
     """ Plot spectral directional-hemispherical reflectance for a given
         shape habit and roughness.
     """
@@ -731,7 +754,12 @@ def plot_spectral_albedo(top_data_dir='/data1/amaschne/AGU2015_60zenith',
     plt.title('%d deg. directional-hemispherical reflectance for '
               'ice %ss'% (zenith, shape))
               
-    plt.show()
+    if savefig:
+        figname = 'spectral_%dalbedo_%s.pdf' % (zenith, shape)
+        plt.savefig(figname)
+    else:
+        plt.show()
+    plt.close()
     
 def calculate_bins(active_area, d_dome):
     """ Calculate number of bins to simulate photodiode with given active area
