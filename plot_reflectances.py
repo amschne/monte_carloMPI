@@ -341,6 +341,8 @@ class MonteCarloDataSet(object):
     
     def plot_bidirectional_reflectance_factor(self, theta_r, active_area=1.,
                                               d_dome=175., markersize=8,
+                                              xlim=(10,1010),
+                                              ylim=(0,1),
                                               savefig=False):
         """ Plot bi-directional theta_r (deg.) reflectance factor as a function
             of particle effective radius with:
@@ -486,6 +488,9 @@ class MonteCarloDataSet(object):
                                  color=color, marker=marker,
                                  linestyle='dashed', markersize=markersize)
         
+        plt.xlim=xlim
+        plt.ylim=ylim
+        
         plt.xlabel('Ice particle effective radius ($\mathrm{\mu m}$)')
         plt.ylabel('Reflectance factor')
         plt.title('%dnm %d$^{\circ}$;%d$^{\circ}$ bi-directional reflectance '
@@ -501,6 +506,8 @@ class MonteCarloDataSet(object):
         #plt.close()
         
     def plot_directional_hemispherical_reflectance(self, markersize=8,
+                                                   xlim=(10,1010),
+                                                   ylim=(0,1),
                                                    savefig=False):
         """ Plot directional-hemispherical reflectance as a function of
             particle effective radius
@@ -616,6 +623,9 @@ class MonteCarloDataSet(object):
                         plt.plot(particle_radii[idxs], albedo[idxs],
                                  color=color, marker=marker,
                                  linestyle='dashed', markersize=markersize)
+        
+        plt.xlim = xlim
+        plt.ylim = ylim
         
         plt.xlabel('Ice particle effective radius ($\mathrm{\mu m}$)')
         plt.ylabel('Reflectance')
