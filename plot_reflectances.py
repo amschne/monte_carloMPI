@@ -265,7 +265,7 @@ class MonteCarloDataSet(object):
                            
                 if savefigs:
                     figname = '%s_%dbrf.pdf' % (shape, zenith)
-                    plt.savefig(figname)
+                    fig.savefig(figname)
                 else:
                     plt.show()
                 plt.close()
@@ -334,7 +334,7 @@ class MonteCarloDataSet(object):
                                
                     if savefigs:
                         figname = '%s_%s_%dbrf.pdf' % (roughness, shape, zenith)
-                        plt.savefig(figname)
+                        fig.savefig(figname)
                     else:
                         plt.show()
                     plt.close()
@@ -495,7 +495,7 @@ class MonteCarloDataSet(object):
         
         if savefig:
             figname = '%dnm_%d-%dbrfs.pdf' % (wvl_nm, zenith, theta_r_display)
-            plt.savefig(figname)
+            fig.savefig(figname)
         else:
             plt.show()
         plt.close()
@@ -626,6 +626,7 @@ class MonteCarloDataSet(object):
         
         if savefig:
             figname = '%dnm_%dalbedo.pdf' % (wvl_nm, zenith)
+            fig.savefig(figname)
         else:
             plt.show()
         plt.close()
@@ -756,7 +757,7 @@ def plot_spectral_albedo(top_data_dir='/data3/amaschne/AGU2015_60zenith',
               
     if savefig:
         figname = 'spectral_%dalbedo_%s.pdf' % (zenith, shape)
-        plt.savefig(figname)
+        fig.savefig(figname)
     else:
         plt.show()
     plt.close()
