@@ -344,7 +344,7 @@ class MonteCarloDataSet(object):
                                               xlim=(10,1010),
                                               ylim=(0,1),
                                               savefig=False,
-                                              legend_font=12):
+                                              legend_font=10):
         """ Plot bi-directional theta_r (deg.) reflectance factor as a function
             of particle effective radius with:
             
@@ -416,7 +416,8 @@ class MonteCarloDataSet(object):
                 idxs = np.argsort(particle_radii)                
                 
                 plt.plot(particle_radii[idxs], brf[idxs], color='k',
-                         marker='o', linestyle='dashed', label=shape_label,
+                         marker='o', linestyle='dashed',
+                         label='%ss' % shape_label,
                          markersize=markersize)
             else:
                 color = color_list[color_idxs[i]]
@@ -559,7 +560,8 @@ class MonteCarloDataSet(object):
                 idxs = np.argsort(particle_radii)                
                 
                 plt.plot(particle_radii[idxs], albedo[idxs], color='k',
-                         marker='o', linestyle='dashed', label=shape_label, 
+                         marker='o', linestyle='dashed',
+                         label='%ss' % shape_label, 
                          markersize=markersize)
             else:
                 color = color_list[color_idxs[i]]
