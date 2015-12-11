@@ -524,7 +524,7 @@ class MonteCarloDataSet(object):
         color_list = plt.cm.Dark2(np.linspace(0, 1, num_colors))
         for i, shape in enumerate(self.args['shapes']):
             shape_label = re.sub(r'[\W_]', ' ', shape)
-            print('Calculating and plotting albedo for %ss...' % label)         
+            print('Calculating and plotting albedo for %ss...' % shape_label)         
             
             if shape == 'sphere':
                 color_idxs = color_idxs - 1
