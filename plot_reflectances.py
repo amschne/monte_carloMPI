@@ -626,7 +626,7 @@ class MonteCarloDataSet(object):
         plt.ylabel('Reflectance')
         plt.title('%dnm %d$^{\circ}$ directional-hemispherical reflectance'
                   % (wvl_nm, zenith))
-        plt.legend(loc=1, legend_font)
+        plt.legend(loc=1, fontsize=legend_font)
         plt.grid()
         
         if savefig:
