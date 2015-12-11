@@ -370,7 +370,7 @@ class MonteCarloDataSet(object):
         for i, shape in enumerate(self.args['shapes']):
             shape_label = re.sub(r'[\W_]', ' ', shape)
             print('Calculating and plotting reflectance factors for %ss...' % 
-                                                                         label)         
+                                                                   shape_label)
             if shape == 'sphere':
                 color_idxs = color_idxs - 1
                 
