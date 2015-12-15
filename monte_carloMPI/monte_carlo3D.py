@@ -234,23 +234,35 @@ class MonteCarlo(object):
             Q_ext_in.append(float(line.split()[4]))
             ssa_in.append(float(line.split()[5]))
             asm_in.append(float(line.split()[6]))
-            
+        
+        # convert lists to numpy arrays
+        wvl_in = np.array(wvl_in)
+        max_dim_in = np.array(max_dim_in)
+        particle_volume_in = np.array(particle_volume_in)
+        G_in = np.array(G_in)
+        Q_ext_in = np.array(Q_ext_in)
+        ssa_in = np.array(ssa_in)
+        asm_in = np.array(asm_in)
+        
+        # get indicies where wvl_in = wvl0
+        wvl0_idxs = np.where(wvl_in==self.wvl0)
+        
         # Calculate effective radius
         RE = (3./4.) * (np.array(particle_volume_in) / np.array(G_in)) # um
         
-        # get index with smallest abs(rds_snw - RE)
-        idx_RE = np.argsort(np.absolute(rds_snw - RE))[0]
-        valid_idxs = np.where(RE == RE[idx_RE])
-        self.snow_effective_radius = RE[idx_RE]
+        # get index with smallest abs(rds_snw - RE) for wvl0
+        idx_RE = np.argsort(np.absolute(rds_snw - RE[wvl0_idxs]))[0]
+        valid_idxs = np.where(RE == RE[wvl0_idxs][idx_RE])
+        self.snow_effective_radius = RE[wvl0_idxs][idx_RE]
         
         # screen data for relevent snow radii
-        wvl_in = np.array(wvl_in)[valid_idxs]
-        max_dim_in = np.array(max_dim_in)[valid_idxs]
-        particle_volume_in = np.array(particle_volume_in)[valid_idxs]
-        G_in = np.array(G_in)[valid_idxs]
-        Q_ext_in = np.array(Q_ext_in)[valid_idxs]
-        ssa_in = np.array(ssa_in)[valid_idxs]
-        asm_in = np.array(asm_in)[valid_idxs]
+        wvl_in = wvl_in[valid_idxs]
+        max_dim_in = max_dim_in[valid_idxs]
+        particle_volume_in = particle_volume_in[valid_idxs]
+        G_in = G_in[valid_idxs]
+        Q_ext_in = Q_ext_in[valid_idxs]
+        ssa_in = ssa_in[valid_idxs]
+        asm_in = asm_in[valid_idxs]
         
         if not self.HG:
             """ Scattering phase matrix elements
@@ -322,7 +334,7 @@ class MonteCarlo(object):
                 idx_wvl = np.argsort(np.absolute(wvl - wvl_in))
                 nearest_wvls = wvl_in[idx_wvl[:2]]
             
-                if self.HG: # interpolate across wvls
+                if False and self.HG: # interpolate across wvls
                     # ssa_ice
                     nearest_ssa_ice = ssa_in[idx_wvl[:2]]
                     try:
@@ -402,63 +414,65 @@ class MonteCarlo(object):
                     # g
                     g[working_set_idxs] = asm_in[idx_wvl[0]]
                 
-                    # Scattering phase matrix elements
-                    # P11
-                    P11[key] = np.empty(len(P11_line0))
-                    for j, theta in enumerate(P11_line0):
-                        if i==0:
-                            theta_P11_deg[j] = float(theta)
-                        P11[key][j] = float(P11_lines[idx_wvl[0]].split()[j])
+                    if not self.HG:
+                        # Scattering phase matrix elements
+                        # P11
+                        P11[key] = np.empty(len(P11_line0))
+                        for j, theta in enumerate(P11_line0):
+                            if i==0:
+                                theta_P11_deg[j] = float(theta)
+                            P11[key][j] = float(
+                                               P11_lines[idx_wvl[0]].split()[j])
                     
-                    # P12
-                    P12_norm[key] = np.empty(len(P12_line0))
-                    for j, theta in enumerate(P12_line0):
-                        if i==0:
-                            theta_P12_deg[j] = float(theta)
-                        P12_norm[key][j] = float(
+                        # P12
+                        P12_norm[key] = np.empty(len(P12_line0))
+                        for j, theta in enumerate(P12_line0):
+                            if i==0:
+                                theta_P12_deg[j] = float(theta)
+                            P12_norm[key][j] = float(
                                                P12_lines[idx_wvl[0]].split()[j])
                     
-                    P12[key] = P12_norm[key] * P11[key]
+                        P12[key] = P12_norm[key] * P11[key]
                     
-                    # P22
-                    P22_norm[key] = np.empty(len(P22_line0))
-                    for j, theta in enumerate(P22_line0):
-                        if i==0:
-                            theta_P22_deg[j] = float(theta)
-                        P22_norm[key][j] = float(
+                        # P22
+                        P22_norm[key] = np.empty(len(P22_line0))
+                        for j, theta in enumerate(P22_line0):
+                            if i==0:
+                                theta_P22_deg[j] = float(theta)
+                            P22_norm[key][j] = float(
                                                P22_lines[idx_wvl[0]].split()[j])
                     
-                    P22[key] = P22_norm[key] * P11[key]
+                        P22[key] = P22_norm[key] * P11[key]
                     
-                    # P33
-                    P33_norm[key] = np.empty(len(P33_line0))
-                    for j, theta in enumerate(P33_line0):
-                        if i==0:
-                            theta_P33_deg[j] = float(theta)
-                        P33_norm[key][j] = float(
+                        # P33
+                        P33_norm[key] = np.empty(len(P33_line0))
+                        for j, theta in enumerate(P33_line0):
+                            if i==0:
+                                theta_P33_deg[j] = float(theta)
+                            P33_norm[key][j] = float(
                                                P33_lines[idx_wvl[0]].split()[j])
                     
-                    P33[key] = P33_norm[key] * P11[key]
+                        P33[key] = P33_norm[key] * P11[key]
                     
-                    # P43
-                    P43_norm[key] = np.empty(len(P43_line0))
-                    for j, theta in enumerate(P43_line0):
-                        if i==0:
-                            theta_P43_deg[j] = float(theta)
-                        P43_norm[key][j] = float(
+                        # P43
+                        P43_norm[key] = np.empty(len(P43_line0))
+                        for j, theta in enumerate(P43_line0):
+                            if i==0:
+                                theta_P43_deg[j] = float(theta)
+                            P43_norm[key][j] = float(
                                                P43_lines[idx_wvl[0]].split()[j])
                     
-                    P43[key] = P43_norm[key] * P11[key]
+                        P43[key] = P43_norm[key] * P11[key]
                     
-                    # P44
-                    P44_norm[key] = np.empty(len(P44_line0))
-                    for j, theta in enumerate(P44_line0):
-                        if i==0:
-                            theta_P44_deg[j] = float(theta)
-                        P44_norm[key][j] = float(
+                        # P44
+                        P44_norm[key] = np.empty(len(P44_line0))
+                        for j, theta in enumerate(P44_line0):
+                            if i==0:
+                                theta_P44_deg[j] = float(theta)
+                            P44_norm[key][j] = float(
                                                P44_lines[idx_wvl[0]].split()[j])
                     
-                    P44[key] = P44_norm[key] * P11[key]
+                        P44[key] = P44_norm[key] * P11[key]
 
         if not self.HG:
             #assert wvl0_exists
