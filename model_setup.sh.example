@@ -1,9 +1,14 @@
+### BEGIN USER INPUT ###
+
 # SET FILEPATHS
 export MONTE_CARLO_ROOT=/home/$USER/monte_carloMPI
 export DATA=/scratch/climate_flux/$USER
 
 # SET CASE NAME
-export CASE=compare_with_mark
+export CASE=AGU2015
+
+### END USER INPUT ###
+
 export CASEROOT=/home/$USER/$CASE
 
 # CREATE OUTPUT DIR
@@ -19,10 +24,16 @@ cp $MONTE_CARLO_ROOT/polar_demo.py $CASEROOT
 
 # COPY THIS SCRIPT TO CASEROOT FOR FUTURE REFERENCE
 cp $MONTE_CARLO_ROOT/model_setup.sh $CASEROOT
-
-cp $MONTE_CARLO_ROOT/model_setup.sh $CASEROOT
+cp $MONTE_CARLO_ROOT/set_env_vars.sh $CASEROOT
 
 cd $CASEROOT
+
+# LOAD MODULES
+module unload openmpi
+module load gcc/4.4.6
+module load openmpi/1.6.0/gcc/4.4.6
+module load python
+module load mpi4py/mpi-1.6.0/gcc-4.4.6/1.3
 
 # AUGMENT PYTHONPATH
 export PYTHONPATH=$MONTE_CARLO_ROOT/monte_carloMPI

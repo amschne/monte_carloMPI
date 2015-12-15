@@ -8,7 +8,7 @@ LAMBERTIAN_SURFACE = False # True will simply simulate a
                            # Lambertian surface
 LAMBERTIAN_BOTTOM = True # True will add Lambertian bottom boundary with reflectance
                          # set below
-LAMBERTIAN_REFLECTANCE = 1e-9 # Set reflectance of Lambertian surface OR
+LAMBERTIAN_REFLECTANCE = 1. # Set reflectance of Lambertian surface OR
                               # reflectance of underlying surface beneath snow 
 
 def run():    

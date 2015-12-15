@@ -10,12 +10,6 @@
 #PBS -j oe
 #PBS -V
 
-module unload openmpi
-module load gcc/4.4.6
-module load openmpi/1.6.0/gcc/4.4.6
-module load python
-module load mpi4py/mpi-1.6.0/gcc-4.4.6/1.3
-
 echo "I ran on:"
 cat $PBS_NODEFILE
 cd $CASEROOT
