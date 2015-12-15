@@ -311,9 +311,9 @@ class MonteCarlo(object):
             theta_P43_deg = np.empty(len(P43_line0))
             theta_P44_deg = np.empty(len(P44_line0))
             
-            # set up container for appropriate wvls
-            self.wvls = np.empty(wvls.shape)
-            wvl0_exists = False
+        # set up container for appropriate wvls
+        self.wvls = np.empty(wvls.shape)
+        wvl0_exists = False
             
         # fetch data for relevent wavelengths
         ssa_ice = np.empty(wvls.shape)
@@ -1515,8 +1515,8 @@ class MonteCarlo(object):
              ext_cff_mss_ice,
              g) = self.get_aspherical_SSPs(par_wvls.working_set, rds_snw)
              
-            if not self.HG: # reinstantiate par_wvls for new wvls
-                par_wvls.working_set = self.wvls
+            # reinstantiate par_wvls for new wvls
+            par_wvls.working_set = self.wvls
             
         elif wvl0 >= 16.4 and wvl0 <= 99.0:
             self.far_IR = True
@@ -1524,8 +1524,8 @@ class MonteCarlo(object):
              ext_cff_mss_ice,
              g) = self.get_aspherical_SSPs(par_wvls.working_set, rds_snw)
              
-            if not self.HG: # reinstantiate par_wvls for new wvls
-                par_wvls.working_set = self.wvls
+            # reinstantiate par_wvls for new wvls
+            par_wvls.working_set = self.wvls
              
         # get impurity optical data                       
         (ssa_imp,
