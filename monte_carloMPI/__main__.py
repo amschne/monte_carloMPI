@@ -31,8 +31,8 @@ def run():
     # select one of the following snow grain shape habits:
     #shape = 'sphere' # default
     shape = 'solid hexagonal column'
+    #shape = 'hollow hexagonal column'    
     #shape = 'hexagonal plate'
-    #shape = 'hollow hexagonal column'
     #shape = 'droxtal'
     #shape = 'hollow bullet rosette'
     #shape = 'solid bullet rosette'
