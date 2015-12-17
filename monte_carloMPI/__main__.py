@@ -30,15 +30,15 @@ def run():
     
     # select one of the following snow grain shape habits:
     #shape = 'sphere' # default
-    shape = 'solid hexagonal column'
-    #shape = 'hollow hexagonal column'    
-    #shape = 'hexagonal plate'
-    #shape = 'droxtal'
-    #shape = 'hollow bullet rosette'
-    #shape = 'solid bullet rosette'
+    shape = 'droxtal'
+    #shape = 'solid hexagonal column'
+    #shape = 'hollow hexagonal column'
     #shape = '8-element column aggregate'
+    #shape = 'hexagonal plate'
     #shape = '5-element plate aggregate'
     #shape = '10-element plate aggregate'
+    #shape = 'solid bullet rosette'
+    #shape = 'hollow bullet rosette'
     
     # select degree of surface roughness:
     #roughness = 'smooth' # default

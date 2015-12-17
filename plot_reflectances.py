@@ -21,13 +21,15 @@ def get_args():
     """
     top_data_dir = '/data3/amaschne/AGU2015'
     shapes = ['sphere',
+              'droxtal',
               'solid_hexagonal_column', 
               'hollow_hexagonal_column',
-              'hexagonal_plate',
-              'droxtal',
               '8-element_column_aggregate',
+              'hexagonal_plate',
               '5-element_plate_aggregate',
-              '10-element_plate_aggregate']
+              '10-element_plate_aggregate',
+              'solid_bullet_rosette',
+              'hollow_bullet_rosette']
     roughnesses = ['smooth', 'moderately_rough','severely_rough']
     wvl = 1.3 # um
     half_width = 0.085 # um

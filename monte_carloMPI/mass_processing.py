@@ -17,15 +17,15 @@ TWO_PI = 2*np.pi
 
 class Subplots(object):
     def __init__(self, 
-                 shapes=['solid hexagonal column', 
-                         'hexagonal plate',
+                 shapes=['droxtal',
+                         'solid hexagonal column', 
                          'hollow hexagonal column',
-                         'droxtal',
-                         'hollow bullet rosette',
-                         'solid bullet rosette',
                          '8-element column aggregate',
+                         'hexagonal plate',
                          '5-element plate aggregate',
-                         '10-element plate aggregate'],
+                         '10-element plate aggregate',
+                         'solid bullet rosette',
+                         'hollow bullet rosette'],
                  roughnesses=['smooth',
                               'moderately rough',
                               'severely rough']):
@@ -177,7 +177,8 @@ class Subplots(object):
                     
                 if row == self.nrows - 1:
                     # last row
-                    ax.set_xlabel('$\Theta$', fontsize=self.fontsize)
+                    ax.set_xlabel('Scattering angle ($^{\circ}$)',
+                                  fontsize=self.fontsize)
         
         if savefig:
             wvl_nm = np.around(wvl * 1000)
@@ -207,13 +208,15 @@ def subsample():
                                    
 def multiple_wvls(wvls=[0.4, 0.5, 0.55, 0.88, 1.3, 1.55],
                   rds_snw_list=[50,100,1000],
-                  shapes=['solid hexagonal column',
-                          'hollow hexagonal column',
-                          'hexagonal plate',
-                          'droxtal',
-                          '8-element column aggregate',
-                          '5-element plate aggregate',
-                          '10-element plate aggregate'],
+                  shapes=['droxtal',
+                         'solid hexagonal column', 
+                         'hollow hexagonal column',
+                         '8-element column aggregate',
+                         'hexagonal plate',
+                         '5-element plate aggregate',
+                         '10-element plate aggregate',
+                         'solid bullet rosette',
+                         'hollow bullet rosette'],
                   roughnesses=['smooth', 'moderately rough', 'severely rough']):
     for i, wvl in enumerate(wvls):
         subplots = Subplots(shapes=shapes, roughnesses=roughnesses)
