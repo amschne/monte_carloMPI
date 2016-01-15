@@ -98,15 +98,15 @@ class MonteCarlo(object):
         
             Returns output_file path
         """
-        self.output_dir
-        if not os.path.isdir(self.output_dir):
-            os.mkdir(self.output_dir)
+        output_dir = self.output_dir
+        if not os.path.isdir(output_dir):
+            os.mkdir(output_dir)
         
         if self.shape=='sphere':
-            shape_dir_path = os.path.join(self.output_dir, 'sphere')
+            shape_dir_path = os.path.join(output_dir, 'sphere')
             save_dir = shape_dir_path
         else:
-            shape_dir_path = os.path.join(self.output_dir, self.shape_dir)
+            shape_dir_path = os.path.join(output_dir, self.shape_dir)
             roughness_dir_path = os.path.join(shape_dir_path, 
                                               self.roughness_dir)
             save_dir = roughness_dir_path
