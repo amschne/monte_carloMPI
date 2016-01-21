@@ -228,7 +228,7 @@ class MonteCarloDataSet(object):
                 idxs = np.argsort(particle_radii)
                 
                 for k, idx in enumerate(idxs):
-                    fig = plt.subplots(subplot_kw=dict(projection='polar'))
+                    fig, ax = plt.subplots(subplot_kw=dict(projection='polar'))
                     cax = ax.contourf(phi_rad[idx], theta_deg[idx], brfs[idx],
                                       nlevels)
                     
@@ -259,7 +259,7 @@ class MonteCarloDataSet(object):
                 idxs = np.argsort(particle_radii)
                 
                 for k, idx in enumerate(idxs):
-                    fig = plt.subplots(subplot_kw=dict(projection='polar'))
+                    fig, ax = plt.subplots(subplot_kw=dict(projection='polar'))
                     cax = ax.contourf(phi_rad[idx], theta_deg[idx], brfs[idx],
                                       nlevels)
                     
@@ -294,7 +294,8 @@ class MonteCarloDataSet(object):
                     idxs = np.argsort(particle_radii)
                 
                     for k, idx in enumerate(idxs):
-                        fig = plt.subplots(subplot_kw=dict(projection='polar'))
+                        fig, ax = plt.subplots(
+                                            subplot_kw=dict(projection='polar'))
                         cax = ax.contourf(phi_rad[idx], theta_deg[idx],
                                           brfs[idx], nlevels)
                     
@@ -326,7 +327,8 @@ class MonteCarloDataSet(object):
                     idxs = np.argsort(particle_radii)
                 
                     for k, idx in enumerate(idxs):
-                        fig = plt.subplots(subplot_kw=dict(projection='polar'))
+                        fig, ax = plt.subplots(
+                                            subplot_kw=dict(projection='polar'))
                         cax = ax.contourf(phi_rad[idx], theta_deg[idx],
                                           brfs[idx], nlevels)
                     
