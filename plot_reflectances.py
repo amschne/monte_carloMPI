@@ -192,7 +192,7 @@ class MonteCarloDataSet(object):
         wvl_nm = np.around(float(self.args['wvl']) * 10**3)
         zenith = np.around(float(self.args['theta_0']))
         
-        phi_range = (0., 2*np.pi))
+        phi_range = (0., 2*np.pi)
         theta_range = (0., np.pi/2)
         
         phi_bins = int((np.pi * d_dome) / active_area)
