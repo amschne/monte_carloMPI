@@ -179,6 +179,165 @@ class MonteCarloDataSet(object):
                 
         return(files_I, files_HG)
     
+    def plot_brf_3D(self,
+                    shapes=list(),
+                    roughnesses=list(),
+                    active_area=1.,
+                    d_dome=175.,
+                    nlevels=256,
+                    savefigs=False):
+        """ Plot azimuthal BRFs for different grain sizes for a list of given
+            shapes and roughnesses.
+        """
+        wvl_nm = np.around(float(self.args['wvl']) * 10**3)
+        zenith = np.around(float(self.args['theta_0']))
+        
+        phi_range = (0., 2*np.pi))
+        theta_range = (0., np.pi/2)
+        
+        phi_bins = int((np.pi * d_dome) / active_area)
+        theta_bins =  int((np.pi * d_dome) / (4.*active_area))
+        
+        if len(shapes)==0:
+            shapes=self.args['shapes']
+        if len(roughnesses)==0:
+            roughnesses=self.args['roughnesses']
+        
+        for i, shape in enumerate(shapes):
+            shape_label = re.sub(r'[\W_]', ' ', shape)
+            
+            if shape=='sphere':
+                # Full scattering phase functions
+                particle_radii = list()
+                phi_rad = list()
+                theta_deg = list()
+                brfs = list()
+                for RE, file_path in self.data_I[shape].items():
+                    particle_radii.append(np.around(float(RE)))
+                    (brf,
+                     midpoints,
+                     mean_wvls) = self.bi_directional_reflectance_factor_3D(
+                                                                     file_path, 
+                                                                     phi_bins,
+                                                                     theta_bins)
+                    
+                    phi_rad.append(midpoints[0])
+                    theta_deg.append(np.rad2deg(midpoints[1]))
+                    brfs.append(brf)
+                
+                idxs = np.argsort(particle_radii)
+                
+                for k, idx in enumerate(idxs):
+                    fig = plt.subplots(subplot_kw=dict(projection='polar'))
+                    cax = ax.contourf(phi_rad[idx], theta_deg[idx], brfs[idx],
+                                      nlevels)
+                    
+                    cb = fig.colorbar(cax)
+                    cb.set_label("Reflectance factor")
+                    plt.title('%d $\mathrm{\mu m}$ %ss' % (particle_radii[idx], 
+                                                           shape_label))
+                    plt.show()
+
+                # Henyey Greenstein scattering phase functions
+                particle_radii = list()
+                phi_rad = list()
+                theta_deg = list()
+                brfs = list()
+                for RE, file_path in self.data_HG[shape].items():
+                    particle_radii.append(np.around(float(RE)))
+                    (brf,
+                     midpoints,
+                     mean_wvls) = self.bi_directional_reflectance_factor_3D(
+                                                                     file_path, 
+                                                                     phi_bins,
+                                                                     theta_bins)
+                                                                     
+                    phi_rad.append(midpoints[0])
+                    theta_deg.append(np.rad2deg(midoints[1]))
+                    brfs.append(brf)
+                
+                idxs = np.argsort(particle_radii)
+                
+                for k, idx in enumerate(idxs):
+                    fig = plt.subplots(subplot_kw=dict(projection='polar'))
+                    cax = ax.contourf(phi_rad[idx], theta_deg[idx], brfs[idx],
+                                      nlevels)
+                    
+                    cb = fig.colorbar(cax)
+                    cb.set_label("Reflectance factor")
+                    plt.title('%d $\mathrm{\mu m}$ %ss (HG)'
+                                                        % (particle_radii[idx], 
+                                                           shape_label))
+                    plt.show()
+                    
+            else:
+                for j, roughness in enumerate(roughnesses):
+                    roughness_label = re.sub(r'[\W_]', ' ', roughness)
+                    
+                    # Full scattering phase functions
+                    particle_radii = list()
+                    phi_rad = list()
+                    theta_deg = list()
+                    brfs = list()
+                    for RE, file_path in self.data_I[shape][roughness].items():
+                        particle_radii.append(np.around(float(RE)))
+                        (brf,
+                         midpoints,
+                         mean_wvls) = self.bi_directional_reflectance_factor_3D(
+                                                                     file_path, 
+                                                                     phi_bins,
+                                                                     theta_bins)
+                        phi_rad.append(midpoints[0])
+                        theta_deg.append(np.rad2deg(midpoints[1]))
+                        brfs.append(brf)
+                
+                    idxs = np.argsort(particle_radii)
+                
+                    for k, idx in enumerate(idxs):
+                        fig = plt.subplots(subplot_kw=dict(projection='polar'))
+                        cax = ax.contourf(phi_rad[idx], theta_deg[idx],
+                                          brfs[idx], nlevels)
+                    
+                        cb = fig.colorbar(cax)
+                        cb.set_label("Reflectance factor")
+                        plt.title('%d $\mathrm{\mu m}$ %s %ss'
+                                                        % (particle_radii[idx], 
+                                                           roughness_label,
+                                                           shape_label))
+                        plt.show()
+                        
+                    # Henyey Greenstein scattering phase functions
+                    particle_radii = list()
+                    phi_rad = list()
+                    theta_deg = list()
+                    brfs = list()
+                    for RE, file_path in self.data_HG[shape][roughness].items():
+                        particle_radii.append(np.around(float(RE)))
+                        (brf,
+                         midpoints,
+                         mean_wvls) = self.bi_directional_reflectance_factor_3D(
+                                                                     file_path, 
+                                                                     phi_bins,
+                                                                     theta_bins)
+                        phi_rad.append(midpoints[0])
+                        theta_deg.append(np.rad2deg(midpoints[1]))
+                        brfs.append(brf)
+                
+                    idxs = np.argsort(particle_radii)
+                
+                    for k, idx in enumerate(idxs):
+                        fig = plt.subplots(subplot_kw=dict(projection='polar'))
+                        cax = ax.contourf(phi_rad[idx], theta_deg[idx],
+                                          brfs[idx], nlevels)
+                    
+                        cb = fig.colorbar(cax)
+                        cb.set_label("Reflectance factor")
+                        plt.title('%d $\mathrm{\mu m}$ %s %ss (HG)'
+                                                        % (particle_radii[idx], 
+                                                           roughness_label,
+                                                           shape_label))
+                        plt.show()
+                            
     def plot_brf_all_angles(self,
                             shapes=list(),
                             roughnesses=list(),
@@ -640,6 +799,42 @@ class MonteCarloDataSet(object):
             plt.show()
             plt.close()
     
+    def bi_directional_reflectance_factor_3D(self, file_path, phi_bins, 
+                                             theta_bins):
+        """ Read in data and calculate 3D bi-directional reflectance factors
+        """
+        data_file = pd.read_csv(file_path, delim_whitespace=True)
+        mean_wvls = 1. / data_file['wvn[um^-1]'].mean()
+        wvl0 = float(self.args['wvl'])
+        
+        if np.absolute(wvl0 - mean_wvls) > 0.1:
+            brf = None
+            midpoints = None
+        else:
+            phi_range = (0., 2*np.pi)
+            theta_range = (0., np.pi/2)
+            
+            Q_down = data_file['wvn[um^-1]'].sum()
+            weights = data_file[data_file.condition==1]['wvn[um^-1]']
+            phi_exit = data_file[data_file.condition==1]['phi_n']
+            theta_exit = data_file[data_file.condition==1]['theta_n']
+            
+            h = np.histogram2d(phi_exit,
+                               theta_exit,
+                               bins=[phi_bins, theta_bins],
+                               range=[phi_range, theta_range],
+                               weights=weights)
+            phi_midpoints = (np.diff(h[1]) / 2.) + h[1][:-1]
+            theta_midpoints = (np.diff(h[2]) / 2.) + h[2][:-1]
+            midpoints = [phi_midpoints, theta_midpoints]
+            
+            cosine_weights = (np.cos(theta_midpoints) / 
+                              np.sum(np.cos(theta_midpoints)))
+                              
+            brf = h[0] / (Q_down * cosine_weights)
+            
+        return(brf, midpoints, mean_wvls)
+    
     def bi_directional_reflectance_factor(self, file_path, n_bins):
         """ Read in data and calculate bi-directional reflectance factors
         """
@@ -652,7 +847,6 @@ class MonteCarloDataSet(object):
             midpoints = None
         else:
             hist_range = (0., np.pi/2)
-            
             
             Q_down = data_file['wvn[um^-1]'].sum()
             weights = data_file[data_file.condition==1]['wvn[um^-1]']
