@@ -253,7 +253,7 @@ class MonteCarloDataSet(object):
                                                                      theta_bins)
                                                                      
                     phi_rad.append(midpoints[0])
-                    theta_deg.append(np.rad2deg(midoints[1]))
+                    theta_deg.append(np.rad2deg(midpoints[1]))
                     brfs.append(brf)
                 
                 idxs = np.argsort(particle_radii)
