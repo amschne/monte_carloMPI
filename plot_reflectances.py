@@ -184,7 +184,7 @@ class MonteCarloDataSet(object):
                     roughnesses=list(),
                     active_area=1.,
                     d_dome=175.,
-                    nlevels=256,
+                    nlevels=100,
                     rmax=1,
                     savefigs=False):
         """ Plot azimuthal BRFs for different grain sizes for a list of given
@@ -197,9 +197,10 @@ class MonteCarloDataSet(object):
         theta_range = (0., np.pi/2)
         
         levels = np.linspace(0, rmax, nlevels)
-        ticks = np.arange(0, 1.1, 0.1) / rmax
+        ticks = np.arange(0, 1.1, 0.1) * rmax
+        cmap = plt.cm.get_cmap("inferno")
         
-        phi_bins = int((np.pi * d_dome) / active_area)
+        phi_bins = int((np.pi * d_dome * np.sin(np.pi/4)) / active_area)
         theta_bins =  int((np.pi * d_dome) / (4.*active_area))
         
         if len(shapes)==0:
@@ -234,7 +235,7 @@ class MonteCarloDataSet(object):
                 for k, idx in enumerate(idxs):
                     fig, ax = plt.subplots(subplot_kw=dict(projection='polar'))
                     cax = ax.contourf(phi_rad[idx], theta_deg[idx], brfs[idx],
-                                      levels)
+                                      levels, cmap=cmap)
                     
                     cb = fig.colorbar(cax, ticks=ticks)
                     cb.set_label("Reflectance factor")
@@ -265,7 +266,7 @@ class MonteCarloDataSet(object):
                 for k, idx in enumerate(idxs):
                     fig, ax = plt.subplots(subplot_kw=dict(projection='polar'))
                     cax = ax.contourf(phi_rad[idx], theta_deg[idx], brfs[idx],
-                                      levels)
+                                      levels, cmap=cmap)
                     
                     cb = fig.colorbar(cax, ticks=ticks)
                     cb.set_label("Reflectance factor")
@@ -301,7 +302,7 @@ class MonteCarloDataSet(object):
                         fig, ax = plt.subplots(
                                             subplot_kw=dict(projection='polar'))
                         cax = ax.contourf(phi_rad[idx], theta_deg[idx],
-                                          brfs[idx], levels)
+                                          brfs[idx], levels, cmap=cmap)
                     
                         cb = fig.colorbar(cax, ticks=ticks)
                         cb.set_label("Reflectance factor")
@@ -334,7 +335,7 @@ class MonteCarloDataSet(object):
                         fig, ax = plt.subplots(
                                             subplot_kw=dict(projection='polar'))
                         cax = ax.contourf(phi_rad[idx], theta_deg[idx],
-                                          brfs[idx], levels)
+                                          brfs[idx], levels, cmap=cmap)
                     
                         cb = fig.colorbar(cax, ticks=ticks)
                         cb.set_label("Reflectance factor")
