@@ -197,6 +197,7 @@ class MonteCarloDataSet(object):
         theta_range = (0., np.pi/2)
         
         levels = np.linspace(0, rmax, nlevels)
+        ticks = np.arange(0, 1.1, 0.1) / rmax
         
         phi_bins = int((np.pi * d_dome) / active_area)
         theta_bins =  int((np.pi * d_dome) / (4.*active_area))
@@ -235,7 +236,7 @@ class MonteCarloDataSet(object):
                     cax = ax.contourf(phi_rad[idx], theta_deg[idx], brfs[idx],
                                       levels)
                     
-                    cb = fig.colorbar(cax)
+                    cb = fig.colorbar(cax, ticks=ticks)
                     cb.set_label("Reflectance factor")
                     plt.title('%d $\mathrm{\mu m}$ %ss' % (particle_radii[idx], 
                                                            shape_label))
@@ -266,7 +267,7 @@ class MonteCarloDataSet(object):
                     cax = ax.contourf(phi_rad[idx], theta_deg[idx], brfs[idx],
                                       levels)
                     
-                    cb = fig.colorbar(cax)
+                    cb = fig.colorbar(cax, ticks=ticks)
                     cb.set_label("Reflectance factor")
                     plt.title('%d $\mathrm{\mu m}$ %ss (HG)'
                                                         % (particle_radii[idx], 
@@ -302,7 +303,7 @@ class MonteCarloDataSet(object):
                         cax = ax.contourf(phi_rad[idx], theta_deg[idx],
                                           brfs[idx], levels)
                     
-                        cb = fig.colorbar(cax)
+                        cb = fig.colorbar(cax, ticks=ticks)
                         cb.set_label("Reflectance factor")
                         plt.title('%d $\mathrm{\mu m}$ %s %ss'
                                                         % (particle_radii[idx], 
@@ -335,7 +336,7 @@ class MonteCarloDataSet(object):
                         cax = ax.contourf(phi_rad[idx], theta_deg[idx],
                                           brfs[idx], levels)
                     
-                        cb = fig.colorbar(cax)
+                        cb = fig.colorbar(cax, ticks=ticks)
                         cb.set_label("Reflectance factor")
                         plt.title('%d $\mathrm{\mu m}$ %s %ss (HG)'
                                                         % (particle_radii[idx], 
