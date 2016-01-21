@@ -830,10 +830,10 @@ class MonteCarloDataSet(object):
             theta_midpoints = (np.diff(h[2]) / 2.) + h[2][:-1]
             midpoints = [phi_midpoints, theta_midpoints]
             
-            cosine_weights = (np.cos(theta_midpoints) / 
-                              np.sum(np.cos(theta_midpoints)))
+            brf_weights = (np.sin(theta_midpoints) * np.cos(theta_midpoints) / 
+                     np.sum(np.sin(theta_midpoints) * np.cos(theta_midpoints)))
                               
-            brf = (h[0] / (Q_down * cosine_weights)).T
+            brf = (h[0] / (Q_down * brf_weights)).T
             
         return(brf, midpoints, mean_wvls)
     
