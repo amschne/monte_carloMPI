@@ -185,7 +185,7 @@ class MonteCarloDataSet(object):
                     active_area=1.,
                     d_dome=175.,
                     nlevels=256,
-                    vmax=1,
+                    rmax=1,
                     savefigs=False):
         """ Plot azimuthal BRFs for different grain sizes for a list of given
             shapes and roughnesses.
@@ -195,6 +195,8 @@ class MonteCarloDataSet(object):
         
         phi_range = (0., 2*np.pi)
         theta_range = (0., np.pi/2)
+        
+        levels = np.linspace(0, rmax, nlevels)
         
         phi_bins = int((np.pi * d_dome) / active_area)
         theta_bins =  int((np.pi * d_dome) / (4.*active_area))
@@ -231,10 +233,9 @@ class MonteCarloDataSet(object):
                 for k, idx in enumerate(idxs):
                     fig, ax = plt.subplots(subplot_kw=dict(projection='polar'))
                     cax = ax.contourf(phi_rad[idx], theta_deg[idx], brfs[idx],
-                                      nlevels)
+                                      levels)
                     
                     cb = fig.colorbar(cax)
-                    cb.set_clim(vmin=0, vmax=vmax)
                     cb.set_label("Reflectance factor")
                     plt.title('%d $\mathrm{\mu m}$ %ss' % (particle_radii[idx], 
                                                            shape_label))
@@ -263,10 +264,9 @@ class MonteCarloDataSet(object):
                 for k, idx in enumerate(idxs):
                     fig, ax = plt.subplots(subplot_kw=dict(projection='polar'))
                     cax = ax.contourf(phi_rad[idx], theta_deg[idx], brfs[idx],
-                                      nlevels)
+                                      levels)
                     
                     cb = fig.colorbar(cax)
-                    cb.set_clim(vmin=0, vmax=vmax)                    
                     cb.set_label("Reflectance factor")
                     plt.title('%d $\mathrm{\mu m}$ %ss (HG)'
                                                         % (particle_radii[idx], 
@@ -300,10 +300,9 @@ class MonteCarloDataSet(object):
                         fig, ax = plt.subplots(
                                             subplot_kw=dict(projection='polar'))
                         cax = ax.contourf(phi_rad[idx], theta_deg[idx],
-                                          brfs[idx], nlevels)
+                                          brfs[idx], levels)
                     
                         cb = fig.colorbar(cax)
-                        cb.set_clim(vmin=0, vmax=vmax)
                         cb.set_label("Reflectance factor")
                         plt.title('%d $\mathrm{\mu m}$ %s %ss'
                                                         % (particle_radii[idx], 
@@ -334,10 +333,9 @@ class MonteCarloDataSet(object):
                         fig, ax = plt.subplots(
                                             subplot_kw=dict(projection='polar'))
                         cax = ax.contourf(phi_rad[idx], theta_deg[idx],
-                                          brfs[idx], nlevels)
+                                          brfs[idx], levels)
                     
                         cb = fig.colorbar(cax)
-                        cb.set_clim(vmin=0, vmax=vmax)
                         cb.set_label("Reflectance factor")
                         plt.title('%d $\mathrm{\mu m}$ %s %ss (HG)'
                                                         % (particle_radii[idx], 
