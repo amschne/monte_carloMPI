@@ -1468,14 +1468,17 @@ class MonteCarlo(object):
         if i==1:
             phi_n = 0.
         
-        elif mux_0 > 0 and muy_0 > 0: 
+        elif mux_0 > 0 and muy_0 > 0: # Q1
             phi_n = np.arctan(muy_0 / mux_0)
         
-        elif mux_0 < 0 and muy_0 < 0:
-            phi_n = np.arctan(muy_0 / mux_0) + TWO_PIE
-        
-        elif mux_0 < 0 or muy_0 < 0:
+        elif mux_0 < 0 and muy_0 > 0: # Q2
             phi_n = np.arctan(muy_0 / mux_0) + np.pi
+        
+        elif mux_0 < 0 and muy_0 < 0: # Q3
+            phi_n = np.arctan(muy_0 / mux_0) + np.pi
+            
+        elif mux_0 > 0 and muy_0 < 0: # Q4
+            phi_n = np.arctan(muy_0 / mux_0) + TWO_PIE
         
         n_scat = i-1 # number of scattering events
         

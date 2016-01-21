@@ -185,6 +185,7 @@ class MonteCarloDataSet(object):
                     active_area=1.,
                     d_dome=175.,
                     nlevels=256,
+                    vmax=1,
                     savefigs=False):
         """ Plot azimuthal BRFs for different grain sizes for a list of given
             shapes and roughnesses.
@@ -233,6 +234,7 @@ class MonteCarloDataSet(object):
                                       nlevels)
                     
                     cb = fig.colorbar(cax)
+                    cb.set_clim(vmin=0, vmax=vmax)
                     cb.set_label("Reflectance factor")
                     plt.title('%d $\mathrm{\mu m}$ %ss' % (particle_radii[idx], 
                                                            shape_label))
@@ -264,6 +266,7 @@ class MonteCarloDataSet(object):
                                       nlevels)
                     
                     cb = fig.colorbar(cax)
+                    cb.set_clim(vmin=0, vmax=vmax)                    
                     cb.set_label("Reflectance factor")
                     plt.title('%d $\mathrm{\mu m}$ %ss (HG)'
                                                         % (particle_radii[idx], 
@@ -300,6 +303,7 @@ class MonteCarloDataSet(object):
                                           brfs[idx], nlevels)
                     
                         cb = fig.colorbar(cax)
+                        cb.set_clim(vmin=0, vmax=vmax)
                         cb.set_label("Reflectance factor")
                         plt.title('%d $\mathrm{\mu m}$ %s %ss'
                                                         % (particle_radii[idx], 
@@ -333,6 +337,7 @@ class MonteCarloDataSet(object):
                                           brfs[idx], nlevels)
                     
                         cb = fig.colorbar(cax)
+                        cb.set_clim(vmin=0, vmax=vmax)
                         cb.set_label("Reflectance factor")
                         plt.title('%d $\mathrm{\mu m}$ %s %ss (HG)'
                                                         % (particle_radii[idx], 
