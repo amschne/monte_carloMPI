@@ -1236,12 +1236,16 @@ class MonteCarlo(object):
                 cosphi = 0
                 sinphi = 0
             elif self.Lambertian_surface or bottom_reflection:
+                mux_0 = 0.
+                muy_0 = 0.
+                muz_0 = 1.
+                
                 valid_val=0
                 while valid_val==0:
                     theta_rand = np.random.uniform(0, np.pi/2)
                     r1 = np.random.rand()
                     if r1 < 2 * np.sin(theta_rand) * np.cos(theta_rand):
-                        costheta = np.cos(theta_rand + np.arccos(muz_0))
+                        costheta = np.cos(theta_rand)
                         sintheta = np.sqrt(1 - costheta**2)
                         valid_val=1
             else:
