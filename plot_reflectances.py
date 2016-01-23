@@ -183,7 +183,6 @@ class MonteCarloDataSet(object):
                     shapes=list(),
                     roughnesses=list(),
                     active_area=1.,
-                    phi_bins=18,
                     d_dome=175.,
                     nlevels=100,
                     rmax=1,
@@ -201,8 +200,8 @@ class MonteCarloDataSet(object):
         ticks = np.arange(0, 1.1, 0.1) * rmax
         cmap = plt.cm.get_cmap("inferno")
         
-        #phi_bins = int((np.pi * d_dome * np.sin(np.pi/4)) / active_area)
-        theta_bins =  int((np.pi * d_dome) / (4.*active_area))
+        theta_bins = calculate_bins(active_area, d_dome)
+        phi_bins = theta_bins*4
         
         if len(shapes)==0:
             shapes=self.args['shapes']
@@ -982,7 +981,7 @@ def calculate_bins(active_area, d_dome):
         Returns number of bins n_bins
     """
     n_bins =  int((np.pi * d_dome) / (4.*active_area))
-    print('BRF computing over %d bins' % n_bins)
+    print('BRF computing over %d theta bins' % n_bins)
     
     return n_bins
 
