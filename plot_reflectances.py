@@ -10,7 +10,13 @@ import natsort
 
 import numpy as np
 import pandas as pd
+
 from matplotlib import pyplot as plt
+from matplotlib.projections.geo import HammerAxes
+import matplotlib.projections as mprojections
+from matplotlib.axes import Axes
+from matplotlib.patches import Wedge
+import matplotlib.spines as mspines
 
 import ipdb
 
@@ -186,10 +192,14 @@ class MonteCarloDataSet(object):
                     d_dome=175.,
                     nlevels=100,
                     rmax=1,
-                    savefigs=False):
+                    savefigs=False,
+                    theta_bins=None,
+                    phi_bins=None):
         """ Plot azimuthal BRFs for different grain sizes for a list of given
             shapes and roughnesses.
         """
+        mprojections.register_projection(UpperHammerAxes)
+        
         wvl_nm = np.around(float(self.args['wvl']) * 10**3)
         zenith = np.around(float(self.args['theta_0']))
         
@@ -200,8 +210,10 @@ class MonteCarloDataSet(object):
         ticks = np.arange(0, 1.1, 0.1) * rmax
         cmap = plt.cm.get_cmap("inferno")
         
-        theta_bins = calculate_bins(active_area, d_dome)
-        phi_bins = theta_bins*4
+        if theta_bins==None:
+            theta_bins = calculate_bins(active_area, d_dome)
+        if phi_bins==None:
+            phi_bins = theta_bins*4    
         
         if len(shapes)==0:
             shapes=self.args['shapes']
@@ -215,6 +227,7 @@ class MonteCarloDataSet(object):
                 # Full scattering phase functions
                 particle_radii = list()
                 phi_rad = list()
+                theta_rad = list()
                 theta_deg = list()
                 brfs = list()
                 for RE, file_path in self.data_I[shape].items():
@@ -227,17 +240,24 @@ class MonteCarloDataSet(object):
                                                                      theta_bins)
                     
                     phi_rad.append(midpoints[0])
+                    theta_rad.append(midpoints[1])
                     theta_deg.append(np.rad2deg(midpoints[1]))
                     brfs.append(brf)
                 
                 idxs = np.argsort(particle_radii)
                 
                 for k, idx in enumerate(idxs):
-                    fig, ax = plt.subplots(subplot_kw=dict(projection='polar'))
-                    cax = ax.contourf(phi_rad[idx], theta_deg[idx], brfs[idx],
-                                      levels, cmap=cmap)
+                    fig, ax = plt.subplots(subplot_kw=dict(
+                                                projection='upper_hammer'))
+                    cax = ax.contourf(phi_rad[idx] - np.pi, 
+                                      theta_rad[idx][::-1],
+                                      brfs[idx],
+                                      levels,
+                                      cmap=cmap)
                     
-                    cb = fig.colorbar(cax, ticks=ticks)
+                    ax.grid(True)
+                    cb = fig.colorbar(cax, ticks=ticks, 
+                                      orientation='horizontal')
                     cb.set_label("Reflectance factor")
                     plt.title('%d $\mathrm{\mu m}$ %ss' % (particle_radii[idx], 
                                                            shape_label))
@@ -246,6 +266,7 @@ class MonteCarloDataSet(object):
                 # Henyey Greenstein scattering phase functions
                 particle_radii = list()
                 phi_rad = list()
+                theta_rad = list()
                 theta_deg = list()
                 brfs = list()
                 for RE, file_path in self.data_HG[shape].items():
@@ -258,21 +279,27 @@ class MonteCarloDataSet(object):
                                                                      theta_bins)
                                                                      
                     phi_rad.append(midpoints[0])
+                    theta_rad.append(midpoints[1])
                     theta_deg.append(np.rad2deg(midpoints[1]))
                     brfs.append(brf)
                 
                 idxs = np.argsort(particle_radii)
                 
                 for k, idx in enumerate(idxs):
-                    fig, ax = plt.subplots(subplot_kw=dict(projection='polar'))
-                    cax = ax.contourf(phi_rad[idx], theta_deg[idx], brfs[idx],
-                                      levels, cmap=cmap)
+                    fig, ax = plt.subplots(subplot_kw=dict(
+                                                projection='upper_hammer'))
+                    cax = ax.contourf(phi_rad[idx] - np.pi, 
+                                      theta_rad[idx][::-1],
+                                      brfs[idx],
+                                      levels,
+                                      cmap=cmap)
                     
-                    cb = fig.colorbar(cax, ticks=ticks)
+                    ax.grid(True)
+                    cb = fig.colorbar(cax, ticks=ticks, orientation='horizontal')
                     cb.set_label("Reflectance factor")
-                    plt.title('%d $\mathrm{\mu m}$ %ss (HG)'
-                                                        % (particle_radii[idx], 
-                                                           shape_label))
+                    #plt.title('%d $\mathrm{\mu m}$ %ss (HG)'
+                    #                                   % (particle_radii[idx], 
+                    #                                      shape_label))
                     plt.show()
                     
             else:
@@ -282,6 +309,7 @@ class MonteCarloDataSet(object):
                     # Full scattering phase functions
                     particle_radii = list()
                     phi_rad = list()
+                    theta_rad = list()
                     theta_deg = list()
                     brfs = list()
                     for RE, file_path in self.data_I[shape][roughness].items():
@@ -293,18 +321,23 @@ class MonteCarloDataSet(object):
                                                                      phi_bins,
                                                                      theta_bins)
                         phi_rad.append(midpoints[0])
+                        theta_rad.append(midpoints[1])
                         theta_deg.append(np.rad2deg(midpoints[1]))
                         brfs.append(brf)
                 
                     idxs = np.argsort(particle_radii)
                 
                     for k, idx in enumerate(idxs):
-                        fig, ax = plt.subplots(
-                                            subplot_kw=dict(projection='polar'))
-                        cax = ax.contourf(phi_rad[idx], theta_deg[idx],
-                                          brfs[idx], levels, cmap=cmap)
-                    
-                        cb = fig.colorbar(cax, ticks=ticks)
+                        fig, ax = plt.subplots(subplot_kw=dict(
+                                                projection='upper_hammer'))
+                        cax = ax.contourf(phi_rad[idx] - np.pi, 
+                                          theta_rad[idx][::-1],
+                                          brfs[idx],
+                                          levels,
+                                          cmap=cmap)
+                        ax.grid(True)
+                        cb = fig.colorbar(cax, ticks=ticks, 
+                                          orientation='horizontal')
                         cb.set_label("Reflectance factor")
                         plt.title('%d $\mathrm{\mu m}$ %s %ss'
                                                         % (particle_radii[idx], 
@@ -315,6 +348,7 @@ class MonteCarloDataSet(object):
                     # Henyey Greenstein scattering phase functions
                     particle_radii = list()
                     phi_rad = list()
+                    theta_rad = list()
                     theta_deg = list()
                     brfs = list()
                     for RE, file_path in self.data_HG[shape][roughness].items():
@@ -326,18 +360,24 @@ class MonteCarloDataSet(object):
                                                                      phi_bins,
                                                                      theta_bins)
                         phi_rad.append(midpoints[0])
+                        theta_rad.append(midpoints[1])
                         theta_deg.append(np.rad2deg(midpoints[1]))
                         brfs.append(brf)
                 
                     idxs = np.argsort(particle_radii)
                 
                     for k, idx in enumerate(idxs):
-                        fig, ax = plt.subplots(
-                                            subplot_kw=dict(projection='polar'))
-                        cax = ax.contourf(phi_rad[idx], theta_deg[idx],
-                                          brfs[idx], levels, cmap=cmap)
+                        fig, ax = plt.subplots(subplot_kw=dict(
+                                                projection='upper_hammer'))
+                        cax = ax.contourf(phi_rad[idx] - np.pi, 
+                                          theta_rad[idx][::-1],
+                                          brfs[idx],
+                                          levels,
+                                          cmap=cmap)
                     
-                        cb = fig.colorbar(cax, ticks=ticks)
+                        ax.grid(True)
+                        cb = fig.colorbar(cax, ticks=ticks, 
+                                          orientation='horizontal')
                         cb.set_label("Reflectance factor")
                         plt.title('%d $\mathrm{\mu m}$ %s %ss (HG)'
                                                         % (particle_radii[idx], 
@@ -348,6 +388,7 @@ class MonteCarloDataSet(object):
     def plot_brf_all_angles(self,
                             shapes=list(),
                             roughnesses=list(),
+                            theta_bins=None,
                             active_area=1.,
                             d_dome=175.,
                             r_max=1.,
@@ -361,7 +402,11 @@ class MonteCarloDataSet(object):
         
         colors = ['b','g','r','c','m']
         hist_range = (0., np.pi/2)
-        n_bins = calculate_bins(active_area, d_dome)
+        
+        if theta_bins == None:
+            n_bins = calculate_bins(active_area, d_dome)
+        else:
+            n_bins = theta_bins
         
         if len(shapes)==0:
             shapes=self.args['shapes']
@@ -974,6 +1019,59 @@ def plot_spectral_albedo(top_data_dir='/data3/amaschne/AGU2015_60zenith',
         plt.show()
         plt.close()
     
+def get_Lambertian_nlevels(Lambertian_file_path, theta_bins, phi_bins=None):
+    """ Read data from Lambertian_file_path and calculate weighted standard 
+        deviation of BRFs of a Lambertian surface to use to calculate nlevels 
+        with relative precision
+            
+        Returns nlevels for BRF contourf plot
+    """
+    (shape_dir, Lambertian_file) = os.path.split(Lambertian_file_path)
+    (top_data_dir, shape) = os.path.split(shape_dir)
+
+    wvl = Lambertian_file.split('_')[0]
+    half_width = Lambertian_file.split('_')[1]
+    n_photon = Lambertian_file.split('_')[3]
+    theta_0 = Lambertian_file.split('_')[4]
+    
+    LambertianData = MonteCarloDataSet(top_data_dir=top_data_dir,
+                                       shapes=[shape],
+                                       roughnesses=['smooth'],
+                                       wvl=wvl,
+                                       half_width=half_width,
+                                       n_photon=n_photon,
+                                       theta_0=theta_0)
+                                       
+    (albedo,
+     mean_wvls) = LambertianData.directional_hemispherical_reflectance(
+                                                        Lambertian_file_path)
+    if phi_bins == None:
+        phi_bins = 4 * theta_bins
+    (brf,
+    midpoints,
+    mean_wvls) = LambertianData.bi_directional_reflectance_factor_3D(
+                                                        Lambertian_file_path,
+                                                        phi_bins,
+                                                        theta_bins)
+                                                        
+    weights = ((np.sin(midpoints[1]) * np.cos(midpoints[1])) /
+               np.sum((np.sin(midpoints[1]) * np.cos(midpoints[1]))))
+               
+    mean_brf = np.average(brf, axis=0, weights=weights).mean()
+    
+    azimuthal_vars = list()
+    for phi_i, brf_vals in enumerate(brf.T):
+        azimuthal_vars.append(np.sum(weights * (brf_vals - mean_brf)**2))
+    
+    std_brf = np.sqrt(np.mean(azimuthal_vars))
+    nlevels = int(1. / std_brf)
+    
+    print('STD = %r' % std_brf)
+    print('nlevels = %d' % nlevels)
+    
+    #return brf, midpoints
+    return LambertianData
+        
 def calculate_bins(active_area, d_dome):
     """ Calculate number of bins to simulate photodiode with given active area
         mounted in dome with given diameter
@@ -985,9 +1083,48 @@ def calculate_bins(active_area, d_dome):
     
     return n_bins
 
+class UpperHammerAxes(HammerAxes):
+    name = 'upper_hammer'
+    def cla(self):
+        HammerAxes.cla(self)
+        Axes.set_xlim(self, -np.pi, np.pi)
+        Axes.set_ylim(self, 0, np.pi / 2.0)
+
+    def _gen_axes_patch(self):
+        #return Wedge((0.5, 0.5), 0.5, 180, 360)
+        return Wedge((0.5, 0.5), 0.5, 0, 180)
+        
+    def _gen_axes_spines(self):
+        path = Wedge((0, 0), 1.0, 0, 180).get_path()
+        spine = mspines.Spine(self, 'circle', path)
+        spine.set_patch_circle((0.5, 0.5), 0.5)
+        return {'wedge':spine}
+
+def show_UpperHammerAxes():
+    mprojections.register_projection(UpperHammerAxes)
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='upper_hammer')
+    ax.grid(True)
+    
+    theta = np.deg2rad(np.arange(0, 90))
+    phi = np.deg2rad(np.arange(0, 360)) - np.pi
+    x = np.empty((theta.size, phi.size))
+    
+    for i, theta_rad in enumerate(theta):
+        for j, phi_rad in enumerate(phi):
+            x[i,j] = theta_rad
+    
+    cax = ax.contourf(phi, theta[::-1], x)
+    
+    ax.grid(True)
+    cb = fig.colorbar(cax, orientation='horizontal')
+          
+    plt.show()
+
 def main():
-    data = MonteCarloDataSet()
-    data.plot_directional_hemispherical_reflectance()
+    #data = MonteCarloDataSet()
+    #data.plot_directional_hemispherical_reflectance()
+    show_UpperHammerAxes()
 
 if __name__=='__main__':
     main()
