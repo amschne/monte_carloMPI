@@ -713,7 +713,8 @@ class MonteCarloDataSet(object):
                      theta_rad_1550,
                      mean_wvls_1550) = self.bi_directional_reflectance_factor(
                                                                 file_path_1550,
-                                                                n_bins)
+                                                                n_bins,
+                                                                wvl_check=False)
                     # Find nearest theta_r
                     idx = (np.absolute(theta_rad - theta_r_rad)).argmin()
                     brf.append(brf_all[idx])
@@ -746,7 +747,8 @@ class MonteCarloDataSet(object):
                      theta_rad_1550,
                      mean_wvls_1550) = self.bi_directional_reflectance_factor(
                                                                 file_path_1550,
-                                                                n_bins)
+                                                                n_bins,
+                                                                wvl_check=False)
                     # Find nearest theta_r
                     idx = (np.absolute(theta_rad - theta_r_rad)).argmin()
                     brf.append(brf_all[idx])
@@ -792,7 +794,8 @@ class MonteCarloDataSet(object):
                          theta_rad_1550,
                          mean_wvls_1550)=self.bi_directional_reflectance_factor(
                                                             file_path_1550,
-                                                            n_bins)
+                                                            n_bins,
+                                                            wvl_check=False)
                         # Find nearest theta_r
                         idx = (np.absolute(theta_rad - theta_r_rad)).argmin()
                         brf.append(brf_all[idx])
@@ -832,10 +835,11 @@ class MonteCarloDataSet(object):
                                                                     n_bins)
                                                                     
                         (brf_all_1550,
-                        theta_rad_1550,
-                        mean_wvls_1550)=self.bi_directional_reflectance_factor(
+                         theta_rad_1550,
+                         mean_wvls_1550)=self.bi_directional_reflectance_factor(
                                                                 file_path_1550,
-                                                                n_bins)
+                                                                n_bins,
+                                                                wvl_check=False)
                         # Find nearest theta_r
                         idx = (np.absolute(theta_rad - theta_r_rad)).argmin()
                         brf.append(brf_all[idx])
@@ -1213,14 +1217,15 @@ class MonteCarloDataSet(object):
             
         return(brf, midpoints, mean_wvls)
     
-    def bi_directional_reflectance_factor(self, file_path, n_bins):
+    def bi_directional_reflectance_factor(self, file_path, n_bins,
+                                          wvl_check=True):
         """ Read in data and calculate bi-directional reflectance factors
         """
         data_file = pd.read_csv(file_path, delim_whitespace=True)
         mean_wvls = 1. / data_file['wvn[um^-1]'].mean()
         wvl0 = float(self.args['wvl'])
         
-        if np.absolute(wvl0 - mean_wvls) > 0.1:
+        if wvl_check and np.absolute(wvl0 - mean_wvls) > 0.1:
             brf = None
             midpoints = None
         else:
