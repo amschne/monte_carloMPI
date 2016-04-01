@@ -860,7 +860,7 @@ class MonteCarloDataSet(object):
         plt.ylim(ylim)
         
         plt.xlabel('Ice particle effective radius ($\mathrm{\mu m}$)')
-        plt.ylabel('$R_{1300\mathrm{nm}} - R_{1550\mathrm{\nm}}$')
+        plt.ylabel('$R_{1300 \mathrm{nm}} - R_{1550 \mathrm{nm}}$')
         plt.title('Difference in %dnm and %dnm %d$^{\circ}$;%d$^{\circ}$ '
                   'bi-directional reflectance '
                   'factors' % (wvl_nm, 1550, zenith, theta_r_display))
