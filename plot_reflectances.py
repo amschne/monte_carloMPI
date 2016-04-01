@@ -26,7 +26,7 @@ import polar_demo
 def get_args():
     """ User input
     """
-    top_data_dir = '/data3/amaschne/AGU2015'
+    top_data_dir = '/data1/amaschne/nerd_all'
     shapes = ['sphere',
               'droxtal',
               'solid_hexagonal_column', 
