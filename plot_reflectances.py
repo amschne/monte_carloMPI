@@ -1221,7 +1221,7 @@ class MonteCarloDataSet(object):
                                           wvl_check=True):
         """ Read in data and calculate bi-directional reflectance factors
         """
-        print file_path
+        #print file_path
         data_file = pd.read_csv(file_path, delim_whitespace=True)
         mean_wvls = 1. / data_file['wvn[um^-1]'].mean()
         wvl0 = float(self.args['wvl'])
