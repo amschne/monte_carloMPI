@@ -1517,7 +1517,7 @@ def show_UpperAitoffAxes():
           
     plt.show()
 
-def compare_data_30():
+def compare_data_30(savefig=False):
     wvl13 = MonteCarloDataSet(shapes=['sphere','droxtal', 
                                       'solid_hexagonal_column',
                                       'hexagonal_plate'], 
@@ -1539,9 +1539,10 @@ def compare_data_30():
                                  [305],
                                  [0.27, 0.28, 0.28, 0.28])
     wvl13.plot_bidirectional_reflectance_factor(30, theta_bins=90,
-                                                overlay_nerd_obs=True)
+                                                overlay_nerd_obs=True,
+                                                savefig=savefig)
                                                 
-def compare_data_60():
+def compare_data_60(savefig=False):
     wvl13 = MonteCarloDataSet(shapes=['sphere','droxtal', 
                                       'solid_hexagonal_column',
                                       'hexagonal_plate'], 
@@ -1563,7 +1564,8 @@ def compare_data_60():
                                  [305],
                                  [0.34, 0.34, 0.36, 0.33])
     wvl13.plot_bidirectional_reflectance_factor(60, theta_bins=90,
-                                                overlay_nerd_obs=True)
+                                                overlay_nerd_obs=True,
+                                                savefig=savefig)
 
 def main():
     #data = MonteCarloDataSet()
