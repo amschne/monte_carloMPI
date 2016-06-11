@@ -1562,7 +1562,7 @@ def compare_data_60():
     wvl13.add_observational_data('trash can',
                                  [305],
                                  [0.34, 0.34, 0.36, 0.33])
-    wvl13.plot_bidirectional_reflectance_factor(30, theta_bins=90,
+    wvl13.plot_bidirectional_reflectance_factor(60, theta_bins=90,
                                                 overlay_nerd_obs=True)
 
 def main():
