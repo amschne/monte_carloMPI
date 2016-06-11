@@ -879,7 +879,7 @@ class MonteCarloDataSet(object):
         self.obs_r_eff = r_eff
         self.nerd_brf = brf
         
-    def overlay_nerd_obs(xerr=10):
+    def overlay_nerd_obs(self, xerr=10):
         plt.errorbar(self.obs_r_eff, self.nerd_brf, xerr=xerr, fmt='o')
     
     def plot_bidirectional_reflectance_factor(self, theta_r, active_area=1.,
