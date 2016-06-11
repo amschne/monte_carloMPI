@@ -875,13 +875,21 @@ class MonteCarloDataSet(object):
             plt.show()
             plt.close()
     
+    def set_observations(self, r_eff, brf):
+        self.obs_r_eff = r_eff
+        self.nerd_brf = brf
+        
+    def overlay_nerd_obs(xerr=10):
+        plt.errorbar(self.obs_r_eff, self.nerd_brf, xerr=xerr, fmt='o')
+    
     def plot_bidirectional_reflectance_factor(self, theta_r, active_area=1.,
                                               d_dome=175., markersize=8,
                                               xlim=(10,1010),
                                               ylim=(0,1),
                                               savefig=False,
                                               legend_font=10,
-                                              theta_bins=None):
+                                              theta_bins=None,
+                                              overlay_nerd_obs=False):
         """ Plot bi-directional theta_r (deg.) reflectance factor as a function
             of particle effective radius with:
             
@@ -1037,13 +1045,16 @@ class MonteCarloDataSet(object):
         plt.legend(loc=1, fontsize=legend_font)
         plt.grid()
         
+        if overlay_nerd_obs:
+            self.overlay_nerd_obs()
+        
         if savefig:
             figname = '%dnm_%d-%dbrfs.pdf' % (wvl_nm, zenith, theta_r_display)
             plt.savefig(figname)
         else:
             plt.show()
             plt.close()
-        
+                    
     def plot_directional_hemispherical_reflectance(self, markersize=8,
                                                    xlim=(10,1010),
                                                    ylim=(0,1),
