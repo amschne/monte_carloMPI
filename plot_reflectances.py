@@ -77,6 +77,8 @@ class MonteCarloDataSet(object):
         self.args = args_dict
         
         self.get_data()
+        
+        self.obs_dict = dict()
     
     def get_data(self):    
         self.data_I = dict()
