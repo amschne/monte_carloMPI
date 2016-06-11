@@ -886,12 +886,16 @@ class MonteCarloDataSet(object):
                                'NERD' : brf}
         
     def overlay_nerd_obs(self, xerr=10):
-        marker_list = ['o', '^', '*', '+', 'x']
+        marker_list = ['^', 's', '*', '+', 'x']
         i = 0
         for name, vals in self.obs_dict.items():
             for j, brf in enumerate(vals['NERD']):
-                plt.errorbar(vals['RE'], brf, xerr=vals['xerr'],
-                             fmt=marker_list[i], color='black', label=name)
+                if j==0:
+                    plt.errorbar(vals['RE'], brf, xerr=vals['xerr'],
+                                 fmt=marker_list[i], color='b', label=name)
+                else:
+                    plt.errorbar(vals['RE'], brf, xerr=vals['xerr'],
+                                 fmt=marker_list[i], color='b')                    
                              
             i += 1
     
@@ -1512,6 +1516,54 @@ def show_UpperAitoffAxes():
     cb = fig.colorbar(cax, orientation='horizontal')
           
     plt.show()
+
+def compare_data_30():
+    wvl13 = MonteCarloDataSet(shapes=['sphere','droxtal', 
+                                      'solid_hexagonal_column',
+                                      'hexagonal_plate'], 
+                              roughnesses=['smooth'])
+                              
+    wvl13.add_observational_data('clear bin',
+                                 [309],
+                                 [0.25, 0.26, 0.25, 0.25])
+    wvl13.add_observational_data('crystal chamber',
+                                 [273],
+                                 [0.22, 0.22, 0.20, 0.21])
+    wvl13.add_observational_data('hotel sample',
+                                 [157],
+                                 [0.38, 0.38, 0.39, 0.39])
+    wvl13.add_observational_data('John sample',
+                                 [132],
+                                 [0.42, 0.43, 0.43, 0.42])
+    wvl13.add_observational_data('trash can',
+                                 [305],
+                                 [0.27, 0.28, 0.28, 0.28])
+    wvl13.plot_bidirectional_reflectance_factor(30, theta_bins=90,
+                                                overlay_nerd_obs=True)
+                                                
+def compare_data_60():
+    wvl13 = MonteCarloDataSet(shapes=['sphere','droxtal', 
+                                      'solid_hexagonal_column',
+                                      'hexagonal_plate'], 
+                              roughnesses=['smooth'])
+                              
+    wvl13.add_observational_data('clear bin',
+                                 [309],
+                                 [0.29, 0.31, 0.31, 0.28])
+    wvl13.add_observational_data('crystal chamber',
+                                 [273],
+                                 [0.28, 0.27, 0.26, 0.24])
+    wvl13.add_observational_data('hotel sample',
+                                 [157],
+                                 [0.41, 0.42, 0.43, 0.41])
+    wvl13.add_observational_data('John sample',
+                                 [132],
+                                 [0.43, 0.49, 0.45, 0.40])
+    wvl13.add_observational_data('trash can',
+                                 [305],
+                                 [0.34, 0.34, 0.36, 0.33])
+    wvl13.plot_bidirectional_reflectance_factor(30, theta_bins=90,
+                                                overlay_nerd_obs=True)
 
 def main():
     #data = MonteCarloDataSet()
