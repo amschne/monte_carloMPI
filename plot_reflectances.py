@@ -875,12 +875,23 @@ class MonteCarloDataSet(object):
             plt.show()
             plt.close()
     
-    def set_observations(self, r_eff, brf):
-        self.obs_r_eff = r_eff
-        self.nerd_brf = brf
+    def add_observational_data(self, name, r_eff, brf):
+        r_eff_mean = np.mean(r_eff)
+        r_eff_std = np.std(r_eff)
+        
+        self.obs_dict[name] = {'RE' : r_eff_mean,
+                               'xerr' : r_eff_std,
+                               'NERD' : brf}
         
     def overlay_nerd_obs(self, xerr=10):
-        plt.errorbar(self.obs_r_eff, self.nerd_brf, xerr=xerr, fmt='o')
+        marker_list = ['o', '^', '*', '+', 'x']
+        i = 0
+        for name, vals in self.obs_dict.items():
+            for j, brf in enumerate(vals['NERD']):
+                plt.errorbar(vals['RE'], brf, xerr=vals['xerr'],
+                             fmt=marker_list[i], color='black', label=name)
+                             
+            i += 1
     
     def plot_bidirectional_reflectance_factor(self, theta_r, active_area=1.,
                                               d_dome=175., markersize=8,
@@ -1038,15 +1049,15 @@ class MonteCarloDataSet(object):
         plt.xlim(xlim)
         plt.ylim(ylim)
         
+        if overlay_nerd_obs:
+            self.overlay_nerd_obs()
+        
         plt.xlabel('Ice particle effective radius ($\mathrm{\mu m}$)')
         plt.ylabel('Reflectance factor')
         plt.title('%dnm %d$^{\circ}$;%d$^{\circ}$ bi-directional reflectance '
                   'factors' % (wvl_nm, zenith, theta_r_display))
         plt.legend(loc=1, fontsize=legend_font)
         plt.grid()
-        
-        if overlay_nerd_obs:
-            self.overlay_nerd_obs()
         
         if savefig:
             figname = '%dnm_%d-%dbrfs.pdf' % (wvl_nm, zenith, theta_r_display)
