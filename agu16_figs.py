@@ -5,10 +5,12 @@ import fnmatch
 
 import numpy as np
 from matplotlib import pyplot as plt
+from matplotlib import colors
 import pandas as pd
 
 FIGURE_STYLE = 'agu_half_horizontal'
 DATA_DIR = '/data1/amaschne/agu16'
+FIG_DIR = os.path.join('/home/amaschne/Projects', 'agu16', 'figs')
 #DATA_DIR = 'data'
 COLOR_MAP = 'plasma'
 WVL = 1.5
@@ -16,6 +18,33 @@ HALF_WIDTH = 1e-12
 N_PHOTON = 2000000
 THETA_0 = 55.0
 STOKES = 1000
+
+def main():
+    shapes = ['droxtal', 'column_8elements']
+    roughnesses = ['000', '050']
+    
+    for i, shape in enumerate(shapes):
+        fig_brf(shape=shape, roughness=roughnesses[i])
+        print('working on BRF for %s' % shape)
+
+        fig_deg_pol(shape=shape, roughness=roughnesses[i])
+        print('working on deg. of pol. for %s' % shape)
+    
+def fig_brf(shape, roughness):
+    fig_path = os.path.join(FIG_DIR, 'brf_%s.jpg' % shape)
+    
+    agu16_data = AGU16Data(shape, roughness)
+    
+    agu16_data.contourf_brf()
+    plt.savefig(fig_path, dpi=450)
+
+def fig_deg_pol(shape, roughness):
+    fig_path = os.path.join(FIG_DIR, 'deg_pol_%s.jpg' % shape)
+    
+    agu16_data = AGU16Data(shape, roughness)
+
+    agu16_data.contourf_degree_polarization()
+    plt.savefig(fig_path, dpi=450)
 
 class AGU16Data(object):
     def __init__(self, shape, roughness):
@@ -65,7 +94,9 @@ class AGU16Data(object):
         
     def contourf_degree_polarization(self, theta_bins=9, phi_bins=36, 
                                      nlevels=51, rmax = 1.0, zero_loc='S'):
-        levels = np.linspace(0, rmax, nlevels)
+        bounds = np.linspace(0,rmax,nlevels)
+        norm = colors.BoundaryNorm(bounds, 256)
+        
         self.find_data()
         
         shape_title = self.shape.replace('_', ' ')
@@ -78,7 +109,6 @@ class AGU16Data(object):
         
         theta_deg = np.rad2deg(np.linspace(0, np.pi/2, theta_bins))
         phi_rad = np.linspace(0, 2*np.pi, phi_bins)
-        
         col_num = 0
         ax_list = list()
         for RE, file_name in sorted(self.file_dict.items()):
@@ -94,8 +124,8 @@ class AGU16Data(object):
             phi_exit = data_file['phi_n']
             
             # Stokes parameters
-            Q_exit = data_file['Q_n']
-            U_exit = data_file['U_n']
+            Q_exit = data_file['Q_n,']
+            U_exit = data_file['U_n,']
             V_exit = data_file['V_n']
             
             h_I = np.histogram2d(phi_exit, theta_exit,
@@ -118,25 +148,29 @@ class AGU16Data(object):
             U_norm = h_U[0] / h_I[0]
             V_norm = h_V[0] / h_I[0]
             
-            deg_polarization = np.sqrt(Q_norm**2 + U_norm**2 + V_norm**2)
-            
-            print('max deg. of pol. = %r' deg_polarization.max())
+            deg_polarization = np.sqrt(Q_norm**2 + U_norm**2 + V_norm**2).T
+            phi_edges = h_I[1]
+            theta_edges = np.rad2deg(h_I[2])
+
+            print('max deg. of pol. = %r' % deg_polarization.max())
             
             self.ax_arr[col_num].set_theta_zero_location(zero_loc)
-            cax = self.ax_arr[col_num].contourf(phi_rad, theta_deg,
+            cax = self.ax_arr[col_num].pcolor(phi_edges, theta_edges,
                                                 deg_polarization,
-                                                 levels,
-                                                 cmap=COLOR_MAP)
+                                                 cmap=COLOR_MAP,
+                                                 norm=norm)
         
             #self.ax_arr[col_num].set_title('%d $\mathrm{\mu m}$' % RE_int)
             self.ax_arr[col_num].set_title('%d um' % RE_int)
             col_num +=1
         cb = self.fig.colorbar(cax, orientation='horizontal', 
-                               ax=ax_list)
+                               ax=ax_list, ticks=np.arange(0,1.1,0.1))
         
     def contourf_brf(self, theta_bins=9, phi_bins=36, nlevels=8, rmax=.14,
                      zero_loc='S'):
-        levels = np.linspace(0, rmax, nlevels)
+        bounds = np.linspace(0, rmax, nlevels)
+        norm = colors.BoundaryNorm(bounds, 256)
+        
         self.find_data()
             
         shape_title = self.shape.replace('_',' ')
@@ -147,10 +181,7 @@ class AGU16Data(object):
         
         theta_range = (0., np.pi/2)
         phi_range = (0., 2*np.pi)
-        
-        theta_deg = np.rad2deg(np.linspace(0, np.pi/2, theta_bins))
-        phi_rad = np.linspace(0, 2*np.pi, phi_bins)
-        
+                
         col_num = 0
         ax_list = list()
         for RE, file_name in sorted(self.file_dict.items()):
@@ -177,13 +208,16 @@ class AGU16Data(object):
             brf_weights = theta_weights / phi_bins
             brf = (h[0] / (total_photons * brf_weights)).T
             
+            Phi_rad = h[1]
+            Theta_deg = np.rad2deg(h[2])
+            
             print ('max BRF = %r' % brf.max())
             
             self.ax_arr[col_num].set_theta_zero_location(zero_loc)
-            cax = self.ax_arr[col_num].contourf(phi_rad, theta_deg,
-                                                brf,
-                                                levels,
-                                                cmap=COLOR_MAP)
+            cax = self.ax_arr[col_num].pcolormesh(Phi_rad, Theta_deg,
+                                                  brf,
+                                                  cmap=COLOR_MAP,
+                                                  norm=norm)
         
             #self.ax_arr[col_num].set_title('%d $\mathrm{\mu m}$' % RE_int)
             self.ax_arr[col_num].set_title('%d um' % RE_int)
@@ -200,18 +234,6 @@ class AGU16Data(object):
         self.fig.suptitle(title)
 
         return self.fig, self.ax_arr
-
-def main():
-    shape = 'column_8elements'
-    #shape = 'droxtal'
-    roughness = '050'
-    fig_dir = os.path.join('/home/amaschne/Projects', 'agu16', 'figs')
-    fig_path = os.path.join(fig_dir, '%s.jpg' % shape)
-    #fig_path = '%s.jpg' % shape
-    
-    agu16_data = AGU16Data(shape, roughness)
-    agu16_data.contourf_brf()
-    plt.savefig(fig_path, dpi=300)
         
 if __name__=='__main__':
     main()
