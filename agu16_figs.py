@@ -8,7 +8,7 @@ from matplotlib import pyplot as plt
 import pandas as pd
 
 FIGURE_STYLE = 'agu_half_horizontal'
-DATA_DIR = 'data'
+DATA_DIR = '/data1/amaschne/agu16'
 WVL = 1.5
 HALF_WIDTH = 1e-12
 N_PHOTON = 2000000
@@ -36,20 +36,19 @@ class AGU16Data(object):
             total_photons = len(file_list) * N_PHOTON
             f_out = 'R_%s_%s_%s_%s_%s_I%s.txt' % (WVL, HALF_WIDTH, RE,
                                                 total_photons, THETA_0, STOKES)
-            f_path = os.path.join(self.data_dir, f_out)
+            f_out_path = os.path.join(self.data_dir, f_out)
             
             reflected_list = list()
             for i, fi in enumerate(file_list):
                 fi_path = os.path.join(self.data_dir, fi)
-                print('working on %s' % fi_path)
+                print('reducing %s --> %s' % (fi_path, f_out_path))
                 data = pd.read_csv(fi_path, delim_whitespace=True)
-                
                 reflected_photons = data[data.condition==1]
                 reflected_list.append(reflected_photons)
                 
             all_reflected_photons = pd.concat(reflected_list)
             
-            all_reflected_photons.to_csv(f_path, sep=' ')
+            all_reflected_photons.to_csv(f_out_path, sep=' ')
     
     def find_data(self):
         expression = 'R_%s_%s_*_%s_I%s.txt' % (WVL, HALF_WIDTH,
@@ -62,13 +61,14 @@ class AGU16Data(object):
         
         self.file_dict = file_dict
         
-    def contourf_brf(self, theta_bins=9, phi_bins=36, nlevels=6, rmax=0.1,                           wedge_gap=0.0):
+    def contourf_brf(self, theta_bins=9, phi_bins=36, nlevels=6, rmax=0.1,
+                     zero_loc='S'):
         levels = np.linspace(0, rmax, nlevels)
         self.find_data()
         self.setup_figure1(ncols=3)
         
         theta_range = (0., np.pi/2)
-        phi_range = (-wedge_gap, 2*np.pi + wedge_gap)
+        phi_range = (0., 2*np.pi)
         
         col_num = 0
         ax_list = list()
@@ -97,7 +97,7 @@ class AGU16Data(object):
             
             theta_deg = np.rad2deg(theta_midpoints)
             
-            self.ax_arr[col_num].set_theta_zero_location('N')
+            self.ax_arr[col_num].set_theta_zero_location(zero_loc)
             cax = self.ax_arr[col_num].contourf(phi_midpoints, theta_deg,
                                                   brf,
                                                   levels,
@@ -121,11 +121,15 @@ class AGU16Data(object):
         return self.fig, self.ax_arr
 
 def main():
-    pass
+    shape = 'column_8elements'
+    #shape = 'droxtal'
+    roughness = '050'
+    fig_dir = os.path.join('/home/amaschne/Projects', 'agu16', 'figs')
+    fig_path = os.path.join(fig_dir, '%s.jpg' % shape)
+    
+    agu16_data = AGU16Data(shape, roughness)
+    agu16_data.contourf_brf()
+    plt.savefig(fig_path, dpi=300)
     
 if __name__=='__main__':
     main()
-    data = AGU16Data('column_8elements', '050')
-    #data.reduce()
-    data.contourf_brf()
-    plt.show()
