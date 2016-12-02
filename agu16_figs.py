@@ -9,6 +9,8 @@ import pandas as pd
 
 FIGURE_STYLE = 'agu_half_horizontal'
 DATA_DIR = '/data1/amaschne/agu16'
+#DATA_DIR = 'data'
+COLOR_MAP = 'plasma'
 WVL = 1.5
 HALF_WIDTH = 1e-12
 N_PHOTON = 2000000
@@ -61,7 +63,7 @@ class AGU16Data(object):
         
         self.file_dict = file_dict
         
-    def contourf_brf(self, theta_bins=9, phi_bins=36, nlevels=6, rmax=0.1,
+    def contourf_brf(self, theta_bins=9, phi_bins=36, nlevels=8, rmax=.14,
                      zero_loc='S'):
         levels = np.linspace(0, rmax, nlevels)
         self.find_data()
@@ -95,21 +97,24 @@ class AGU16Data(object):
             brf_weights = theta_weights / phi_bins
             brf = (h[0] / (total_photons * brf_weights)).T
             
+            print ('max BRF = %r' % brf.max())
+            
             theta_deg = np.rad2deg(theta_midpoints)
+            phi_rad = np.linspace(0, 2*np.pi, phi_midpoints.size)
             
             self.ax_arr[col_num].set_theta_zero_location(zero_loc)
-            cax = self.ax_arr[col_num].contourf(phi_midpoints, theta_deg,
+            cax = self.ax_arr[col_num].contourf(phi_rad, theta_deg,
                                                   brf,
                                                   levels,
-                                                  cmap='inferno')
+                                                  cmap=COLOR_MAP)
         
-            self.ax_arr[col_num].set_title('%d $\mathrm{\mu m}$' % RE_int)
-            
+            #self.ax_arr[col_num].set_title('%d $\mathrm{\mu m}$' % RE_int)
+            self.ax_arr[col_num].set_title('%d um' % RE_int)
             col_num +=1
         cb = self.fig.colorbar(cax, orientation='horizontal', 
                                ax=ax_list)
         cb.set_label('Reflectance factor')
-            
+                
     def setup_figure1(self, ncols=3, style=FIGURE_STYLE):
         plt.style.use(style)
         self.fig, self.ax_arr = plt.subplots(1, 
@@ -126,10 +131,11 @@ def main():
     roughness = '050'
     fig_dir = os.path.join('/home/amaschne/Projects', 'agu16', 'figs')
     fig_path = os.path.join(fig_dir, '%s.jpg' % shape)
+    #fig_path = '%s.jpg' % shape
     
     agu16_data = AGU16Data(shape, roughness)
     agu16_data.contourf_brf()
     plt.savefig(fig_path, dpi=300)
-    
+        
 if __name__=='__main__':
     main()
