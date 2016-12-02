@@ -24,11 +24,11 @@ def main():
     roughnesses = ['000', '050']
     
     for i, shape in enumerate(shapes):
-        fig_brf(shape=shape, roughness=roughnesses[i])
         print('working on BRF for %s' % shape)
+        fig_brf(shape=shape, roughness=roughnesses[i])
 
-        fig_deg_pol(shape=shape, roughness=roughnesses[i])
         print('working on deg. of pol. for %s' % shape)
+        fig_deg_pol(shape=shape, roughness=roughnesses[i])
     
 def fig_brf(shape, roughness):
     fig_path = os.path.join(FIG_DIR, 'brf_%s.jpg' % shape)
