@@ -63,14 +63,21 @@ class AGU16Data(object):
         
         self.file_dict = file_dict
         
-    def contourf_brf(self, theta_bins=9, phi_bins=36, nlevels=8, rmax=.14,
-                     zero_loc='S'):
+    def contourf_degree_polarization(self, theta_bins=9, phi_bins=36, 
+                                     nlevels=51, rmax = 1.0, zero_loc='S'):
         levels = np.linspace(0, rmax, nlevels)
         self.find_data()
-        self.setup_figure1(ncols=3)
+        
+        shape_title = self.shape.replace('_', ' ')
+        fig_title = 'Degree of polarization for %s' % shape_title
+        
+        self.setup_figure(fig_title, ncols=3)
         
         theta_range = (0., np.pi/2)
         phi_range = (0., 2*np.pi)
+        
+        theta_deg = np.rad2deg(np.linspace(0, np.pi/2, theta_bins))
+        phi_rad = np.linspace(0, 2*np.pi, phi_bins)
         
         col_num = 0
         ax_list = list()
@@ -86,8 +93,81 @@ class AGU16Data(object):
             theta_exit = data_file['theta_n']
             phi_exit = data_file['phi_n']
             
-            h = np.histogram2d(phi_exit, theta_exit, bins=[phi_bins, 
-                               theta_bins], range=[phi_range, theta_range])
+            # Stokes parameters
+            Q_exit = data_file['Q_n']
+            U_exit = data_file['U_n']
+            V_exit = data_file['V_n']
+            
+            h_I = np.histogram2d(phi_exit, theta_exit,
+                                 bins=[phi_bins, theta_bins],
+                                 range=[phi_range, theta_range])
+            h_Q = np.histogram2d(phi_exit, theta_exit,
+                                 bins=[phi_bins, theta_bins],
+                                 range=[phi_range, theta_range],
+                                 weights=Q_exit)
+            h_U = np.histogram2d(phi_exit, theta_exit,
+                                 bins=[phi_bins, theta_bins],
+                                 range=[phi_range, theta_range],
+                                 weights=U_exit)
+            h_V = np.histogram2d(phi_exit, theta_exit,
+                                 bins=[phi_bins, theta_bins],
+                                 range=[phi_range, theta_range],
+                                 weights=V_exit)
+                                 
+            Q_norm = h_Q[0] / h_I[0]
+            U_norm = h_U[0] / h_I[0]
+            V_norm = h_V[0] / h_I[0]
+            
+            deg_polarization = np.sqrt(Q_norm**2 + U_norm**2 + V_norm**2)
+            
+            print('max deg. of pol. = %r' deg_polarization.max())
+            
+            self.ax_arr[col_num].set_theta_zero_location(zero_loc)
+            cax = self.ax_arr[col_num].contourf(phi_rad, theta_deg,
+                                                deg_polarization,
+                                                 levels,
+                                                 cmap=COLOR_MAP)
+        
+            #self.ax_arr[col_num].set_title('%d $\mathrm{\mu m}$' % RE_int)
+            self.ax_arr[col_num].set_title('%d um' % RE_int)
+            col_num +=1
+        cb = self.fig.colorbar(cax, orientation='horizontal', 
+                               ax=ax_list)
+        
+    def contourf_brf(self, theta_bins=9, phi_bins=36, nlevels=8, rmax=.14,
+                     zero_loc='S'):
+        levels = np.linspace(0, rmax, nlevels)
+        self.find_data()
+            
+        shape_title = self.shape.replace('_',' ')
+        
+        fig_title = 'Bidirectional reflectance factors for %s' % shape_title
+        
+        self.setup_figure(fig_title, ncols=3)
+        
+        theta_range = (0., np.pi/2)
+        phi_range = (0., 2*np.pi)
+        
+        theta_deg = np.rad2deg(np.linspace(0, np.pi/2, theta_bins))
+        phi_rad = np.linspace(0, 2*np.pi, phi_bins)
+        
+        col_num = 0
+        ax_list = list()
+        for RE, file_name in sorted(self.file_dict.items()):
+            ax_list.append(self.ax_arr[col_num])
+            RE_int = np.around(float(RE))
+            file_path = os.path.join(self.data_dir, file_name)
+            
+            total_photons = int(file_name.split('_')[4])
+            
+            data_file = pd.read_csv(file_path, delim_whitespace=True)
+            
+            theta_exit = data_file['theta_n']
+            phi_exit = data_file['phi_n']
+            
+            h = np.histogram2d(phi_exit, theta_exit,
+                               bins=[phi_bins, theta_bins],
+                               range=[phi_range, theta_range])
             phi_midpoints = (np.diff(h[1]) / 2.) + h[1][:-1]
             theta_midpoints = (np.diff(h[2]) / 2.) + h[2][:-1]
             
@@ -99,14 +179,11 @@ class AGU16Data(object):
             
             print ('max BRF = %r' % brf.max())
             
-            theta_deg = np.rad2deg(theta_midpoints)
-            phi_rad = np.linspace(0, 2*np.pi, phi_midpoints.size)
-            
             self.ax_arr[col_num].set_theta_zero_location(zero_loc)
             cax = self.ax_arr[col_num].contourf(phi_rad, theta_deg,
-                                                  brf,
-                                                  levels,
-                                                  cmap=COLOR_MAP)
+                                                brf,
+                                                levels,
+                                                cmap=COLOR_MAP)
         
             #self.ax_arr[col_num].set_title('%d $\mathrm{\mu m}$' % RE_int)
             self.ax_arr[col_num].set_title('%d um' % RE_int)
@@ -115,13 +192,12 @@ class AGU16Data(object):
                                ax=ax_list)
         cb.set_label('Reflectance factor')
                 
-    def setup_figure1(self, ncols=3, style=FIGURE_STYLE):
+    def setup_figure(self, title, ncols=3, style=FIGURE_STYLE):
         plt.style.use(style)
         self.fig, self.ax_arr = plt.subplots(1, 
                                         ncols,
                                         subplot_kw=dict(projection='polar'))
-        self.fig.suptitle('Bidirectional reflectance factors for %s'
-                          % self.shape.replace('_',' '))
+        self.fig.suptitle(title)
 
         return self.fig, self.ax_arr
 
