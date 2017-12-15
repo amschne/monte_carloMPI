@@ -23,24 +23,29 @@ import ipdb
 
 import polar_demo
 
+DENSITY_ICE = 917.0 # kg / m^3
+
 def get_args():
     """ User input
     """
-    top_data_dir = '/data1/amaschne/nerd_all'
+    #top_data_dir = '/data1/amaschne/nerd_all'
+    top_data_dir = '/data1/amaschne/nerd_ssa_cal' # for comparing SSA to NERD BRFs
     shapes = ['sphere',
               'droxtal',
               'solid_hexagonal_column', 
-              'hollow_hexagonal_column',
-              '8-element_column_aggregate',
-              'hexagonal_plate',
-              '5-element_plate_aggregate',
-              '10-element_plate_aggregate',
-              'solid_bullet_rosette',
-              'hollow_bullet_rosette']
-    roughnesses = ['smooth', 'moderately_rough','severely_rough']
+              #'hollow_hexagonal_column',
+              #'8-element_column_aggregate',
+              #'hexagonal_plate',
+              #'5-element_plate_aggregate',
+              #'10-element_plate_aggregate',
+              #'solid_bullet_rosette',
+              #'hollow_bullet_rosette',
+             ]
+    roughnesses = ['smooth'#, 'moderately_rough','severely_rough'
+                   ]
     wvl = 1.3 # um
     half_width = 0.085 # um
-    n_photon = 1000000
+    n_photon = 250000
     theta_0 = 0.0
     Stokes_0 = [1, 0, 0, 0]
     
@@ -300,8 +305,8 @@ class MonteCarloDataSet(object):
                     nlevels=100,
                     rmax=1,
                     savefigs=False,
-                    theta_bins=None,
-                    phi_bins=None):
+                    theta_bins=9,
+                    phi_bins=4):
         """ Plot azimuthal BRFs for different grain sizes for a list of given
             shapes and roughnesses.
         """
@@ -316,7 +321,7 @@ class MonteCarloDataSet(object):
         
         levels = np.linspace(0, rmax, nlevels)
         ticks = np.arange(0, 1.1, 0.1) * rmax
-        cmap = plt.cm.get_cmap("inferno")
+        cmap = plt.cm.get_cmap("gray")
         
         if theta_bins==None:
             theta_bins = calculate_bins(active_area, d_dome)
@@ -496,7 +501,7 @@ class MonteCarloDataSet(object):
     def plot_brf_all_angles(self,
                             shapes=list(),
                             roughnesses=list(),
-                            theta_bins=None,
+                            theta_bins=18,
                             active_area=1.,
                             d_dome=175.,
                             r_max=1.,
@@ -877,19 +882,32 @@ class MonteCarloDataSet(object):
             plt.show()
             plt.close()
     
-    def add_observational_data(self, name, r_eff, brf):
-        r_eff_mean = np.mean(r_eff)
-        r_eff_std = np.std(r_eff)
+    def add_observational_data(self, ssa, brfs, label):
+        #r_eff_mean = np.mean(r_eff)
+        #r_eff_std = np.std(r_eff)
+        mean_brf = np.mean(brfs)
+        std_brf = np.std(brfs)
+
+        self.obs_dict[label] = {'ssa' : ssa,
+                                'brf' : mean_brf,
+                                'brf_std' : std_brf}
         
-        self.obs_dict[name] = {'RE' : r_eff_mean,
-                               'xerr' : r_eff_std,
-                               'NERD' : brf}
+    def overlay_nerd_obs(self):
+        num_of_obs = len(self.obs_dict.keys())
+        color_list = plt.cm.rainbow(np.linspace(0, 1, num_of_obs))
         
-    def overlay_nerd_obs(self, xerr=10):
+        color_i = 0
+        for label, obs_dict in sorted(self.obs_dict.items()):
+            print label
+            plt.errorbar(obs_dict['brf'], obs_dict['ssa'], 
+                         xerr=obs_dict['brf_std'], color=color_list[color_i],
+                         marker='o', label=label)
+            color_i+=1
+    def overlay_nerd_obs_old(self):
         marker_list = ['^', 's', '*', '+', 'x']
         i = 0
         for name, vals in self.obs_dict.items():
-            for j, brf in enumerate(vals['NERD']):
+            for j, brf in enumerate(vals['']):
                 if j==0:
                     plt.errorbar(vals['RE'], brf, xerr=vals['xerr'],
                                  fmt=marker_list[i], color='b', label=name)
@@ -901,11 +919,11 @@ class MonteCarloDataSet(object):
     
     def plot_bidirectional_reflectance_factor(self, theta_r, active_area=1.,
                                               d_dome=175., markersize=8,
-                                              xlim=(10,1010),
-                                              ylim=(0,1),
+                                              xlim=(0,0.7),
+                                              ylim=(0,70),
                                               savefig=False,
                                               legend_font=10,
-                                              theta_bins=None,
+                                              theta_bins=18,
                                               overlay_nerd_obs=False):
         """ Plot bi-directional theta_r (deg.) reflectance factor as a function
             of particle effective radius with:
@@ -981,10 +999,11 @@ class MonteCarloDataSet(object):
                 
                 idxs = np.argsort(particle_radii)                
                 
-                plt.plot(particle_radii[idxs], brf[idxs], color='k',
-                         marker='o', linestyle='dashed',
-                         label='%ss' % shape_label,
-                         markersize=markersize)
+                plt.plot(brf[idxs], (3.*10**6)/(particle_radii[idxs] *
+                                                DENSITY_ICE),
+                         color='k',
+                         marker=None, linestyle='dashed',
+                         label='%ss' % shape_label)
             else:
                 color = color_list[color_idxs[i]]
                 for roughness, RE_data_I in self.data_I[shape].items():
@@ -992,7 +1011,7 @@ class MonteCarloDataSet(object):
                     """ Full scattering phase function
                     """
                     if roughness == 'smooth':
-                        marker = 'o'
+                        marker = None
                     elif roughness == 'moderately_rough':
                         marker = 'd'
                     elif roughness == 'severely_rough':
@@ -1016,15 +1035,17 @@ class MonteCarloDataSet(object):
                 
                     idxs = np.argsort(particle_radii)                    
                     
-                    plt.plot(particle_radii[idxs], brf[idxs],
-                             color=color, marker=marker, markersize=markersize,
-                             label='%s %ss' % (roughness_label, shape_label))
+                    plt.plot(brf[idxs], (3.*10**6) / (particle_radii[idxs] * 
+                                                      DENSITY_ICE),
+                             color=color, marker=marker,
+                             label='%ss' % (#roughness_label,
+                                                          shape_label))
                 
                 for roughness, RE_data_HG in self.data_HG[shape].items():
                     """ Henyey Greenstein scattering phase function
                     """
                     if roughness == 'smooth':
-                        marker = 'o'
+                        marker = None
                     elif roughness == 'moderately_rough':
                         marker = 'd'
                     elif roughness == 'severely_rough':
@@ -1048,9 +1069,10 @@ class MonteCarloDataSet(object):
                 
                     idxs = np.argsort(particle_radii)                    
                     
-                    plt.plot(particle_radii[idxs], brf[idxs],
+                    plt.plot(brf[idxs], (3.*10**6) / (particle_radii[idxs] *
+                                                      DENSITY_ICE),
                              color=color, marker=marker,
-                             linestyle='dashed', markersize=markersize)
+                             linestyle='dashed')
         
         plt.xlim(xlim)
         plt.ylim(ylim)
@@ -1058,15 +1080,16 @@ class MonteCarloDataSet(object):
         if overlay_nerd_obs:
             self.overlay_nerd_obs()
         
-        plt.xlabel('Ice particle effective radius ($\mathrm{\mu m}$)')
-        plt.ylabel('Reflectance factor')
-        plt.title('%dnm %d$^{\circ}$;%d$^{\circ}$ bi-directional reflectance '
-                  'factors' % (wvl_nm, zenith, theta_r_display))
-        plt.legend(loc=1, fontsize=legend_font)
+        plt.ylabel('Specific surface area ($\mathrm{m^2/kg}$)')
+        plt.xlabel('Reflectance factor')
+        plt.title('Snow SSA vs. %dnm %d$^{\circ}$;%d$^{\circ}$ BRFs'
+                  % (wvl_nm, zenith, theta_r_display))
+        plt.legend()#loc=1, fontsize=legend_font)
         plt.grid()
         
         if savefig:
-            figname = '%dnm_%d-%dbrfs.pdf' % (wvl_nm, zenith, theta_r_display)
+            figname = '%dnm_%d-%dbrfs_vs_ssa.pdf' % (wvl_nm, zenith, 
+                                                     theta_r_display)
             plt.savefig(figname)
         else:
             plt.show()
@@ -1242,7 +1265,7 @@ class MonteCarloDataSet(object):
             brf_weights = theta_weights / phi_bins
                               
             brf = (h[0] / (Q_down * brf_weights)).T
-            
+            #print brf
         return(brf, midpoints, mean_wvls)
     
     def bi_directional_reflectance_factor(self, file_path, n_bins,
@@ -1307,13 +1330,13 @@ def plot_spectral_albedo(top_data_dir='/data3/amaschne/AGU2015_60zenith',
                          theta_0=60.0,
                          Stokes_0=[1,0,0,0] ,
                          Henyey_Greenstein=True,
-                         xmin=0.2,
+                         xmin=0.5,
                          xmax=3.0,
                          savefig=False):
     """ Plot spectral directional-hemispherical reflectance for a given
         shape habit and roughness.
     """
-    
+    plt.style.use('agu_quarter')
     rds_snw_list = list()
     albedo = dict()
     valid_wvls = dict()
@@ -1360,10 +1383,10 @@ def plot_spectral_albedo(top_data_dir='/data3/amaschne/AGU2015_60zenith',
     
     plt.legend(title='Particle effective radius ($\mathrm{\mu m}$)', loc=1)
     plt.grid()
-    plt.xlim((0.2, 3.0))
-    plt.xticks(np.arange(xmin, xmax + 0.1, 0.2))
+    plt.xlim((xmin, xmax))
+    #plt.xticks(np.arange(xmin, xmax + 0.1, 0.2))
     plt.ylim((0.0,1.0))
-    plt.yticks(np.arange(0, 1.1, 0.1))
+    #plt.yticks(np.arange(0, 1.1, 0.1))
     
     plt.xlabel('Wavelength ($\mathrm{\mu m}$)')
     plt.ylabel('Reflectance')
@@ -1415,6 +1438,7 @@ def get_Lambertian_nlevels(Lambertian_file_path, theta_bins, phi_bins=None):
     weights = ((np.sin(midpoints[1]) * np.cos(midpoints[1])) /
                np.sum((np.sin(midpoints[1]) * np.cos(midpoints[1]))))
                
+    #print weights
     mean_brf = np.average(brf, axis=0, weights=weights).mean()
     
     azimuthal_vars = list()
@@ -1517,60 +1541,123 @@ def show_UpperAitoffAxes():
           
     plt.show()
 
-def compare_data_30(savefig=False):
+def nerd_ssa_cal_30(savefig=True):    
+    """ SSA data from micro-CT (m^2/kg) and 0-30 1.3um BRFs from NERD
+    """
+    
     wvl13 = MonteCarloDataSet(shapes=['sphere','droxtal', 
                                       'solid_hexagonal_column',
-                                      'hexagonal_plate'], 
+                                      ], 
                               roughnesses=['smooth'])
                               
-    wvl13.add_observational_data('clear bin',
-                                 [309],
-                                 [0.25, 0.26, 0.25, 0.25])
-    wvl13.add_observational_data('crystal chamber',
-                                 [273],
-                                 [0.22, 0.22, 0.20, 0.21])
-    wvl13.add_observational_data('hotel sample',
-                                 [157],
-                                 [0.38, 0.38, 0.39, 0.39])
-    wvl13.add_observational_data('John sample',
-                                 [132],
-                                 [0.42, 0.43, 0.43, 0.42])
-    wvl13.add_observational_data('trash can',
-                                 [305],
-                                 [0.27, 0.28, 0.28, 0.28])
-    wvl13.plot_bidirectional_reflectance_factor(30, theta_bins=90,
+    wvl13.add_observational_data(8842.11/DENSITY_ICE,
+                                 [0.25, 0.26, 0.25, 0.25],
+                                 '2016c clear bin')
+    wvl13.add_observational_data(8673.06/DENSITY_ICE,
+                                 [0.22, 0.22, 0.20, 0.21],
+                                 '2016e crystal chamber')
+    wvl13.add_observational_data(15945.00/DENSITY_ICE,
+                                 [0.38, 0.38, 0.39, 0.39],
+                                 '2016b hotel sample')
+    wvl13.add_observational_data(18868.39/DENSITY_ICE,
+                                 [0.42, 0.43, 0.43, 0.42],
+                                 '2016a John sample')
+    wvl13.add_observational_data(8567.44/DENSITY_ICE,
+                                 [0.27, 0.28, 0.28, 0.28],
+                                 '2016d trash can')
+    
+    wvl13.add_observational_data(42122.25/DENSITY_ICE,
+                                 [0.547, 0.567, 0.525, 0.527],
+                                 '08:00EST 2-17-17 natural')
+    wvl13.add_observational_data(32712.86/DENSITY_ICE,
+                                 [0.469, 0.478, 0.480, 0.479],
+                                 '13:00EST 2-17-17 natural')
+    wvl13.add_observational_data(44232.67/DENSITY_ICE,
+                                 [0.522, 0.527, 0.531, 0.524],
+                                 '08:00EST 2-17-17 sand')
+    wvl13.add_observational_data(15320.55/DENSITY_ICE,
+                                 [0.182, 0.185, 0.240, 0.235],
+                                 '13:00EST 2-17-17 sand')
+    wvl13.add_observational_data(40592.91/DENSITY_ICE,
+                                 [0.513, 0.515, 0.517, 0.519],
+                                 '08:00EST 2-17-17 BC')
+    wvl13.add_observational_data(21236.38/DENSITY_ICE,
+                                 [0.287, 0.296, 0.455, 0.456],
+                                 '13:00EST 2-17-17 BC')
+    wvl13.add_observational_data(39368.58/DENSITY_ICE,
+                                 [0.572, 0.577, 0.570, 0.566],
+                                 '07:00EST 2-10-17 natural')
+    wvl13.add_observational_data(37689.36/DENSITY_ICE,
+                                 [0.601, 0.603, 0.563, 0.565],
+                                 '15:00EST 2-10-17 natural')
+    wvl13.add_observational_data(40333.84/DENSITY_ICE,
+                                 [0.517, 0.517, 0.517, 0.514],
+                                 '07:00EST 2-10-17 BC')
+    
+    wvl13.plot_bidirectional_reflectance_factor(30, theta_bins=18,
                                                 overlay_nerd_obs=True,
                                                 savefig=savefig)
                                                 
-def compare_data_60(savefig=False):
+def nerd_ssa_cal_60(savefig=False):
     wvl13 = MonteCarloDataSet(shapes=['sphere','droxtal', 
-                                      'solid_hexagonal_column',
-                                      'hexagonal_plate'], 
+                                      'solid_hexagonal_column'], 
                               roughnesses=['smooth'])
                               
-    wvl13.add_observational_data('clear bin',
-                                 [309],
-                                 [0.29, 0.31, 0.31, 0.28])
-    wvl13.add_observational_data('crystal chamber',
-                                 [273],
-                                 [0.28, 0.27, 0.26, 0.24])
-    wvl13.add_observational_data('hotel sample',
-                                 [157],
-                                 [0.41, 0.42, 0.43, 0.41])
-    wvl13.add_observational_data('John sample',
-                                 [132],
-                                 [0.43, 0.49, 0.45, 0.40])
-    wvl13.add_observational_data('trash can',
-                                 [305],
-                                 [0.34, 0.34, 0.36, 0.33])
-    wvl13.plot_bidirectional_reflectance_factor(60, theta_bins=90,
+    wvl13.add_observational_data(8842.11/DENSITY_ICE,
+                                 [0.29, 0.31, 0.31, 0.28],
+                                 '2016c clear bin')
+    wvl13.add_observational_data(8673.06/DENSITY_ICE,
+                                 [0.28, 0.27, 0.26, 0.24],
+                                 '2016e crystal chamber')
+    wvl13.add_observational_data(15945.00/DENSITY_ICE,
+                                 [0.41, 0.42, 0.43, 0.41],
+                                 '2016b hotel sample')
+    wvl13.add_observational_data(18868.34/DENSITY_ICE,
+                                 [0.43, 0.49, 0.45, 0.40],
+                                 '2016a John sample')
+    wvl13.add_observational_data(8567.44/DENSITY_ICE,
+                                 [0.34, 0.34, 0.36, 0.33],
+                                 '2016d trash can')
+    wvl13.add_observational_data(42122.25/DENSITY_ICE,
+                                 [0.500, 0.565, 0.532, 0.545],
+                                 '08:00EST 2-17-17 natural')
+    wvl13.add_observational_data(32712.86/DENSITY_ICE,
+                                 [0.49, 0.50, np.nan, np.nan],
+                                 '13:00EST 2-17-17 natural')
+    wvl13.add_observational_data(44232.67/DENSITY_ICE,
+                                 [0.548, 0.544, 0.534, 0.507],
+                                 '08:00EST 2-17-17 sand')
+    wvl13.add_observational_data(15320.55/DENSITY_ICE,
+                                 [0.235, 0.230, 0.311, 0.292],
+                                 '13:00EST 2-17-17 sand')
+    wvl13.add_observational_data(40592.91/DENSITY_ICE,
+                                 [0.544, 0.531, 0.526, 0.522],
+                                 '08:00EST 2-17-17 BC')
+    wvl13.add_observational_data(21236.38/DENSITY_ICE,
+                                 [0.325, 0.351, 0.481, 0.487],
+                                 '13:00EST 2-17-17 BC')
+    wvl13.add_observational_data(39368.58/DENSITY_ICE,
+                                 [0.588, 0.587, 0.598, 0.584],
+                                 '07:00EST 2-10-17 natural')
+    wvl13.add_observational_data(37689.36/DENSITY_ICE,
+                                 [0.642, 0.623, 0.61, 0.62],
+                                 '15:00EST 2-10-17 natural')
+    wvl13.add_observational_data(40333.84/DENSITY_ICE,
+                                 [0.539, 0.534, 0.535, 0.537],
+                                 '07:00EST 2-10-17 BC')
+                                 
+    wvl13.plot_bidirectional_reflectance_factor(60, theta_bins=18,
                                                 overlay_nerd_obs=True,
                                                 savefig=savefig)
 
 def main():
     #data = MonteCarloDataSet()
     #data.plot_directional_hemispherical_reflectance()
-    show_UpperHammerAxes()
+    #show_UpperHammerAxes()
+    plt.style.use('agu_quarter')
+    plt.style.use('grl')
+    nerd_ssa_cal_30(savefig=True)
+    nerd_ssa_cal_60(savefig=True)
 
 if __name__=='__main__':
     main()
