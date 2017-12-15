@@ -887,8 +887,14 @@ class MonteCarloDataSet(object):
         #r_eff_std = np.std(r_eff)
         mean_brf = np.mean(brfs)
         std_brf = np.std(brfs)
+        
+        #median_brf = np.median(brfs)
+        #median_ssa = np.median(ssa)
+        mean_ssa = np.mean(ssa)
+        std_ssa = np.std(ssa)
 
-        self.obs_dict[label] = {'ssa' : ssa,
+        self.obs_dict[label] = {'ssa' : mean_ssa,
+                                'ssa_std' : std_ssa,
                                 'brf' : mean_brf,
                                 'brf_std' : std_brf}
         
@@ -900,7 +906,9 @@ class MonteCarloDataSet(object):
         for label, obs_dict in sorted(self.obs_dict.items()):
             print label
             plt.errorbar(obs_dict['brf'], obs_dict['ssa'], 
-                         xerr=obs_dict['brf_std'], color=color_list[color_i],
+                         xerr=obs_dict['brf_std'], 
+                         yerr=obs_dict['ssa_std'],
+                         color=color_list[color_i],
                          marker='o', label=label)
             color_i+=1
     def overlay_nerd_obs_old(self):
@@ -920,7 +928,7 @@ class MonteCarloDataSet(object):
     def plot_bidirectional_reflectance_factor(self, theta_r, active_area=1.,
                                               d_dome=175., markersize=8,
                                               xlim=(0,0.7),
-                                              ylim=(0,70),
+                                              ylim=(0,80),
                                               savefig=False,
                                               legend_font=10,
                                               theta_bins=18,
@@ -1593,10 +1601,20 @@ def nerd_ssa_cal_30(savefig=True):
     wvl13.add_observational_data(40333.84/DENSITY_ICE,
                                  [0.517, 0.517, 0.517, 0.514],
                                  '07:00EST 2-10-17 BC')
+                                 
+    wvl13.add_observational_data([78577.62, 56459.85, 60140.61]/DENSITY_ICE,
+                                  [0.616, 0.614, 0.617, 0.617],
+                                  '17:00EST 3-14-17 fresh needles')
+                                  
+    wvl13.add_observational_data(49745.13/DENSITY_ICE,
+                                 [0.483, 0.495, 0.526, 0.545],
+                                 '12:00EST 3-15-17 day old')
     
-    wvl13.plot_bidirectional_reflectance_factor(30, theta_bins=18,
+    wvl13.plot_bidirectional_reflectance_factor(30, theta_bins=13,
                                                 overlay_nerd_obs=True,
                                                 savefig=savefig)
+                                                
+    wvl13.plot_bidirectional_reflectance_factor(30)
                                                 
 def nerd_ssa_cal_60(savefig=False):
     wvl13 = MonteCarloDataSet(shapes=['sphere','droxtal', 
@@ -1645,6 +1663,7 @@ def nerd_ssa_cal_60(savefig=False):
     wvl13.add_observational_data(40333.84/DENSITY_ICE,
                                  [0.539, 0.534, 0.535, 0.537],
                                  '07:00EST 2-10-17 BC')
+                                 
                                  
     wvl13.plot_bidirectional_reflectance_factor(60, theta_bins=18,
                                                 overlay_nerd_obs=True,
