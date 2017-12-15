@@ -1663,9 +1663,15 @@ def nerd_ssa_cal_60(savefig=False):
     wvl13.add_observational_data(40333.84/DENSITY_ICE,
                                  [0.539, 0.534, 0.535, 0.537],
                                  '07:00EST 2-10-17 BC')
-                                 
-                                 
-    wvl13.plot_bidirectional_reflectance_factor(60, theta_bins=18,
+    wvl13.add_observational_data([78577.62, 56459.85, 60140.61]/DENSITY_ICE,
+                                  [0.663, 0.664, 0.650, 0.651],
+                                  '17:00EST 3-14-17 fresh needles')
+                                  
+    wvl13.add_observational_data(49745.13/DENSITY_ICE,
+                                 [0.552, 0.560, 0.562, 0.624],
+                                 '12:00EST 3-15-17 day old')
+
+    wvl13.plot_bidirectional_reflectance_factor(60, theta_bins=13,
                                                 overlay_nerd_obs=True,
                                                 savefig=savefig)
 
