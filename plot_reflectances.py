@@ -1605,7 +1605,7 @@ def nerd_ssa_cal_30(savefig=True):
     wvl13.add_observational_data(np.array([78577.62, 56459.85, 60140.61])
                                           /DENSITY_ICE,
                                   [0.616, 0.614, 0.617, 0.617],
-                                  '17:00EST 3-14-17 fresh needles')
+                                  '17:00EST 3-14-17 fresh')
                                   
     wvl13.add_observational_data(49745.13/DENSITY_ICE,
                                  [0.483, 0.495, 0.526, 0.545],
@@ -1667,7 +1667,7 @@ def nerd_ssa_cal_60(savefig=False):
     wvl13.add_observational_data(np.array([78577.62, 56459.85, 60140.61])
                                            /DENSITY_ICE,
                                   [0.663, 0.664, 0.650, 0.651],
-                                  '17:00EST 3-14-17 fresh needles')
+                                  '17:00EST 3-14-17 fresh')
                                   
     wvl13.add_observational_data(49745.13/DENSITY_ICE,
                                  [0.552, 0.560, 0.562, 0.624],

@@ -14,8 +14,8 @@ import math
 import numpy as np
 from scipy import interpolate
 from scipy.io import netcdf
-#from matplotlib import pyplot as plt
-#from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 from parallelize import Parallel
 
@@ -1648,6 +1648,9 @@ class MonteCarlo(object):
                 print('%s' % output_file) # for easy post processing
         
         else: # no modeling, only plotting phase functions
+            print('wvl = %r' % wvl0)
+            print('rds_snw = %r' % rds_snw)
+            print('mean_g = %r' % np.mean(g))
             self.plot_phase_function()
             if not self.shape=='sphere' and not self.HG:
                 # also compare phase functions

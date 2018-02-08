@@ -31,26 +31,25 @@ class Subplots(object):
                               'severely rough']):
         nrows = len(roughnesses)
         ncols = len(shapes)
-        fig, axarr = plt.subplots(nrows, ncols, sharex='col', sharey='row',
-                                  figsize=(ncols*8, nrows*6))
+        fig, axarr = plt.subplots(nrows, ncols, sharex='col', sharey='row')
+                                  #figsize=(ncols*8, nrows*6))
         if nrows==1 and ncols==1:
             axarr = np.array([axarr])
         if nrows==1 or ncols==1:    
             axarr.shape = (nrows, ncols)
         
-        fontsize = 24
+        #fontsize = 24
         
         for row, roughness in enumerate(roughnesses):
             for col, shape in enumerate(shapes):
                 if row == 0:
-                    axarr[row,col].set_title('%s' % shape, fontsize=fontsize)
+                    axarr[row,col].set_title('%s' % shape)
                 if col ==0:
-                    axarr[row,col].set_ylabel('%s' % roughness, 
-                                              fontsize=fontsize)
+                    axarr[row,col].set_ylabel('%s' % roughness)
                 
         #plt.show()
         
-        self.fontsize = fontsize
+        #self.fontsize = fontsize
         self.nrows = nrows
         self.ncols = ncols
         self.fig = fig
@@ -112,8 +111,9 @@ class Subplots(object):
         Theta_HG = np.arccos(self.cos_Theta_HG)
         Theta_HG_deg = np.rad2deg(Theta_HG)
         
-        legend_font_size = 11
+        #legend_font_size = 11
         colors = ['b','g','r','c','m','y','k']
+        colors = ['b','r', 'g', 'c', 'm', 'y', 'k']
         counter = 0
         for row, roughness in enumerate(self.roughnesses):
             for col, shape in enumerate(self.shapes):
@@ -168,17 +168,17 @@ class Subplots(object):
                                     linestyle='dashed',
                                     label='HG(g=%s)' % g)
                 
-                ax.legend(loc=1, fontsize=legend_font_size)
+                ax.legend(loc=1)
                         
                 ax.set_xticks([0,90,180])
-                ax.set_xlim((-9,189))
-                ax.set_xticklabels([0, 90, 180])
+                #ax.set_xlim((-9,189))
+                #ax.set_xticklabels([0, 90, 180])
                 ax.grid()
                     
                 if row == self.nrows - 1:
                     # last row
-                    ax.set_xlabel('Scattering angle ($^{\circ}$)',
-                                  fontsize=self.fontsize)
+                    ax.set_xlabel('Scattering angle ($^{\circ}$)')
+                                  #fontsize=self.fontsize)
         
         if savefig:
             wvl_nm = np.around(wvl * 1000)
@@ -186,6 +186,7 @@ class Subplots(object):
             fig_name = '%dnm_scattering_phase_functions.pdf' % wvl_nm
             #fig_path = os.path.join(fig_dir, fig_name)
             self.fig.savefig(fig_name)
+            plt.close()
         else:
             plt.show()
             plt.close()
@@ -220,7 +221,7 @@ def multiple_wvls(wvls=[0.4, 0.5, 0.55, 0.88, 1.3, 1.55],
                   roughnesses=['smooth', 'moderately rough', 'severely rough']):
     for i, wvl in enumerate(wvls):
         subplots = Subplots(shapes=shapes, roughnesses=roughnesses)
-        subplots.plot_phase_functions(wvl, rds_snw_list)
+        subplots.plot_phase_functions(wvl, rds_snw_list, savefig=True)
 
 def all_phase_funcs(wvl=1.3,
                     rds_snw_list=[50,100,250,500,1000]):
@@ -230,7 +231,10 @@ def all_phase_funcs(wvl=1.3,
 def main():
     #all_phase_funcs()
     #subsample()
-    multiple_wvls()
+    plt.style.use('agu_half_horizontal')
+    multiple_wvls(wvls=[0.530, 1.060], rds_snw_list=[0,205],
+              shapes=['droxtal','solid hexagonal column','hexagonal plate'],
+              roughnesses=['smooth'])
     
 if __name__=='__main__':
     main()
