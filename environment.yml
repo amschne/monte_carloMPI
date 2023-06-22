@@ -1,0 +1,14 @@
+name: monte_carloMPI
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - openmpi
+  - python=2
+  - matplotlib
+  - scipy
+  - ipython
+  - pandas
+  - mpi4py
+prefix: $HOME/miniconda2/envs/monte_carlo
+
