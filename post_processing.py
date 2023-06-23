@@ -6,16 +6,14 @@
 import os
 import sys
 
-import ConfigParser
+import configparser
 import argparse
 
 import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 
-import polar_demo
-
-import ipdb as pdb
+from monte_carloMPI import polar_demo
 
 class MonteCarloData(object):
     def __init__(self, args, file_list):
@@ -316,7 +314,7 @@ class MonteCarloData(object):
         print(' ')
 
 def get_args():
-    config = ConfigParser.SafeConfigParser()
+    config = configparser.SafeConfigParser()
     config_file = 'config.ini'
     config.read(config_file)
     
@@ -372,7 +370,7 @@ def read_data(args, file_list):
         rds_snw = float(name.split('_')[2])
         
         file_path = os.path.join(data_dir, name)
-        print file_path
+        print(file_path)
         data = pd.read_csv(file_path, delim_whitespace=True)
         
         data_dict[rds_snw][wvl0] = data
