@@ -17,6 +17,7 @@ https://docs.conda.io/en/latest/miniconda.html to install miniconda).
 Note that the following command pertains to the development version of the
 project stored on GitHub. If you already obtained an archive of this repository
 (e.g., via Zotero), move to step 1.
+    
     git clone  https://github.com/amschne/monte_carloMPI.git; cd monte_carloMPI
 ## 1. Import the conda environment
     conda env create -n ENVNAME --file environment.yml
