@@ -8,9 +8,9 @@ see the article published by Schneider et al. (2019).
 -------------------------------------------------------------------------------
 
 # How to execute a model simulation
-Executing the model requires an mpi4py installation and Python 2. The model has run
-successfully on a computer Red Hat Enterprise Linux (v8.8) via a miniconda2
-installation (see
+Executing the model requires an mpi4py installation. The model has run
+successfully on computers running Red Hat Enterprise Linux (v8.8) and macOS (v13.4)
+via a miniconda installation (see
 https://docs.conda.io/en/latest/miniconda.html to install miniconda).
 
 ## 0. Download this repository
@@ -19,8 +19,9 @@ project stored on GitHub. If you already obtained an archive of this repository
 (e.g., via Zenodo), move to step 1.
     
     git clone  https://github.com/amschne/monte_carloMPI.git; cd monte_carloMPI
-## 1. Import the conda environment
+## 1. Import and activate the conda environment
     conda env create -n ENVNAME --file environment.yml
+    conda activate ENVNAME
 ## 2. Unpack model input data, originally generated with the Mie solver of Bohren and Huffman (1983)
     tar -xzvf Bohren_and_Huffman_1983_Mie_solver_data.tar.gz
 ## 3. Configure the model simulation
@@ -29,7 +30,7 @@ Model simulation parameters can be specified by editing the driver script
     monte_carlo3D-run.py
 In the driver script, n_photon sets the number of photon (packets). Although
 the default is set to 10 thousand photon packets, Schneider et al. (2019) found
-that at least 1 million photon packets are needed to acheive stochastic convergence.
+that at least 1 million photon packets are needed to achieve stochastic convergence.
 Because tracing 1 million photon packets is computationally time consuming,
 the default of 10 thousand allows users to more easily test their installation.
 
@@ -64,10 +65,10 @@ is organized by column with the following headings:
         3: photon packet exits bottom of snowpack without any scattering events (direct transmittance)
         4: photon packet absorbed
     wvn[um^-1] - wavenumber corresponding with the photon packet 
-    theta_n - zenith angle of photon packet's final propogation before exiting or reflected by snowpack (radians)
-    phi_n - azimuthal angle of photon packet's final propogation before exiting or reflected by snowpack (radians)
+    theta_n - zenith angle of photon packet's final propagation before exiting or reflected by snowpack (radians)
+    phi_n - azimuthal angle of photon packet's final propagation before exiting or reflected by snowpack (radians)
     n_scat - number of scattering events encountered by a photon packet
-    path_length[m] - Distance of photon packet's propogation, including multiple scattering, within snowpack
+    path_length[m] - Distance of photon packet's propagation, including multiple scattering, within snowpack
     snow_depth[m] - Effective depth of snowpack
 
 The results of a simulation can be visualized via a polar plot of the bidirectional reflectance
@@ -75,8 +76,19 @@ factor, e.g.,
 
     python post_processing.py --output_dir monte_carlo_results/sphere $(ls monte_carlo_results/sphere/*.txt | xargs)
 
+# Acknowledgements
+Development of the model and this repository is a collaborative effort and was supported by the National Science
+Foundation (grant no. ARC-1253154). Many thanks to Jordan Schneider for their work upgrading the codes to
+be compatible with Python 3 and for developing the parallelized implementation, which is
+crucial for conducting simulations of over one million photon packets within a reasonable timeline.
+The model was developed originally from a MATLAB version created by Mark Flanner, who advised the
+scientific development and application of the model. Finally, thanks to Zach Fair (and Fair et al., 2022)
+for motivating ongoing development and utilizing earlier versions of this repository.
+
 # References
 Bohren, C. F., & Huffman, D. R. (1983). Absorption and Scattering of Light by Small Particles. _Wiley_.
+
+Fair, Z., Flanner, M., Schneider, A., and Skiles, S. M. (2022). Sensitivity of modeled snow grain size retrievals to solar geometry, snow particle asphericity, and snowpack impurities, _The Cryosphere, 16_, 3801–3814, https://doi.org/10.5194/tc-16-3801-2022.
 
 Schneider, A., Flanner, M., De Roo, R., and Adolph, A. (2019). Monitoring of snow surface near-infrared bidirectional reflectance factors with added light-absorbing particles, _The Cryosphere, 13_, 1753–1766, https://doi.org/10.5194/tc-13-1753-2019.
 
