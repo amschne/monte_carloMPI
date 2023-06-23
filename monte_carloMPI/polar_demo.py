@@ -3,9 +3,6 @@ to a full 360 deg.
 Based on http://matplotlib.org/mpl_toolkits/axes_grid/examples/demo_floating_axes.py
 """
 
-from __future__ import division
-from __future__ import print_function
-
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -65,8 +62,8 @@ def fractional_polar_axes(f, thlim=(0, 180), rlim=(0, 1), step=(30, 0.2),
     a.patch.zorder = -2
 
     # add sector lines for both dimensions:
-    thticks = grid_helper.grid_info['lon_info'][0]
-    rticks = grid_helper.grid_info['lat_info'][0]
+    thticks = grid_helper._grid_info['lon_info'][0]
+    rticks = grid_helper._grid_info['lat_info'][0]
     for th in thticks[1:-1]: # all but the first and last
         auxa.plot([th, th], [r0, r1], '--', c='grey', zorder=-1)
     for ri, r in enumerate(rticks):

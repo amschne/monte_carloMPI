@@ -7,7 +7,7 @@
 import os
 import sys
 
-import ConfigParser
+import configparser
 import argparse
 
 import math
@@ -17,7 +17,7 @@ from scipy.io import netcdf
 from matplotlib import pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-from parallelize import Parallel
+from .parallelize import Parallel
 
 #import ipdb
 import time
@@ -35,7 +35,7 @@ def timefunc(f):
         start = time.time()
         result = f(*args, **kwargs)
         end = time.time()
-        print f.__name__, 'took', end - start, 'time'
+        print(f.__name__, 'took', end - start, 'time')
         return result
     return f_timer
 
@@ -76,7 +76,7 @@ class MonteCarlo(object):
                            'phase_functions': model_args.phase_functions}
         
         # overwrite model_args_dict[kwarg] if specified at instantiation
-        for kwarg, val in model_kwargs.items():
+        for kwarg, val in list(model_kwargs.items()):
             model_args_dict[kwarg] = val
         
         self.tau_tot = model_args_dict['tau_tot']
@@ -1778,7 +1778,7 @@ class MonteCarlo(object):
     def get_model_args(self):    
         """ Specify model kwargs at run time or get values from config.ini
         """  
-        config = ConfigParser.SafeConfigParser()
+        config = configparser.SafeConfigParser()
         #data_dir = os.path.join(os.getcwd(), 'data')
         #config_file = os.path.join(data_dir, 'config.ini')
         config_file = 'config.ini'

@@ -73,7 +73,7 @@ is organized by column with the following headings:
 The results of a simulation can be visualized via a polar plot of the bidirectional reflectance
 factor, e.g., 
 
-    python monte_carloMPI/post_processing.py --output_dir monte_carlo_results/sphere $(ls monte_carlo_results/sphere/*.txt | xargs)
+    python post_processing.py --output_dir monte_carlo_results/sphere $(ls monte_carlo_results/sphere/*.txt | xargs)
 
 # References
 Bohren, C. F., & Huffman, D. R. (1983). Absorption and Scattering of Light by Small Particles. _Wiley_.
